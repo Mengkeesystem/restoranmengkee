@@ -190,11 +190,11 @@ footer a{color:#fff}
 
 <main id="top">
   <div class="hero" id="hero"><div class="wrap" id="heroIn"></div></div>
-  <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
+  <section id="about" style="background:#FBF1E4"><div class="wrap"><h2 data-t="aboutT"></h2><div id="story"></div><div class="gal" id="gallery"></div></div></section>
   <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div class="promos" id="promoList"></div></div></section>
   <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
-  <section id="about"><div class="wrap"><h2 data-t="aboutT"></h2><div id="story"></div><div class="gal" id="gallery"></div></div></section>
+  <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
     <div><h2 data-t="hoursT"></h2><table class="hrs" id="hours"></table></div>
     <div><h2 data-t="contactT"></h2><div id="contactInfo"></div></div>
@@ -222,8 +222,8 @@ const money = n => CUR+" "+(Math.round(n*100)/100).toFixed(2);
 
 /* ---------- 文字（中/英） ---------- */
 const T = {
-  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单到店自取",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"关于我们",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点「导航」用 Google Maps 带路",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",
-      navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"关于",navContact:"联系",
+  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单到店自取",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点「导航」用 Google Maps 带路",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",
+      navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"故事",navContact:"联系",
       open:"营业中",closed:"已打烊",closedToday:"今天休息",opensAt:"营业至",nextOpen:"下次营业",orderNow:"网上点餐",bookNow:"订位",
       days:["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],rest:"休息",
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
@@ -238,7 +238,7 @@ const T = {
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda 外送",gf:"GrabFood 外送",follow:"关注我们 / 外送平台",
       until:"至",longTerm:"长期有效"},
   en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap “Directions” to open Google Maps",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",
-      navMenu:"Menu",navPromo:"Promos",navBook:"Book",navAbout:"About",navContact:"Contact",
+      navMenu:"Menu",navPromo:"Promos",navBook:"Book",navAbout:"Story",navContact:"Contact",
       open:"Open now",closed:"Closed",closedToday:"Closed today",opensAt:"Open until",nextOpen:"Next open",orderNow:"Order online",bookNow:"Book a table",
       days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],rest:"Closed",
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
@@ -337,7 +337,7 @@ function renderHeader(){
   document.documentElement.lang = lang==="en"?"en":"zh";
   if(S.logo){let ic=document.querySelector('link[rel="icon"]');if(!ic){ic=document.createElement("link");ic.rel="icon";document.head.appendChild(ic);}ic.href=S.logo;}
   $("brand").innerHTML = S.logo ? `<img src="${esc(S.logo)}" alt="${esc(S.name)}"><span>${esc(L(S,"name"))}</span>` : esc(L(S,"name"));
-  const links=[["outlets","navOutlet",!outlets().length],["menu","navMenu"],["promos","navPromo",!activePromos().length],["booking","navBook",!(S.booking&&S.booking.enabled)],["about","navAbout"],["contact","navContact"]];
+  const links=[["about","navAbout"],["promos","navPromo",!activePromos().length],["menu","navMenu"],["booking","navBook",!(S.booking&&S.booking.enabled)],["outlets","navOutlet",!outlets().length],["contact","navContact"]];
   $("nav").innerHTML = links.filter(l=>!l[2]).map(([id,k])=>`<a href="#${id}">${esc(t(k))}</a>`).join("");
   $("langBtn").textContent = lang==="en"?"中文":"EN";
   $("cartBtn").hidden = !(S.ordering&&S.ordering.enabled);
