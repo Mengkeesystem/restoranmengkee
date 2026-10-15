@@ -101,6 +101,21 @@ window.SITE = {
     // { hash: "…", title: "开张优惠 9 折", titleEn: "Opening 10% off", type: "percent", value: 10, minSpend: 50, maxOff: 30, from: "2026-10-01", to: "2026-12-31" },
   ],
 
+
+  /* ---------- 付款（结账时显示） ----------
+   * qr: DuitNow QR 图片（放 images/ 里，例如 "images/duitnow-qr.png"）
+   * bankName / accountName / accountNo: 银行转账资料（会显示「复制」按钮）
+   * allowPayAtCounter: true = 客人可选「到店付款」；false = 一定要先转账
+   * qr 和 accountNo 都空着 = 结账不显示付款区块。
+   * 某分店用不同户口：在 outlets 那间加 payment: { qr: "...", accountNo: "..." } 覆盖。 */
+  payment: {
+    qr: "",                 // TODO 明记的 DuitNow QR 图片
+    bankName: "",           // TODO 例如 "Maybank"
+    accountName: "",        // TODO 例如 "MENG KEE RESTAURANT SDN BHD"
+    accountNo: "",          // TODO 户口号码
+    allowPayAtCounter: true,
+  },
+
   /* ---------- 订位设定 ---------- */
   booking: {
     enabled: true,

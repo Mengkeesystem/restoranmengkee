@@ -74,6 +74,22 @@ nav.links a:hover{background:#F6EADB}
 .outlet .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:auto;padding-top:8px}
 .outlet .acts a{font-size:13px;padding:7px 14px;min-height:36px}
 
+/* payment */
+.paybox{padding:12px;background:#F4FBF6;border:1px solid #CDEBD6;border-radius:12px}
+.paymodes{display:flex;flex-wrap:wrap;gap:8px}
+.paymodes label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;cursor:pointer;margin:0}
+.paymodes label.on{border-color:var(--ok);background:#E6F6EC;color:var(--ok)}
+.paymodes input[type=radio]{width:auto;margin:0;padding:0}
+.paydetail{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.payamt{font-size:16px}.payamt b{font-size:20px;color:var(--p)}
+.payqr{display:block;margin:0 auto;max-width:240px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.payqr img{width:100%}
+.bank{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.bank div{display:flex;align-items:center;gap:8px;padding:5px 0;flex-wrap:wrap}
+.bank span{color:var(--mut);font-size:13px;min-width:70px}
+.bank .accno{font-size:17px;letter-spacing:1px}
+.bank .copy{padding:4px 12px;min-height:32px;font-size:13px;margin-left:auto}
+
 /* vouchers */
 .vbox{margin-bottom:18px;border-left:6px solid var(--a)}
 .vbox h3{margin:0 0 4px;font-size:18px}
@@ -242,7 +258,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单 (自取)",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -257,7 +273,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order (Pickup)",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -333,6 +349,8 @@ window.__site = {
   add:(id,d)=>{ const it=allItems[id]; if(!it) return; const p=curPick(it); stepKey(keyOf(id,p.si,p.oi),d); },
   step:(k,d)=>stepKey(k,d),
   vRemove:()=>removeVoucher(),
+  pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); },
+  copy:(txt)=>{ const done=()=>toast(t("copied")+" ✓"); try{ navigator.clipboard.writeText(txt.replace(/\s|-/g,"")).then(done,()=>prompt(t("copy"),txt)); }catch(e){ prompt(t("copy"),txt); } },
   size:(id,si)=>{ curPick(allItems[id]).si=+si; renderMenu(); },
   opt:(id,oi)=>{ curPick(allItems[id]).oi=+oi; renderMenu(); },
 };
@@ -571,6 +589,7 @@ function renderDrawer(){
         <div><label>${esc(t("pickupDate"))}</label><select id="od_date">${dates.join("")}</select></div>
         <div><label>${esc(t("pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,o.pickupLeadMinutes,15,prevTime)}</select></div>
         <div class="full"><label>${esc(t("remark"))}</label><input id="od_note" value="${esc(prev.note)}"></div>
+        <div class="full" id="payBox">${payBoxHTML(prevOutlet)}</div>
         <div class="full err" id="od_err"></div>
         <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn wa" id="od_send" style="flex:1">💬 ${esc(t("checkout"))}</button><button class="btn alt" id="od_clear">${esc(t("clear"))}</button></div>
         <div class="full note">${esc(t("waNote"))}</div>
@@ -580,6 +599,7 @@ function renderDrawer(){
   if($("vBtn2")){ $("vBtn2").onclick=()=>applyVoucher($("vInput2").value); $("vInput2").onkeydown=e=>{ if(e.key==="Enter") applyVoucher($("vInput2").value); }; }
   if(!ids.length) return;
   $("od_date").onchange=e=>{$("od_time").innerHTML=timeOptions(e.target.value,15,o.pickupLeadMinutes,15);};
+  if($("od_outlet")) $("od_outlet").addEventListener("change",e=>{ $("payBox").innerHTML=payBoxHTML(e.target.value); });
   $("od_clear").onclick=()=>{cart={};saveCart();refreshCart();};
   $("od_send").onclick=()=>{
     const name=$("od_name").value.trim(), phone=$("od_phone").value.trim(), date=$("od_date").value, time=$("od_time").value;
@@ -587,10 +607,41 @@ function renderDrawer(){
     const err = !Object.keys(cart).length?t("needItems"):(oi==="")?t("needOutlet"):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(!date||!time)?t("needTime"):"";
     $("od_err").textContent=err; if(err) return;
     store.set("site_guest",{name,phone,outlet:oi});
+    const pi=payInfo(oi), payLine = !pi ? null : payMode==="now" ? `${t("payMethod")}: ${t("payNowWa").replace("{x}",money(finalTotal()))}` : `${t("payMethod")}: ${t("payCounter")}`;
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)} x${q} = ${money(unitPrice(it,si)*q)}`;});
     const note=$("od_note").value.trim();
-    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...(voucher?[`${t("subtotal")}: ${money(cartTotal())}`,`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${vDiscount(cartTotal())>0?" −"+money(vDiscount(cartTotal())):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${cartTotal()<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`]:[]),`${t("total")}: ${money(finalTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null].filter(x=>x!==null).join("\n"), oi);
+    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...(voucher?[`${t("subtotal")}: ${money(cartTotal())}`,`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${vDiscount(cartTotal())>0?" −"+money(vDiscount(cartTotal())):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${cartTotal()<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`]:[]),`${t("total")}: ${money(finalTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n"), oi);
   };
+}
+/* ---------- 付款（DuitNow QR / 银行转账） ----------
+ * config.js 的 payment；分店可用 outlets[i].payment 覆盖。没填 qr 也没填 accountNo 就不显示。 */
+let payMode = null;
+function payInfo(oi){
+  const o = (oi!==undefined&&oi!==""&&outlets()[+oi]) || null;
+  const p = Object.assign({}, S.payment||{}, (o&&o.payment)||{});
+  return (p.qr||p.accountNo) ? p : null;
+}
+function payBoxHTML(oi){
+  const p=payInfo(oi); if(!p) return "";
+  const counterOK = p.allowPayAtCounter!==false;
+  if(payMode===null || (!counterOK && payMode==="counter")) payMode = p.defaultMode==="counter"&&counterOK ? "counter" : "now";
+  const amt = money(finalTotal());
+  return `<div class="paybox"><label class="dvl">💳 ${esc(t("payTitle"))}</label>
+    <div class="paymodes">
+      <label class="${payMode==="now"?"on":""}"><input type="radio" name="paymode" value="now" ${payMode==="now"?"checked":""} onchange="__site.pay('now')"> ${esc(t("payNow"))}</label>
+      ${counterOK?`<label class="${payMode==="counter"?"on":""}"><input type="radio" name="paymode" value="counter" ${payMode==="counter"?"checked":""} onchange="__site.pay('counter')"> ${esc(t("payCounter"))}</label>`:""}
+    </div>
+    ${payMode==="now"?`<div class="paydetail">
+      <div class="payamt">${esc(t("payAmount"))} <b>${amt}</b></div>
+      ${p.qr?`<a href="${esc(p.qr)}" target="_blank" rel="noopener" class="payqr"><img src="${esc(p.qr)}" alt="DuitNow QR"></a><div class="note" style="text-align:center">${esc(t("payQrHint"))}</div>`:""}
+      ${p.accountNo?`<div class="bank">
+        ${p.bankName?`<div><span>${esc(t("payBank"))}</span><b>${esc(p.bankName)}</b></div>`:""}
+        ${p.accountName?`<div><span>${esc(t("payAccName"))}</span><b>${esc(p.accountName)}</b></div>`:""}
+        <div><span>${esc(t("payAccNo"))}</span><b class="accno">${esc(p.accountNo)}</b><button type="button" class="btn alt copy" onclick="__site.copy('${esc(String(p.accountNo).replace(/[^\d\s-]/g,""))}')">${esc(t("copy"))}</button></div>
+      </div>`:""}
+      <div class="note">⚠️ ${esc(L(p,"note")||t("payAfter"))}</div>
+    </div>`:`<div class="note" style="margin-top:6px">${esc(t("payCounterHint"))}</div>`}
+  </div>`;
 }
 function openDrawer(){ drawerOpen=true; renderDrawer(); $("drawer").classList.add("show"); $("ov").classList.add("show"); document.body.style.overflow="hidden"; refreshCartFab(); }
 function closeDrawer(){ drawerOpen=false; $("drawer").classList.remove("show"); $("ov").classList.remove("show"); document.body.style.overflow=""; refreshCartFab(); }
