@@ -97,6 +97,7 @@ window.SITE = {
    *       value(数值), minSpend(最低消费), maxOff(最多折扣 RM), gift/giftEn(送什么), from/to(有效日期，含当天)
    * 静态网站无法限制使用次数：顾客下单讯息会带优惠码，由店员在 WhatsApp 核对。 */
   vouchers: [
+    { hash: "66c5af23f003fb398977fdc6af49d9f495ea7915b3876d34453945e0121b64af", title: "新客优惠 减 RM10", titleEn: "New guest RM10 off", type: "amount", value: 10, minSpend: 100 },
     // { hash: "…", title: "开张优惠 9 折", titleEn: "Opening 10% off", type: "percent", value: 10, minSpend: 50, maxOff: 30, from: "2026-10-01", to: "2026-12-31" },
   ],
 
