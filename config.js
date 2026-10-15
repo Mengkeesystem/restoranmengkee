@@ -10,19 +10,19 @@
 window.SITE = {
   /* ---------- 基本资料 ---------- */
   name: "明记家乡小食店",                 // TODO 确认正式店名
-  nameEn: "Meng Kee Hometown Kitchen",    // TODO 确认英文名
+  nameEn: "Meng Kee Restaurant",
   tagline: "家乡的味道，一锅一铲炒出来",
   taglineEn: "Hometown flavours, wok-fried to order",
-  logo: "",                               // 例如 "images/logo.png"；留空会显示店名文字
+  logo: "images/logo.png",               // 网站 logo（页头、首页、浏览器分页图标）
   heroImage: "",                          // 首页大图，例如 "images/hero.jpg"；留空用纯色背景
 
   /* WhatsApp 号码：国家码开头、不要 + 和空格，例如 60123456789 */
   whatsapp: "60123456789",                // TODO 换成明记的 WhatsApp 号码
   phone: "+60 12-345 6789",               // TODO 显示用电话
-  address: "No. 1, Jalan Contoh, 53000 Kuala Lumpur", // TODO 地址
+  address: "",                            // 多间分店时留空，地址改看下面 outlets
   /* Google Maps：在 Google Maps 搜到店 →「分享」→「嵌入地图」，复制 iframe 里 src="..." 的网址贴这里 */
   mapEmbed: "",                           // TODO 留空则显示「在 Google Maps 打开」按钮
-  mapLink: "https://maps.google.com/?q=Meng+Kee",     // TODO 店的 Google Maps 链接
+  mapLink: "",                            // 单店时填 Google Maps 链接；多间分店留空
 
   /* 营业时间：0=星期日 … 6=星期六；休息日写 null。可一天两段：[["07:00","14:00"],["17:00","21:00"]] */
   hours: {                                // TODO 确认营业时间
@@ -42,6 +42,24 @@ window.SITE = {
     foodpanda: "",                        // TODO
     grabfood: "",                         // TODO
   },
+
+  /* ---------- 门店地址（分店） ----------
+   * 按 region 分组显示（顺序 = 第一次出现的顺序）。
+   * 每间可选填：hours(营业时间文字)、phone(显示用电话)、whatsapp(该店号码，国家码开头)、map(Google Maps 链接)。
+   * 没填 map 会自动用地址搜 Google Maps；没填 whatsapp 订位/点餐就发到上面的总号码。 */
+  outlets: [
+    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR", address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR (Scott Garden 对面)", nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Kelana Jaya (PJ)", address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
+    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
+  ],
 
   /* ---------- 品牌故事 ---------- */
   story: [                                // TODO 换成明记真实的故事

@@ -9,6 +9,8 @@
 - 订位、点餐都是**转 WhatsApp**（`wa.me/<号码>?text=...`，订单内容自动组好）。业主选这个方式的原因：不用后台、不用月费、马来西亚小店最常用。店员在 WhatsApp 回复确认才算成功。
   - 第二阶段如要「订单直接进 ERP」，需要在该店**自己的** Supabase 开一张只允许匿名 insert 的表（RLS 只给 insert，不给 select），网站提交时写进去，ERP 那边读。别直接拿 ERP 现有的 `erp_store`。
 - 营业时间 `hours` 驱动：首页「营业中/已打烊」、订位可选时间（开门后、打烊前 60 分钟为止，每 `slotMinutes`）、自取可选时间（今天/明天/后天，现在 + `pickupLeadMinutes` 之后、打烊前 15 分钟为止，每 15 分钟）。休息日自动不出现在日期选单。
+- **多分店（2026-10-15）**：明记共 11 间（雪隆区 10 + 芙蓉区 1 / Seremban 2），资料来自业主上传的分店地址 PDF，写在 `config.js` 的 `outlets`。首页「门店地址」区块按 `region` 分组（照业主给的参考图样式：区域标题 + 卡片），导航按钮默认用「英文店名+地址」搜 Google Maps。订位/点餐表单在有 outlets 时**必须选分店**，WhatsApp 讯息第一行带分店名；分店有自己的 `whatsapp` 就发到该店，否则发到总号码 `whatsapp`。单店模式（牛室目前只有 Setapak 一间）把 `outlets` 设成 `[]`，回到原本的单一 `address`/`mapLink`/`mapEmbed`。
+- Logo：`images/logo.png`（业主提供的红底金字「明记」方形图），同时用作首页大图标和浏览器分页图标。
 - 优惠 `promos` 按 `from`/`to` 自动显示/隐藏。
 - 购物车、语言、客人姓名电话存 `localStorage`（只在客人自己的浏览器，全部 try/catch，失效不影响使用）。
 - 所有 `config.js` 文字输出都经 `esc()` 转义（沿用 ERP 那边 XSS 教训）。

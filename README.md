@@ -5,6 +5,7 @@
 ## 功能
 | 功能 | 说明 |
 |---|---|
+| 门店地址 | 按区域（雪隆区 / 芙蓉区…）分组列出全部分店，每间有「导航」按钮直接开 Google Maps |
 | 介绍餐厅 | 品牌故事、环境照片、营业时间（自动显示「营业中/已打烊」）、地址 + Google Maps、电话 / WhatsApp |
 | 菜单 | 分类、照片、价钱、招牌/人气标签、售完标记 |
 | 网上点餐（自取） | 加购物车 → 填姓名电话、自取日期时间 → **一键打开 WhatsApp，订单内容自动带好发给店里** |
@@ -26,8 +27,9 @@ images/      照片：菜品图、门面/环境照、logo、首页大图
 1. 打开 `config.js`，把标了 `TODO` 的地方换成真实资料（**目前菜单/价钱/地址/电话全部是示例**）。
 2. 照片放进 `images/`，在 `config.js` 里写文件名，例如 `image: "images/ckt.jpg"`。
    建议菜品照片横的 4:3，每张压缩到 300KB 以内（手机打开比较快）。
-3. WhatsApp 号码格式：国家码开头、不要 `+` 和空格，例如 `60123456789`。
-4. Google Maps 嵌入：在 Google Maps 找到店 → 分享 → 嵌入地图 → 复制 `src="..."` 里的网址贴到 `mapEmbed`。
+3. **分店**：在 `config.js` 的 `outlets` 里增删。每间可加 `hours`(营业时间)、`phone`、`whatsapp`(该店自己的号码)、`map`(Google Maps 链接)。客人订位/点餐时要先选分店；该分店有填 `whatsapp` 就发到那间店，没有就发到总号码。
+4. WhatsApp 号码格式：国家码开头、不要 `+` 和空格，例如 `60123456789`。
+5. Google Maps 嵌入：在 Google Maps 找到店 → 分享 → 嵌入地图 → 复制 `src="..."` 里的网址贴到 `mapEmbed`。
 
 ## 上线（GitHub Pages）
 仓库 → Settings → Pages → Source 选 `Deploy from a branch`，Branch 选 `main` / `(root)` → Save。
