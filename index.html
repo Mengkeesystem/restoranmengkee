@@ -120,10 +120,19 @@ nav.links a:hover{background:#F6EADB}
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px;position:sticky;top:60px;background:var(--bg);z-index:5;padding-top:8px;-ms-overflow-style:none;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 .cats button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-weight:700;min-height:40px}
-.cats button.on{background:var(--p);color:#fff;border-color:var(--p)}
-.mcat{margin:8px 0 26px}
-.mcat h3{font-size:20px;margin:0 0 12px;border-bottom:2px solid var(--line);padding-bottom:6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.cats button.on{background:#FFF0D0;color:var(--p);border-color:var(--a)}
+.mcat{margin:0 0 10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.mcat.open{padding:0 14px 14px}
+.mcat.open .mhead{margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--line)}
+.mhead{display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:0;padding:14px 16px;text-align:left;min-height:56px;color:var(--tx)}
+.mhead:hover{background:#FFF8EE}
+.mname{flex:1;font-size:18px;font-weight:800;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mname small{font-size:13px;color:var(--mut);font-weight:600}
+.incart{background:var(--a);color:var(--dk);font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chev{width:32px;height:32px;border-radius:50%;background:#F6EADB;color:var(--p);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex:0 0 auto}
+.mcat.open .chev{background:var(--p);color:#fff}
+.mcat .grid{margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;align-items:start}
 .item{background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column}
 .ph{aspect-ratio:4/3;background:#F6EADB;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
 .ph img{width:100%;height:100%;object-fit:cover}
@@ -143,15 +152,17 @@ nav.links a:hover{background:#F6EADB}
 .sizes button.on{background:var(--p);border-color:var(--p);color:#fff}
 .sizes button.on b{color:#fff}
 .optsel{margin-top:8px;width:100%;font-size:16px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--tx);font-family:inherit}
-.item.noimg .ph{aspect-ratio:auto;height:64px;font-size:28px}
+/* 菜品卡：所有屏幕都用「左图右文」紧凑横排，桌面两~三栏 */
+.mcat .grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-items:stretch}
+.item{flex-direction:row}
+.item .ph,.item.noimg .ph{aspect-ratio:auto;width:120px;min-width:120px;height:auto;min-height:120px;font-size:30px}
+.item .ph img{position:absolute;inset:0}
+.item .in{padding:10px 12px}
+.tag{top:6px;left:6px;font-size:11px;padding:2px 7px}
+.code{bottom:6px;right:6px}
 @media(max-width:560px){
-  .grid{grid-template-columns:1fr;gap:10px}
-  .item{flex-direction:row}
-  .item .ph,.item.noimg .ph{aspect-ratio:auto;width:110px;min-width:110px;height:auto;min-height:110px;font-size:30px}
-  .item .ph img{position:absolute;inset:0}
-  .item .in{padding:10px 12px}
-  .tag{top:6px;left:6px;font-size:11px;padding:2px 7px}
-  .code{bottom:6px;right:6px}
+  .mcat .grid{grid-template-columns:1fr;gap:10px}
+  .item .ph,.item.noimg .ph{width:104px;min-width:104px;min-height:104px}
 }
 .mphotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
 .mphotos a{position:relative;display:block;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);text-decoration:none}
@@ -263,7 +274,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -278,7 +289,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -354,6 +365,7 @@ window.__site = {
   add:(id,d)=>{ const it=allItems[id]; if(!it) return; const p=curPick(it); stepKey(keyOf(id,p.si,p.oi),d); },
   step:(k,d)=>stepKey(k,d),
   vRemove:()=>removeVoucher(),
+  cat:(i)=>{ if(openCats.has(i)) openCats.delete(i); else openCats.add(i); renderMenu(); if(openCats.has(i)){ const el=$("cat-"+i); const top=el.getBoundingClientRect().top; if(top<110||top>window.innerHeight-80) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"}); } },
   otype:(v)=>{ orderType=(v==="delivery"&&DEL())?"delivery":"pickup"; store.set("site_otype",orderType); refreshCart(); },
   pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); },
   copy:(txt)=>{ const done=()=>toast(t("copied")+" ✓"); try{ navigator.clipboard.writeText(txt.replace(/\s|-/g,"")).then(done,()=>prompt(t("copy"),txt)); }catch(e){ prompt(t("copy"),txt); } },
@@ -489,12 +501,16 @@ function renderPromos(){
     <div class="in"><h3>${esc(L(p,"title"))}</h3><div>${esc(L(p,"body"))}</div>
     <div class="dt">${p.to?`${esc(p.from||"")} ${esc(t("until"))} ${esc(p.to)}`:esc(t("longTerm"))}</div></div></div>`).join("");
 }
+/* 菜单分类默认折叠，客人点开才显示菜品 */
+const openCats = new Set();
+const catCartCount = c => Object.entries(cart).reduce((n,[k,q])=>{ const {it}=parseKey(k); return n+((c.items||[]).includes(it)?q:0); },0);
 function renderMenu(){
   const on = S.ordering&&S.ordering.enabled;
-  $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}">${esc(L(c,"cat"))}</button>`).join("");
+  $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}" class="${openCats.has(i)?"on":""}">${esc(L(c,"cat"))}</button>`).join("");
   const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
   $("menuPhotos").innerHTML = mp.length?`<div class="mphotos">${mp.map((src,i)=>`<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" loading="lazy"><span>🔍 ${esc(t("menuPhoto"))} ${i+1}</span></a>`).join("")}</div>`:"";
-  $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>`<div class="mcat" id="cat-${i}"><h3>${esc(L(c,"cat"))}</h3>${L(c,"note")?`<p class="note" style="margin:-4px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
+  $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c);
+    return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}"><span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
     (c.items||[]).map(it=>{
       const id=esc(it.id).replace(/'/g,""), p=curPick(it), k=keyOf(it.id,p.si,p.oi), q=cart[k]||0;
       const sn=sizeNames(it);
@@ -506,9 +522,10 @@ function renderMenu(){
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
         <div class="ft"><span class="price">${priceTxt}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
-    }).join("")}</div></div>`).join("");
+    }).join("")}</div>`}</div>`;}).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>{
-    const el=$("cat-"+b.dataset.i); window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});
+    const i=+b.dataset.i; if(!openCats.has(i)){ openCats.add(i); renderMenu(); }
+    const el=$("cat-"+i); window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});
   });
 }
 function dateOptions(minAhead,maxAhead,sel,step,lead,gap){
