@@ -84,7 +84,8 @@ nav.links a:hover{background:#F6EADB}
 .vapplied{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF6DA;border:1px dashed var(--a);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
 .tot.sub{font-size:15px;font-weight:600;margin:6px 0}
 .tot.disc{color:var(--ok)}
-.dv{margin:0 0 14px}
+.dv{margin:14px 0 6px;padding:12px;background:#FFFBF0;border:1px solid var(--line);border-radius:12px}
+.dvl{display:block;font-weight:800;font-size:14px;margin-bottom:6px}
 
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -559,9 +560,9 @@ function renderDrawer(){
     ${ids.length? ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl"><div class="nm">${it.code?`<span class="note">${esc(it.code)}</span> `:""}${esc(itemName(it))}${esc(lineLabel(k))}<div class="note">${money(unitPrice(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(unitPrice(it,si)*cart[k])}</b></div>`;}).join("")
-      + (voucher&&vDiscount(cartTotal())>0?`<div class="tot sub"><span>${esc(t("subtotal"))}</span><span>${money(cartTotal())}</span></div><div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:"")
+      + (vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
+      + (voucher?`<div class="tot sub"><span>${esc(t("subtotal"))}</span><span>${money(cartTotal())}</span></div>${vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
       + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(finalTotal())}</span></div>`
-      + (vouchersOn()?`<div class="dv">${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
       + `${S.ordering&&L(S.ordering,"priceNote")?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(L(S.ordering,"priceNote"))}</p>`:""}
       <div class="form">
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
