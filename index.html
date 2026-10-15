@@ -74,6 +74,18 @@ nav.links a:hover{background:#F6EADB}
 .outlet .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:auto;padding-top:8px}
 .outlet .acts a{font-size:13px;padding:7px 14px;min-height:36px}
 
+/* vouchers */
+.vbox{margin-bottom:18px;border-left:6px solid var(--a)}
+.vbox h3{margin:0 0 4px;font-size:18px}
+.vrow{display:flex;gap:8px}
+.vrow input{flex:1;min-width:0;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;text-transform:uppercase;letter-spacing:1px;font-family:inherit}
+.vmsg{font-size:14px;min-height:20px;margin-top:6px}
+.vmsg.bad{color:var(--p)}
+.vapplied{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF6DA;border:1px dashed var(--a);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+.tot.sub{font-size:15px;font-weight:600;margin:6px 0}
+.tot.disc{color:var(--ok)}
+.dv{margin:0 0 14px}
+
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .promo{background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);border-left:6px solid var(--a)}
@@ -191,7 +203,7 @@ footer a{color:#fff}
 <main id="top">
   <div class="hero" id="hero"><div class="wrap" id="heroIn"></div></div>
   <section id="about" style="background:#FBF1E4"><div class="wrap"><h2 data-t="aboutT"></h2><div id="story"></div><div class="gal" id="gallery"></div></div></section>
-  <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div class="promos" id="promoList"></div></div></section>
+  <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div id="voucherBox"></div><div class="promos" id="promoList"></div></div></section>
   <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
@@ -229,7 +241,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单 (自取)",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -244,7 +256,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order (Pickup)",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -319,6 +331,7 @@ function stepKey(k,d){
 window.__site = {
   add:(id,d)=>{ const it=allItems[id]; if(!it) return; const p=curPick(it); stepKey(keyOf(id,p.si,p.oi),d); },
   step:(k,d)=>stepKey(k,d),
+  vRemove:()=>removeVoucher(),
   size:(id,si)=>{ curPick(allItems[id]).si=+si; renderMenu(); },
   opt:(id,oi)=>{ curPick(allItems[id]).oi=+oi; renderMenu(); },
 };
@@ -337,7 +350,7 @@ function renderHeader(){
   document.documentElement.lang = lang==="en"?"en":"zh";
   if(S.logo){let ic=document.querySelector('link[rel="icon"]');if(!ic){ic=document.createElement("link");ic.rel="icon";document.head.appendChild(ic);}ic.href=S.logo;}
   $("brand").innerHTML = S.logo ? `<img src="${esc(S.logo)}" alt="${esc(S.name)}"><span>${esc(L(S,"name"))}</span>` : esc(L(S,"name"));
-  const links=[["about","navAbout"],["promos","navPromo",!activePromos().length],["menu","navMenu"],["booking","navBook",!(S.booking&&S.booking.enabled)],["outlets","navOutlet",!outlets().length],["contact","navContact"]];
+  const links=[["about","navAbout"],["promos","navPromo",!activePromos().length&&!vouchersOn()],["menu","navMenu"],["booking","navBook",!(S.booking&&S.booking.enabled)],["outlets","navOutlet",!outlets().length],["contact","navContact"]];
   $("nav").innerHTML = links.filter(l=>!l[2]).map(([id,k])=>`<a href="#${id}">${esc(t(k))}</a>`).join("");
   $("langBtn").textContent = lang==="en"?"中文":"EN";
   $("cartBtn").hidden = !(S.ordering&&S.ordering.enabled);
@@ -380,8 +393,61 @@ function activePromos(){
   const today=ymd(new Date());
   return (S.promos||[]).filter(p=>(!p.from||p.from<=today)&&(!p.to||p.to>=today));
 }
+/* ---------- 优惠码 ----------
+ * config.js 里只放 SHA-256(盐+大写码) 的哈希，原码不出现在网页源码。
+ * 静态网站无法限制使用次数：讯息里带上优惠码，由店员核对。 */
+const VSALT = "mk-voucher:";
+const vouchers = () => Array.isArray(S.vouchers)?S.vouchers:[];
+const vActive = v => { const d=ymd(new Date()); return (!v.from||v.from<=d)&&(!v.to||v.to>=d); };
+const vouchersOn = () => vouchers().some(vActive) && !!(S.ordering&&S.ordering.enabled);
+let voucher = null;   /* {code, v} */
+async function sha256(txt){
+  if(!(window.crypto&&crypto.subtle)) throw new Error("no-crypto");
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function findVoucher(code){
+  const c=String(code||"").trim().toUpperCase(); if(!c) return null;
+  const h=await sha256(VSALT+c); const v=vouchers().find(x=>x.hash===h);
+  return v?{code:c,v}:{code:c,v:null};
+}
+function vDiscount(sub){
+  if(!voucher||!voucher.v) return 0; const v=voucher.v;
+  if(!vActive(v)||sub<(v.minSpend||0)) return 0;
+  let off = v.type==="percent" ? sub*(v.value||0)/100 : v.type==="amount" ? (v.value||0) : 0;
+  if(v.maxOff) off=Math.min(off,v.maxOff);
+  return Math.round(Math.min(off,sub)*100)/100;
+}
+const vDesc = v => L(v,"title") || (v.type==="percent"?`${v.value}% off`:v.type==="amount"?`-${money(v.value)}`:"");
+const finalTotal = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub))*100)/100; };
+async function applyVoucher(code, quiet){
+  const msgEl=$("vMsg");
+  try{
+    const r=await findVoucher(code);
+    if(!r){ if(msgEl) msgEl.textContent=""; return; }
+    if(!r.v||!vActive(r.v)){ if(!quiet&&msgEl){msgEl.className="vmsg bad";msgEl.textContent=t(r.v?"vExpired":"vInvalid");} if(quiet){voucher=null;store.set("site_voucher","");} return; }
+    voucher=r; store.set("site_voucher",r.code);
+    if(!quiet){ toast(t("vApplied")+" ✓"); }
+  }catch(e){ if(msgEl){msgEl.className="vmsg bad";msgEl.textContent=t("vError");} }
+  renderVoucherBox(); refreshCart();
+}
+function removeVoucher(){ voucher=null; store.set("site_voucher",""); renderVoucherBox(); refreshCart(); }
+function vStatusHTML(){
+  if(!voucher) return "";
+  const v=voucher.v, sub=cartTotal(), need=(v.minSpend||0)-sub;
+  return `<div class="vapplied"><span>🎟️ <b>${esc(voucher.code)}</b> · ${esc(vDesc(v))}${v.minSpend?` <small>(${esc(t("vMin"))} ${money(v.minSpend)})</small>`:""}${v.type==="gift"&&L(v,"gift")?` <small>· ${esc(L(v,"gift"))}</small>`:""}</span><button class="x" onclick="__site.vRemove()" aria-label="remove">✕</button></div>${need>0&&Object.keys(cart).length?`<div class="note">${esc(t("vNeed").replace("{x}",money(need)))}</div>`:""}`;
+}
+function renderVoucherBox(){
+  if(!$("voucherBox")) return;
+  if(!vouchersOn()){ $("voucherBox").innerHTML=""; return; }
+  $("voucherBox").innerHTML = `<div class="card vbox"><h3>🎟️ ${esc(t("vTitle"))}</h3><p class="note" style="margin:0 0 10px">${esc(t("vSub"))}</p>
+    <div class="vrow"><input id="vInput" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(voucher?voucher.code:"")}"><button class="btn" id="vBtn">${esc(t("vRedeem"))}</button></div>
+    <div id="vMsg" class="vmsg"></div>${voucher?vStatusHTML()+`<p class="note" style="margin:8px 0 0">${esc(t("vHow"))}</p>`:""}</div>`;
+  $("vBtn").onclick=()=>applyVoucher($("vInput").value);
+  $("vInput").onkeydown=e=>{ if(e.key==="Enter") applyVoucher($("vInput").value); };
+}
 function renderPromos(){
-  const ps=activePromos(); $("promos").hidden=!ps.length;
+  const ps=activePromos(); $("promos").hidden=!ps.length&&!vouchersOn(); renderVoucherBox();
   $("promoList").innerHTML = ps.map(p=>`<div class="promo">${p.image?`<img src="${esc(p.image)}" alt="" loading="lazy">`:""}
     <div class="in"><h3>${esc(L(p,"title"))}</h3><div>${esc(L(p,"body"))}</div>
     <div class="dt">${p.to?`${esc(p.from||"")} ${esc(t("until"))} ${esc(p.to)}`:esc(t("longTerm"))}</div></div></div>`).join("");
@@ -477,7 +543,7 @@ let drawerOpen=false;
 function refreshCart(){
   const n=cartCount();
   $("cartCnt").textContent=n; $("cartCnt").style.display=n?"":"none";
-  $("fab").textContent=`🛒 ${t("viewCart")} · ${n} · ${money(cartTotal())}`;
+  $("fab").textContent=`🛒 ${t("viewCart")} · ${n} · ${money(finalTotal())}`;
   $("fab").classList.toggle("show", n>0 && !drawerOpen && !!(S.ordering&&S.ordering.enabled));
   renderMenu();
   if(drawerOpen) renderDrawer();
@@ -493,7 +559,10 @@ function renderDrawer(){
     ${ids.length? ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl"><div class="nm">${it.code?`<span class="note">${esc(it.code)}</span> `:""}${esc(itemName(it))}${esc(lineLabel(k))}<div class="note">${money(unitPrice(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(unitPrice(it,si)*cart[k])}</b></div>`;}).join("")
-      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(cartTotal())}</span></div>${S.ordering&&L(S.ordering,"priceNote")?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(L(S.ordering,"priceNote"))}</p>`:""}
+      + (voucher&&vDiscount(cartTotal())>0?`<div class="tot sub"><span>${esc(t("subtotal"))}</span><span>${money(cartTotal())}</span></div><div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:"")
+      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(finalTotal())}</span></div>`
+      + (vouchersOn()?`<div class="dv">${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
+      + `${S.ordering&&L(S.ordering,"priceNote")?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(L(S.ordering,"priceNote"))}</p>`:""}
       <div class="form">
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
         <div><label>${esc(t("phone"))}</label><input id="od_phone" type="tel" autocomplete="tel" value="${esc(prev.phone)}"></div>
@@ -507,6 +576,7 @@ function renderDrawer(){
       </div>`
     : `<p class="note" style="font-size:15px;padding:20px 0">${esc(t("empty"))}</p>`}`;
   $("dx").onclick=closeDrawer;
+  if($("vBtn2")){ $("vBtn2").onclick=()=>applyVoucher($("vInput2").value); $("vInput2").onkeydown=e=>{ if(e.key==="Enter") applyVoucher($("vInput2").value); }; }
   if(!ids.length) return;
   $("od_date").onchange=e=>{$("od_time").innerHTML=timeOptions(e.target.value,15,o.pickupLeadMinutes,15);};
   $("od_clear").onclick=()=>{cart={};saveCart();refreshCart();};
@@ -518,13 +588,14 @@ function renderDrawer(){
     store.set("site_guest",{name,phone,outlet:oi});
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)} x${q} = ${money(unitPrice(it,si)*q)}`;});
     const note=$("od_note").value.trim();
-    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,`${t("total")}: ${money(cartTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null].filter(x=>x!==null).join("\n"), oi);
+    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...(voucher?[`${t("subtotal")}: ${money(cartTotal())}`,`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${vDiscount(cartTotal())>0?" −"+money(vDiscount(cartTotal())):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${cartTotal()<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`]:[]),`${t("total")}: ${money(finalTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null].filter(x=>x!==null).join("\n"), oi);
   };
 }
 function openDrawer(){ drawerOpen=true; renderDrawer(); $("drawer").classList.add("show"); $("ov").classList.add("show"); document.body.style.overflow="hidden"; refreshCartFab(); }
 function closeDrawer(){ drawerOpen=false; $("drawer").classList.remove("show"); $("ov").classList.remove("show"); document.body.style.overflow=""; refreshCartFab(); }
 function refreshCartFab(){ $("fab").classList.toggle("show", cartCount()>0 && !drawerOpen && !!(S.ordering&&S.ordering.enabled)); }
 
+(async()=>{ const c=store.get("site_voucher",""); if(c) await applyVoucher(c,true); })();
 function renderAll(){ renderHeader(); renderHero(); renderOutlets(); renderPromos(); refreshCart(); renderBooking(); renderAbout(); renderContact(); }
 
 /* ---------- 事件 ---------- */

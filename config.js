@@ -88,6 +88,18 @@ window.SITE = {
     },
   ],
 
+
+  /* ---------- 优惠码 Voucher ----------
+   * ⚠️ 这里只放「哈希」，不放真正的优惠码（不然任何人看网页源码就知道码）。
+   * 新增优惠码：把码告诉 Claude，或自己在电脑终端跑：
+   *   node -e "console.log(require('crypto').createHash('sha256').update('mk-voucher:'+'你的码'.toUpperCase()).digest('hex'))"
+   * 字段：hash, title/titleEn(显示名称), type: "percent"(打折%) | "amount"(减 RM) | "gift"(送东西，不扣钱),
+   *       value(数值), minSpend(最低消费), maxOff(最多折扣 RM), gift/giftEn(送什么), from/to(有效日期，含当天)
+   * 静态网站无法限制使用次数：顾客下单讯息会带优惠码，由店员在 WhatsApp 核对。 */
+  vouchers: [
+    // { hash: "…", title: "开张优惠 9 折", titleEn: "Opening 10% off", type: "percent", value: 10, minSpend: 50, maxOff: 30, from: "2026-10-01", to: "2026-12-31" },
+  ],
+
   /* ---------- 订位设定 ---------- */
   booking: {
     enabled: true,
