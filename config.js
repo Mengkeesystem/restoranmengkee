@@ -127,6 +127,7 @@ window.SITE = {
 
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
+    voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
     /* 外卖：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
       enabled: true,

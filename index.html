@@ -375,7 +375,7 @@ function renderHeader(){
   document.documentElement.lang = lang==="en"?"en":"zh";
   if(S.logo){let ic=document.querySelector('link[rel="icon"]');if(!ic){ic=document.createElement("link");ic.rel="icon";document.head.appendChild(ic);}ic.href=S.logo;}
   $("brand").innerHTML = S.logo ? `<img src="${esc(S.logo)}" alt="${esc(S.name)}"><span>${esc(L(S,"name"))}</span>` : esc(L(S,"name"));
-  const links=[["about","navAbout"],["promos","navPromo",!activePromos().length&&!vouchersOn()],["menu","navMenu"],["booking","navBook",!(S.booking&&S.booking.enabled)],["outlets","navOutlet",!outlets().length],["contact","navContact"]];
+  const links=[["about","navAbout"],["promos","navPromo",!activePromos().length&&!vInPromos()],["menu","navMenu"],["booking","navBook",!(S.booking&&S.booking.enabled)],["outlets","navOutlet",!outlets().length],["contact","navContact"]];
   $("nav").innerHTML = links.filter(l=>!l[2]).map(([id,k])=>`<a href="#${id}">${esc(t(k))}</a>`).join("");
   $("langBtn").textContent = lang==="en"?"中文":"EN";
   $("cartBtn").hidden = !(S.ordering&&S.ordering.enabled);
@@ -425,6 +425,7 @@ const VSALT = "mk-voucher:";
 const vouchers = () => Array.isArray(S.vouchers)?S.vouchers:[];
 const vActive = v => { const d=ymd(new Date()); return (!v.from||v.from<=d)&&(!v.to||v.to>=d); };
 const vouchersOn = () => vouchers().some(vActive) && !!(S.ordering&&S.ordering.enabled);
+const vInPromos = () => vouchersOn() && !!(S.ordering&&S.ordering.voucherInPromos);   /* 优惠活动区块也显示兑换框（默认只在购物车） */
 let voucher = null;   /* {code, v} */
 async function sha256(txt){
   if(!(window.crypto&&crypto.subtle)) throw new Error("no-crypto");
@@ -475,7 +476,7 @@ function vStatusHTML(){
 }
 function renderVoucherBox(){
   if(!$("voucherBox")) return;
-  if(!vouchersOn()){ $("voucherBox").innerHTML=""; return; }
+  if(!vInPromos()){ $("voucherBox").innerHTML=""; return; }
   $("voucherBox").innerHTML = `<div class="card vbox"><h3>🎟️ ${esc(t("vTitle"))}</h3><p class="note" style="margin:0 0 10px">${esc(t("vSub"))}</p>
     <div class="vrow"><input id="vInput" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(voucher?voucher.code:"")}"><button class="btn" id="vBtn">${esc(t("vRedeem"))}</button></div>
     <div id="vMsg" class="vmsg"></div>${voucher?vStatusHTML()+`<p class="note" style="margin:8px 0 0">${esc(t("vHow"))}</p>`:""}</div>`;
@@ -483,7 +484,7 @@ function renderVoucherBox(){
   $("vInput").onkeydown=e=>{ if(e.key==="Enter") applyVoucher($("vInput").value); };
 }
 function renderPromos(){
-  const ps=activePromos(); $("promos").hidden=!ps.length&&!vouchersOn(); renderVoucherBox();
+  const ps=activePromos(); $("promos").hidden=!ps.length&&!vInPromos(); renderVoucherBox();
   $("promoList").innerHTML = ps.map(p=>`<div class="promo">${p.image?`<img src="${esc(p.image)}" alt="" loading="lazy">`:""}
     <div class="in"><h3>${esc(L(p,"title"))}</h3><div>${esc(L(p,"body"))}</div>
     <div class="dt">${p.to?`${esc(p.from||"")} ${esc(t("until"))} ${esc(p.to)}`:esc(t("longTerm"))}</div></div></div>`).join("");
