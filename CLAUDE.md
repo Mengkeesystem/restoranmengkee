@@ -1,0 +1,27 @@
+# 项目备忘 (CLAUDE.md) — 餐厅官方网站模板
+
+本仓库是 **明记家乡小食店** 的对外官方网站（客人看的），**不是** ERP。ERP 在另一个仓库，两者完全分开：
+网站不连 Supabase、不需要登录、不存任何客人资料。
+
+## 架构（2026-10-15 建立）
+- 纯静态：`index.html`（程序）+ `config.js`（全部内容，`window.SITE = {...}`）+ `images/`。无构建步骤，GitHub Pages 直接上线。
+- **内容与程序分离是刻意的设计**：换店 = 换 `config.js` + `images/`，`index.html` 不改。新增功能时要守住这条——任何店名、颜色、文字、链接都放 `config.js`，不要写死在 `index.html`。
+- 订位、点餐都是**转 WhatsApp**（`wa.me/<号码>?text=...`，订单内容自动组好）。业主选这个方式的原因：不用后台、不用月费、马来西亚小店最常用。店员在 WhatsApp 回复确认才算成功。
+  - 第二阶段如要「订单直接进 ERP」，需要在该店**自己的** Supabase 开一张只允许匿名 insert 的表（RLS 只给 insert，不给 select），网站提交时写进去，ERP 那边读。别直接拿 ERP 现有的 `erp_store`。
+- 营业时间 `hours` 驱动：首页「营业中/已打烊」、订位可选时间（开门后、打烊前 60 分钟为止，每 `slotMinutes`）、自取可选时间（今天/明天/后天，现在 + `pickupLeadMinutes` 之后、打烊前 15 分钟为止，每 15 分钟）。休息日自动不出现在日期选单。
+- 优惠 `promos` 按 `from`/`to` 自动显示/隐藏。
+- 购物车、语言、客人姓名电话存 `localStorage`（只在客人自己的浏览器，全部 try/catch，失效不影响使用）。
+- 所有 `config.js` 文字输出都经 `esc()` 转义（沿用 ERP 那边 XSS 教训）。
+- 手机体验沿用 ERP 的教训：输入框 16px（防 iOS 自动放大）、`safe-area-inset-bottom`、抽屉 `overscroll-behavior:contain` + 打开时锁 body 滚动、`touch-action:manipulation`。
+
+## 测试
+Playwright（`/opt/pw-browsers/chromium`，`file://`）在 1280 宽和 393 宽（iPhone 15 Pro）跑：加购物车 → WhatsApp 下单内容、订位 → WhatsApp 内容、中英切换、无横向溢出、无 JS 错误。拦截 `https://wa.me/**` 读取组好的讯息。
+
+## 复制给牛室 Beef House 时要改的（因店制宜）
+1. `config.js` 全部内容：店名、logo、电话/WhatsApp、地址/地图、营业时间、社交链接、故事、照片。
+2. **菜单结构不同**：牛室主体是 **buffet 吃到饱（按人头/时段计价）** + 单点牛扒/饮料。buffet 不适合「加购物车自取」，建议：
+   - buffet 价格（成人/儿童/长者、平日/周末、午餐/晚餐）做成菜单里一个只展示、不能下单的分类（品项不放价钱按钮，或加 `soldOut`-类似的「仅堂食」标记——需要在 `index.html` 加一个 `dineInOnly` 选项）；
+   - 单点牛扒/饮料照常可自取下单。
+   - 订位对 buffet 更重要：可能要加「时段（午/晚）」「成人/儿童人数分开」——这是要改 `index.html` 订位表单的地方。
+3. 颜色 `theme`：用牛室的深青色/金色（参考 ERP 的 `#12203A` / `#F2B417`）。
+4. 新开一个仓库给牛室网站，不要跟明记共用（各自独立更新、各自 GitHub Pages）。
