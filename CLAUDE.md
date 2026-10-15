@@ -16,6 +16,7 @@
 - Logo：`images/logo.png`（业主提供的红底金字「明记」方形图），同时用作首页大图标和浏览器分页图标。
 - **优惠码 Voucher（2026-10-15）**：优惠活动区块上方 + 购物车里都可输入。`config.js` 的 `vouchers` 只存 `sha256("mk-voucher:" + 大写码)`，**原码绝不写进仓库**（公开仓库+公开网页，写明文等于公开）。类型 percent / amount / gift，可设 minSpend、maxOff、from/to。静态网站**无法限制使用次数**，WhatsApp 讯息带优惠码与折扣金额，由店员核对。业主给新码时：算哈希加进 `vouchers`，在 commit 讯息/文件里只写标题不写码。没有任何有效优惠码时，兑换框自动隐藏。
 - **结账付款（2026-10-15）**：购物车表单里有「💳 付款方式」：现在转账付款（显示 DuitNow QR + 银行户口 + 复制户口号按钮 + 应付金额=扣完优惠后的合计）/ 到店取餐时付款（`allowPayAtCounter:false` 可关掉）。资料在 `config.js` 的 `payment`，分店可用 `outlets[i].payment` 覆盖。`qr` 和 `accountNo` 都空就不显示。WhatsApp 讯息最后一行带付款方式，客人需把收据截图发 WhatsApp，店员核对。**没接付款网关**：静态网站无后台，客人可在浏览器改金额，所以靠人工核对收据。
+- **自取 / 外卖（2026-10-15）**：购物车顶部切换。外卖要填送餐地址 + 选配送范围，运费加进合计（顺序：小计 − 优惠 + 运费 = 合计；优惠的 minSpend 只看食物小计，不含运费）。设定在 `config.js` 的 `ordering.delivery`（zones 每档 label/fee、minOrder、freeAbove、leadMinutes、note）。业主目前规则：3km 内 RM5、3km 外 RM10，11 间都送；**客人自己选范围，店员看地址核对**（没接 Google 距离 API，以后要改按邮区或自动算距离再调整）。外卖时「到店付款」变「货到付款」，WhatsApp 标题变【网上点餐 - 外卖】并带地址与运费。
 - 优惠 `promos` 按 `from`/`to` 自动显示/隐藏。
 - 购物车、语言、客人姓名电话存 `localStorage`（只在客人自己的浏览器，全部 try/catch，失效不影响使用）。
 - 所有 `config.js` 文字输出都经 `esc()` 转义（沿用 ERP 那边 XSS 教训）。

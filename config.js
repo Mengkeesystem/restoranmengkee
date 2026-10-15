@@ -127,6 +127,19 @@ window.SITE = {
 
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
+    /* 外卖：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
+    delivery: {
+      enabled: true,
+      zones: [
+        { label: "3km 以内", labelEn: "Within 3km", fee: 5 },
+        { label: "3km 以外", labelEn: "Beyond 3km", fee: 10 },
+      ],
+      minOrder: 0,          // 外卖最低消费，0 = 不限
+      freeAbove: 0,         // 满多少免运费，0 = 不设
+      leadMinutes: 45,      // 最快几分钟后送达
+      note: "运费按分店到送餐地址的距离：3km 以内 RM5，3km 以外 RM10。店员会核对地址，超出范围会另外通知。",
+      noteEn: "Delivery fee by distance from the outlet: within 3km RM5, beyond 3km RM10. Our staff will verify the address.",
+    },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
     menuPhotos: ["images/menu-1.jpg", "images/menu-2.jpg"],   // 纸本菜单原图，可点开放大
     enabled: true,
