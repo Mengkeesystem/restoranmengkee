@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Restaurant</title>
 <meta name="description" content="">
-<script src="config.js"></script>
+<meta http-equiv="Cache-Control" content="no-cache">
+<!-- config.js（店名/号码/菜单/价钱）每分钟换一次网址参数，避免浏览器沿用旧的缓存内容 -->
+<script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
+<noscript><script src="config.js"></script></noscript>
 <style>
 :root{--p:#B4232A;--a:#F2B417;--dk:#2A1A14;--bg:#FFFBF5;--card:#fff;--tx:#2A1A14;--mut:#7A6A60;--line:#EADFD3;--ok:#1F8A4C;--r:14px}
 *{box-sizing:border-box}
