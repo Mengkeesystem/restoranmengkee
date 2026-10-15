@@ -101,6 +101,29 @@ nav.links a:hover{background:#F6EADB}
 .item .ds{color:var(--mut);font-size:13px;margin-top:4px}
 .item .ft{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px}
 .price{font-weight:800;font-size:17px;color:var(--p)}
+.price small{font-size:12px;color:var(--mut);font-weight:700}
+.code{position:absolute;bottom:8px;right:8px;background:rgba(139,0,0,.88);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px}
+.sizes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sizes button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:13px;min-height:34px;color:var(--tx)}
+.sizes button b{color:var(--p)}
+.sizes button.on{background:var(--p);border-color:var(--p);color:#fff}
+.sizes button.on b{color:#fff}
+.optsel{margin-top:8px;width:100%;font-size:16px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--tx);font-family:inherit}
+.item.noimg .ph{aspect-ratio:auto;height:64px;font-size:28px}
+@media(max-width:560px){
+  .grid{grid-template-columns:1fr;gap:10px}
+  .item{flex-direction:row}
+  .item .ph,.item.noimg .ph{aspect-ratio:auto;width:110px;min-width:110px;height:auto;min-height:110px;font-size:30px}
+  .item .ph img{position:absolute;inset:0}
+  .item .in{padding:10px 12px}
+  .tag{top:6px;left:6px;font-size:11px;padding:2px 7px}
+  .code{bottom:6px;right:6px}
+}
+.mphotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.mphotos a{position:relative;display:block;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);text-decoration:none}
+.mphotos img{width:100%;aspect-ratio:3/2;object-fit:cover}
+.mphotos span{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px}
+@media(max-width:560px){.mphotos{grid-template-columns:1fr 1fr;gap:8px}.mphotos span{font-size:11px}}
 .qty{display:flex;align-items:center;gap:8px}
 .qty button{width:36px;height:36px;border-radius:50%;border:0;background:var(--p);color:#fff;font-size:20px;line-height:1;font-weight:700}
 .qty button.minus{background:#F6EADB;color:var(--p)}
@@ -169,7 +192,7 @@ footer a{color:#fff}
   <div class="hero" id="hero"><div class="wrap" id="heroIn"></div></div>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div class="promos" id="promoList"></div></div></section>
-  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
+  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
   <section id="about"><div class="wrap"><h2 data-t="aboutT"></h2><div id="story"></div><div class="gal" id="gallery"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
@@ -206,7 +229,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单 (自取)",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -221,7 +244,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order (Pickup)",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -264,19 +287,41 @@ function openState(){
 }
 
 /* ---------- 购物车 ---------- */
+/* 每道菜可有多个份量(prices)和做法(options)；购物车每一行的 key = 菜id|份量序号|做法序号 */
 const allItems = {};
 (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{allItems[it.id]=it;}));
+const canOrder = it => !it.soldOut && !it.seasonal;
+const sizeNames = (it,lg) => { const n=(it.prices||[]).length; const zh=it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); const en=it.sizesEn||(n===2?["S","L"]:n===3?["S","M","L"]:n===4?["S","M","L","XL"]:[]); return (lg||lang)==="en"?en:zh; };
+const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
+const parseKey = k => { const [id,si,oi]=k.split("|"); return {it:allItems[id], si:+si||0, oi:+oi||0}; };
+const keyOf = (id,si,oi) => id+"|"+(si||0)+"|"+(oi||0);
 let cart = store.get("site_cart",{});
-Object.keys(cart).forEach(id=>{ if(!allItems[id]||allItems[id].soldOut||!(cart[id]>0)) delete cart[id]; });
+Object.keys(cart).forEach(k=>{ const {it,si,oi}=parseKey(k); if(!it||!canOrder(it)||!(cart[k]>0)||(it.prices&&si>=it.prices.length)||(it.options&&oi>=it.options.length)) delete cart[k]; });
+const pick = {};   /* 卡片上目前选的份量/做法 */
+const curPick = it => pick[it.id] || (pick[it.id]={si:0,oi:0});
 const saveCart = () => store.set("site_cart",cart);
 const cartCount = () => Object.values(cart).reduce((a,b)=>a+b,0);
-const cartTotal = () => Object.entries(cart).reduce((s,[id,q])=>s+(allItems[id]?allItems[id].price*q:0),0);
-function setQty(id,q){
-  if(!allItems[id]||allItems[id].soldOut) return;
-  if(q<=0) delete cart[id]; else cart[id]=Math.min(q,99);
-  saveCart(); refreshCart();
+const cartTotal = () => Object.entries(cart).reduce((s,[k,q])=>{const {it,si}=parseKey(k);return s+(it?unitPrice(it,si)*q:0);},0);
+function lineLabel(k, forWa){
+  const {it,si,oi}=parseKey(k), parts=[];
+  if(it.prices) parts.push(sizeNames(it, forWa?"zh":lang)[si]);
+  if(it.options) parts.push(it.options[oi]);
+  return parts.length?" ("+parts.join(", ")+")":"";
 }
-window.__site = {setQty:(id,d)=>{setQty(id,(cart[id]||0)+d); if(d>0) toast(t("added")+" ✓");}};
+function stepKey(k,d){
+  const {it}=parseKey(k); if(!it||!canOrder(it)) return;
+  const min=it.min||1, cur=cart[k]||0;
+  let q = d>0 ? (cur===0?Math.max(min,1):cur+1) : (cur-1<min?0:cur-1);
+  if(q<=0) delete cart[k]; else cart[k]=Math.min(q,99);
+  saveCart(); refreshCart();
+  if(d>0) toast(t("added")+" ✓"+(cur===0&&min>1?" ×"+min:""));
+}
+window.__site = {
+  add:(id,d)=>{ const it=allItems[id]; if(!it) return; const p=curPick(it); stepKey(keyOf(id,p.si,p.oi),d); },
+  step:(k,d)=>stepKey(k,d),
+  size:(id,si)=>{ curPick(allItems[id]).si=+si; renderMenu(); },
+  opt:(id,oi)=>{ curPick(allItems[id]).oi=+oi; renderMenu(); },
+};
 
 function waLink(text,outletIdx){ const o=outletIdx!==undefined&&outletIdx!==""?outlets()[+outletIdx]:null; const num=(o&&o.whatsapp)||S.whatsapp||""; return "https://wa.me/"+String(num).replace(/\D/g,"")+"?text="+encodeURIComponent(text); }
 function openWa(text,outletIdx){ const u=waLink(text,outletIdx); const w=window.open(u,"_blank"); if(w){try{w.opener=null;}catch(e){}} else { window.location.href=u; } }
@@ -344,14 +389,20 @@ function renderPromos(){
 function renderMenu(){
   const on = S.ordering&&S.ordering.enabled;
   $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}">${esc(L(c,"cat"))}</button>`).join("");
-  $("menuList").innerHTML = (S.menu||[]).map((c,i)=>`<div class="mcat" id="cat-${i}"><h3>${esc(L(c,"cat"))}</h3><div class="grid">${
+  const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
+  $("menuPhotos").innerHTML = mp.length?`<div class="mphotos">${mp.map((src,i)=>`<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" loading="lazy"><span>🔍 ${esc(t("menuPhoto"))} ${i+1}</span></a>`).join("")}</div>`:"";
+  $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>`<div class="mcat" id="cat-${i}"><h3>${esc(L(c,"cat"))}</h3>${L(c,"note")?`<p class="note" style="margin:-4px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
     (c.items||[]).map(it=>{
-      const q=cart[it.id]||0, id=esc(it.id).replace(/'/g,"");
-      return `<div class="item"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
-        ${it.tag?`<span class="tag">${esc(it.tag)}</span>`:""}${it.soldOut?`<div class="so">${esc(t("soldOut"))}</div>`:""}</div>
+      const id=esc(it.id).replace(/'/g,""), p=curPick(it), k=keyOf(it.id,p.si,p.oi), q=cart[k]||0;
+      const sn=sizeNames(it);
+      const priceTxt = it.seasonal ? esc(t("season")) : it.prices ? money(it.prices[p.si]) : money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
+      return `<div class="item${it.image?"":" noimg"}"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
+        ${it.tag?`<span class="tag">${esc(lang==="en"?"Signature":it.tag)}</span>`:""}${it.code?`<span class="code">${esc(it.code)}</span>`:""}${it.soldOut?`<div class="so">${esc(t("soldOut"))}</div>`:""}</div>
         <div class="in"><h4>${esc(itemName(it))}</h4>${lang!=="en"&&it.nameEn?`<div class="en">${esc(it.nameEn)}</div>`:""}
-        ${it.desc?`<div class="ds">${esc(it.desc)}</div>`:""}
-        <div class="ft"><span class="price">${money(it.price)}</span>${on&&!it.soldOut?`<span class="qty">${q?`<button class="minus" onclick="__site.setQty('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.setQty('${id}',1)" aria-label="+">+</button></span>`:""}</div></div></div>`;
+        ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
+        ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
+        ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
+        <div class="ft"><span class="price">${priceTxt}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div></div>`).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>{
     const el=$("cat-"+b.dataset.i); window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});
@@ -439,10 +490,10 @@ function renderDrawer(){
   const dates=dateOptions(0,2,prevDate,15,o.pickupLeadMinutes,15);
   const d0 = prevDate || (dates.length?dates[0].match(/value="([^"]+)"/)[1]:"");
   $("drawer").innerHTML = `<h3>${esc(t("cart"))}<button class="x" id="dx" aria-label="close">✕</button></h3>
-    ${ids.length? ids.map(id=>{const it=allItems[id];const sid=esc(id).replace(/'/g,"");return `<div class="cl"><div class="nm">${esc(itemName(it))}<div class="note">${money(it.price)}</div></div>
-      <span class="qty"><button class="minus" onclick="__site.setQty('${sid}',-1)">−</button><b>${cart[id]}</b><button onclick="__site.setQty('${sid}',1)">+</button></span>
-      <b style="min-width:76px;text-align:right">${money(it.price*cart[id])}</b></div>`;}).join("")
-      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(cartTotal())}</span></div>
+    ${ids.length? ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl"><div class="nm">${it.code?`<span class="note">${esc(it.code)}</span> `:""}${esc(itemName(it))}${esc(lineLabel(k))}<div class="note">${money(unitPrice(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
+      <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
+      <b style="min-width:76px;text-align:right">${money(unitPrice(it,si)*cart[k])}</b></div>`;}).join("")
+      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(cartTotal())}</span></div>${S.ordering&&L(S.ordering,"priceNote")?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(L(S.ordering,"priceNote"))}</p>`:""}
       <div class="form">
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
         <div><label>${esc(t("phone"))}</label><input id="od_phone" type="tel" autocomplete="tel" value="${esc(prev.phone)}"></div>
@@ -465,9 +516,9 @@ function renderDrawer(){
     const err = !Object.keys(cart).length?t("needItems"):(oi==="")?t("needOutlet"):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(!date||!time)?t("needTime"):"";
     $("od_err").textContent=err; if(err) return;
     store.set("site_guest",{name,phone,outlet:oi});
-    const lines=Object.entries(cart).map(([id,q])=>`• ${allItems[id].name}${allItems[id].nameEn?" ("+allItems[id].nameEn+")":""} x${q} = ${money(allItems[id].price*q)}`);
+    const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)} x${q} = ${money(unitPrice(it,si)*q)}`;});
     const note=$("od_note").value.trim();
-    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,`${t("total")}: ${money(cartTotal())}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null].filter(x=>x!==null).join("\n"), oi);
+    openWa([t("waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,`${t("total")}: ${money(cartTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,`${t("pickupDate")}: ${date}`,`${t("pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null].filter(x=>x!==null).join("\n"), oi);
   };
 }
 function openDrawer(){ drawerOpen=true; renderDrawer(); $("drawer").classList.add("show"); $("ov").classList.add("show"); document.body.style.overflow="hidden"; refreshCartFab(); }
