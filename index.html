@@ -138,16 +138,19 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .promo h3{padding-right:52px}
 
 /* social icons */
-.soc{display:flex;gap:6px;flex:0 0 auto}
+.soc{display:flex;gap:14px;flex:0 0 auto;align-items:center}
 .soc:empty{display:none}
-.si{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:#fff;border-radius:var(--rs);text-decoration:none}
-.si svg{width:18px;height:18px}
-.si-facebook{background:#1877F2}
-.si-instagram{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)}
-.si:hover{filter:brightness(1.1);box-shadow:2px 2px 0 rgba(0,0,0,.2)}
-.soc.foot{margin-bottom:10px}
-.soc.foot .si{width:36px;height:36px}
-@media(max-width:480px){.brand img+span{display:none}.si{width:32px;height:32px}}
+.si{display:inline-flex;flex:0 0 auto;white-space:nowrap;align-items:center;gap:7px;text-decoration:none;color:var(--tx);font-weight:800;font-size:14px;line-height:1;min-height:36px}
+.sic{width:30px;height:30px;flex:0 0 auto;display:block}
+.sic svg{width:100%;height:100%;display:block}
+.si:hover .sit{color:var(--p);text-decoration:underline}
+.si:hover .sic{transform:translateY(-1px)}
+.soc.foot{gap:12px 22px;margin-bottom:14px;flex-wrap:wrap}
+.soc.foot .si{color:#fff;font-size:16px}
+.soc.foot .sic{width:38px;height:38px}
+.soc.foot .si:hover .sit{color:var(--a)}
+@media(max-width:1180px){header .sit{display:none}header .soc{gap:8px}}
+@media(max-width:480px){.brand img+span{display:none}}
 
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -667,17 +670,19 @@ function renderAbout(){
   $("gallery").hidden = !(S.gallery||[]).length; $("gallerySec").hidden = !(S.gallery||[]).length;
   $("about").hidden = !(L(S,"story")||[]).length;
 }
-/* Facebook / Instagram 小图标（页头左上 + 页脚左下），点了开新分页 */
+/* Facebook / Instagram：官方样式图标 + 账号名（参考业主给的样式），页头左上 + 页脚左下，点了开新分页 */
 const SOC_ICON = {
-  facebook:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.4H7.7V14h2.7v8h3.1z"/></svg>',
-  instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21.9 8.1c-.1-1.6-.4-3-1.6-4.2-1.2-1.2-2.6-1.5-4.2-1.6C14.5 2.2 9.5 2.2 7.9 2.3c-1.6.1-3 .4-4.2 1.6S2.2 6.5 2.1 8.1C2 9.7 2 14.3 2.1 15.9c.1 1.6.4 3 1.6 4.2s2.6 1.5 4.2 1.6c1.6.1 6.6.1 8.2 0 1.6-.1 3-.4 4.2-1.6 1.2-1.2 1.5-2.6 1.6-4.2.1-1.6.1-6.2 0-7.8zm-2.1 9.6a3.3 3.3 0 0 1-1.9 1.9c-1.3.5-4.4.4-5.9.4s-4.6.1-5.9-.4a3.3 3.3 0 0 1-1.9-1.9c-.5-1.3-.4-4.4-.4-5.7s-.1-4.4.4-5.7a3.3 3.3 0 0 1 1.9-1.9c1.3-.5 4.4-.4 5.9-.4s4.6-.1 5.9.4a3.3 3.3 0 0 1 1.9 1.9c.5 1.3.4 4.4.4 5.7s.1 4.4-.4 5.7z"/></svg>'
+  instagram:'<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="igG" cx="30%" cy="107%" r="150%"><stop offset="0" stop-color="#FDF497"/><stop offset=".05" stop-color="#FDF497"/><stop offset=".45" stop-color="#FD5949"/><stop offset=".6" stop-color="#D6249F"/><stop offset=".9" stop-color="#285AEB"/></radialGradient></defs><rect width="32" height="32" rx="8" fill="url(#igG)"/><rect x="7" y="7" width="18" height="18" rx="5.5" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="16" cy="16" r="4.3" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="21.6" cy="10.4" r="1.5" fill="#fff"/></svg>',
+  facebook:'<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#1877F2"/><path fill="#fff" d="M22.2 20.6l.7-4.6h-4.4v-3c0-1.3.6-2.5 2.6-2.5h2V6.6s-1.8-.3-3.6-.3c-3.6 0-6 2.2-6 6.2V16h-4v4.6h4V32a16 16 0 0 0 4.9 0V20.6h3.8z"/></svg>'
 };
-function socIconsHTML(){
+const SOC_NAME = {instagram:"Instagram", facebook:"Facebook"};
+function socIconsHTML(withLabel){
   const so=S.social||{};
-  return ["facebook","instagram"].filter(k=>so[k]).map(k=>`<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${k==="facebook"?"Facebook":"Instagram"}" title="${k==="facebook"?"Facebook":"Instagram"}">${SOC_ICON[k]}</a>`).join("");
+  return ["instagram","facebook"].filter(k=>so[k]).map(k=>{ const lbl=so[k+"Name"]||SOC_NAME[k];
+    return `<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${esc(SOC_NAME[k]+" "+lbl)}" title="${esc(SOC_NAME[k]+": "+lbl)}"><span class="sic">${SOC_ICON[k]}</span>${withLabel?`<span class="sit">${esc(lbl)}</span>`:""}</a>`; }).join("");
 }
 function renderContact(){
-  $("socTop").innerHTML = socIconsHTML();
+  $("socTop").innerHTML = socIconsHTML(true);
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
   $("hours").innerHTML = order.map(d=>{const h=hoursOf(d);return `<tr class="${d===today?"today":""}"><td>${esc(t("days")[d])}</td><td>${h?h.map(x=>esc(x[0]+" – "+x[1])).join(", "):esc(t("rest"))}</td></tr>`;}).join("");
   const so=S.social||{}, soc=[["facebook","fb","📘"],["instagram","ig","📸"],["foodpanda","fp","🐼"],["grabfood","gf","🛵"]].filter(x=>so[x[0]]);
@@ -691,7 +696,7 @@ function renderContact(){
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
     ${soc.length?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3><div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`;
-  $("foot").innerHTML = `${socIconsHTML()?`<div class="soc foot">${socIconsHTML()}</div>`:""}<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
+  $("foot").innerHTML = `${socIconsHTML()?`<div class="soc foot">${socIconsHTML(true)}</div>`:""}<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
 }
 
 /* ---------- 购物车抽屉 ---------- */

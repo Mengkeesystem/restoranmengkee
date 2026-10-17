@@ -39,6 +39,8 @@ window.SITE = {
   social: {
     facebook: "https://www.facebook.com/share/1GN91yegZu/?mibextid=wwXIfr",
     instagram: "https://www.instagram.com/restaurant_mengkee",
+    instagramName: "restaurant_mengkee",     // 图标旁显示的账号名
+    facebookName: "明记家乡小食店",           // TODO 确认 Facebook 专页名称
     foodpanda: "",                        // TODO
     grabfood: "",                         // TODO
   },
