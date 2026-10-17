@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>店员 · 订单核对</title>
+<link rel="icon" href="images/logo.png">
+<script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
+<style>
+:root{--p:#B4232A;--a:#F2B417;--dk:#2A1A14;--bg:#FFFBF5;--tx:#2A1A14;--mut:#7A6A60;--line:#E3D3C2;--ok:#1F8A4C;--warn:#B7791F;--r:3px}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;line-height:1.5;-webkit-tap-highlight-color:transparent;touch-action:manipulation;padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:3px solid var(--a);display:flex;align-items:center;gap:10px;padding:10px 16px}
+header img{height:36px}
+header b{color:var(--p);font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{flex:1;border:2px solid var(--p);background:#fff;color:var(--p);border-radius:var(--r);padding:10px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+.tabs button.on{background:var(--p);color:#fff}
+.btn{border:0;border-radius:var(--r);padding:10px 16px;font-weight:800;font-size:15px;cursor:pointer;min-height:42px;background:var(--p);color:#fff;font-family:inherit}
+.btn.alt{background:#fff;color:var(--p);border:2px solid var(--p)}
+.btn.ok{background:var(--ok)}
+.btn.sm{padding:6px 12px;min-height:34px;font-size:13px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:3px 3px 0 rgba(180,35,42,.10);margin-bottom:14px}
+textarea{width:100%;min-height:180px;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);font-family:inherit;resize:vertical}
+select{font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font-family:inherit;background:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note{color:var(--mut);font-size:13px}
+.verdict{border-radius:var(--r);padding:14px 16px;font-weight:800;font-size:18px;margin-bottom:12px;border:2px solid}
+.verdict.ok{background:#E9F7EF;border-color:var(--ok);color:var(--ok)}
+.verdict.bad{background:#FDECEC;border-color:var(--p);color:var(--p)}
+.verdict.warn{background:#FFF7E6;border-color:var(--warn);color:var(--warn)}
+.verdict .big{display:block;font-size:26px;margin-top:4px;color:var(--tx)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12.5px;color:var(--mut);font-weight:700}
+td.n{text-align:right;white-space:nowrap}
+td.d{white-space:nowrap}
+tr.bad td{background:#FDECEC}
+tr.warn td{background:#FFF7E6}
+.tag{display:inline-block;font-size:12px;font-weight:800;padding:1px 6px;border-radius:2px;margin-left:4px}
+.tag.ok{background:#E9F7EF;color:var(--ok)}.tag.bad{background:#FDECEC;color:var(--p)}.tag.warn{background:#FFF7E6;color:var(--warn)}
+ul.issues{margin:6px 0 0;padding-left:20px}
+ul.issues li{margin:3px 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
+.stat span{display:block;font-size:12.5px;color:var(--mut)}
+.stat b{font-size:20px}
+h3{margin:0 0 10px;color:var(--p);font-size:16px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dk);color:#fff;padding:10px 16px;border-radius:var(--r);font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header><img src="images/logo.png" alt=""><b id="hTitle">订单核对</b></header>
+<div class="wrap">
+  <div class="tabs"><button id="tCheck" class="on">🔍 核对订单</button><button id="tSum">📊 每月总结</button></div>
+  <div id="vCheck">
+    <div class="card">
+      <h3>把客人的 WhatsApp 订单整段贴进来</h3>
+      <textarea id="msg" placeholder="长按客人的订单讯息 → 复制 → 贴在这里"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn" id="go">🔍 核对</button><button class="btn alt" id="clr">清空</button></div>
+      <p class="note" style="margin:8px 0 0">系统会用<b>网站现在的菜单价钱</b>重新计算（小计 − 优惠 + SST + 运费），跟客人讯息里写的对比。<b>收钱以 TNG / 银行 App 实际到账为准，不看客人截图。</b></p>
+    </div>
+    <div id="result"></div>
+  </div>
+  <div id="vSum" hidden></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+const S = window.SITE || {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+const CUR = (S.ordering&&S.ordering.currency)||"RM";
+const r2 = n => Math.round(n*100)/100;
+const money = n => CUR+" "+r2(n).toFixed(2);
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const toast = m => { const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),1800); };
+document.title = (S.name||"") + " · 订单核对";
+$("hTitle").textContent = (S.name||"") + " · 订单核对";
+
+/* ---------- 菜单（跟 index.html 同一套规则） ---------- */
+const items=[]; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>items.push(it)));
+const sizeNamesZh = it => { const n=(it.prices||[]).length; return it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); };
+const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
+const norm = s => String(s||"").replace(/[ \s]+/g," ").trim();
+function variants(it){
+  const out=[], sis=it.prices?it.prices.map((_,i)=>i):[0], ois=it.options?it.options.map((_,i)=>i):[0];
+  sis.forEach(si=>ois.forEach(oi=>{ const parts=[]; if(it.prices) parts.push(sizeNamesZh(it)[si]); if(it.options) parts.push(it.options[oi]);
+    out.push({si,oi,label:parts.length?" ("+parts.join(", ")+")":"",price:unitPrice(it,si)}); }));
+  return out;
+}
+/* 讯息里每行：• A001 招牌蒸松鱼头 (大, 清炒) x2 = RM 70.00 —— 用「编号+菜名+份量做法」整串精确比对 */
+function matchItem(txt){
+  txt=norm(txt); let best=null;
+  for(const it of items){
+    const pf=norm((it.code?it.code+" ":"")+it.name); if(!txt.startsWith(pf)) continue;
+    const rest=norm(txt.slice(pf.length));
+    for(const v of variants(it)) if(rest===norm(v.label) && (!best||pf.length>best.pfLen)) best={it,...v,pfLen:pf.length};
+  }
+  return best;
+}
+const VSALT="mk-voucher:";
+async function sha256(txt){ const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join(""); }
+const vouchers = () => Array.isArray(S.vouchers)?S.vouchers:[];
+const sstRate = () => +(S.ordering&&S.ordering.sstRate)||0;
+const DEL = () => (S.ordering&&S.ordering.delivery&&S.ordering.delivery.enabled) ? S.ordering.delivery : null;
+const num = s => s==null?null:parseFloat(String(s).replace(/,/g,""));
+const amtIn = s => { const m=String(s||"").match(/(?:RM|MYR)\s*([\d,]+(?:\.\d{1,2})?)/i); return m?num(m[1]):null; };
+const lbl = (line, ...keys) => { for(const k of keys){ const m=line.match(new RegExp("^"+k+"\\s*[:：]\\s*(.*)$","i")); if(m) return m[1].trim(); } return null; };
+
+/* ---------- 核对 ---------- */
+async function check(raw){
+  const lines=String(raw||"").split(/\r?\n/).map(norm).filter(Boolean);
+  const R={lines:[],issues:[],warns:[],claimed:{}, type:"pickup"};
+  if(!lines.length){ R.issues.push("没有内容"); return R; }
+  if(/外卖|delivery/i.test(lines[0])) R.type="delivery";
+  for(const ln of lines){
+    let v;
+    const im=ln.match(/^[•·*\-]\s*(.+?)\s+[x×]\s*(\d+)\s*=\s*(.+)$/i);
+    if(im){
+      const q=+im[2], claimedAmt=amtIn(im[3]), m=matchItem(im[1]);
+      const L={text:im[1], q, claimedAmt};
+      if(!m){ L.err="菜单里找不到这道菜（菜名/份量被改过，或菜单已更新）"; }
+      else{
+        L.it=m.it; L.label=m.label; L.unit=m.price; L.amt=r2(m.price*q);
+        if(m.it.soldOut) L.warn="这道菜目前标示「售完」";
+        if(m.it.seasonal) L.warn="这道是时价菜，网上不能下单";
+        if(m.it.min&&q<m.it.min) L.warn=`最少要点 ${m.it.min}`;
+        if(q<1||q>99) L.err="数量不合理";
+        if(claimedAmt==null) L.err=L.err||"读不到这行的金额";
+        else if(Math.abs(claimedAmt-L.amt)>0.009) L.err=`讯息写 ${money(claimedAmt)}，按菜单价应为 ${money(L.unit)} × ${q} = ${money(L.amt)}`;
+      }
+      R.lines.push(L); continue;
+    }
+    if(/^[•·]/.test(ln)){ R.lines.push({text:ln.replace(/^[•·]\s*/,""),err:"这行格式不对，读不出数量和金额"}); continue; }
+    if((v=lbl(ln,"分店","Outlet"))!=null) R.outlet=v;
+    else if((v=lbl(ln,"小计","Subtotal"))!=null) R.claimed.sub=amtIn(v);
+    else if((v=lbl(ln,"优惠码","Voucher"))!=null){ R.vcode=(v.match(/^([A-Za-z0-9_-]+)/)||[])[1]||""; R.claimed.disc=(()=>{const m=v.match(/[−-]\s*(?:RM|MYR)\s*([\d,.]+)/i);return m?num(m[1]):0;})(); }
+    else if(/^SST\b/i.test(ln)) R.claimed.sst=amtIn(ln);
+    else if((v=lbl(ln,"运费","Delivery fee"))!=null){ R.type="delivery"; R.claimed.fee=/免运费|free/i.test(v)?0:amtIn(v); const z=v.match(/\(([^()]+)\)\s*$/); R.zoneLabel=z?z[1].trim():""; }
+    else if((v=lbl(ln,"合计","Total"))!=null) R.claimed.total=amtIn(v);
+    else if((v=lbl(ln,"姓名","Name"))!=null) R.name=v;
+    else if((v=lbl(ln,"电话","Phone"))!=null) R.phone=v;
+    else if((v=lbl(ln,"送餐地址","Delivery address","地址","Address"))!=null) R.addr=v;
+    else if((v=lbl(ln,"自取日期","送达日期","Pickup date","Delivery date"))!=null) R.date=(v.match(/\d{4}-\d{2}-\d{2}/)||[])[0];
+    else if((v=lbl(ln,"付款方式","Payment"))!=null){ R.payText=v; R.claimed.paid=/已转账|transferred/i.test(v)?amtIn(v):null; R.ref=(v.match(/MK\d{4}-\d{4}/)||[])[0]||""; }
+  }
+  const okLines=R.lines.filter(l=>l.it);
+  if(!R.lines.length) R.issues.push("读不到任何菜品（是不是没有整段复制？）");
+  R.lines.forEach(l=>{ if(l.err) R.issues.push(`「${l.text}」：${l.err}`); else if(l.warn) R.warns.push(`「${l.text}」：${l.warn}`); });
+  const sub=r2(okLines.reduce((s,l)=>s+l.amt,0)); R.sub=sub;
+  /* 优惠码：只认 config 里有的（比对哈希），用订单日期判断是否在有效期内 */
+  R.disc=0;
+  if(R.vcode){
+    const h=await sha256(VSALT+R.vcode.toUpperCase()), v=vouchers().find(x=>x.hash===h), d=R.date||ymd(new Date());
+    if(!v) R.issues.push(`优惠码「${R.vcode}」不是有效的优惠码`);
+    else if((v.from&&d<v.from)||(v.to&&d>v.to)) R.issues.push(`优惠码「${R.vcode}」在 ${d} 不在有效期内`);
+    else if(sub<(v.minSpend||0)) R.issues.push(`优惠码「${R.vcode}」要满 ${money(v.minSpend)}，这单只有 ${money(sub)}`);
+    else{ let off=v.type==="percent"?sub*(v.value||0)/100:v.type==="amount"?(v.value||0):0; if(v.maxOff) off=Math.min(off,v.maxOff); R.disc=r2(Math.min(off,sub)); R.vTitle=v.title||""; if(v.type==="gift"&&v.gift) R.warns.push(`优惠码送：${v.gift}`); }
+  }
+  R.sst=r2((sub-R.disc)*sstRate());
+  R.fee=0;
+  if(R.type==="delivery"){
+    const D=DEL(), zs=(D&&D.zones)||[], z=zs.find(z=>norm(z.label)===norm(R.zoneLabel)||norm(z.labelEn)===norm(R.zoneLabel));
+    if(!D) R.issues.push("网站目前没有开外卖");
+    else if(!z) R.issues.push(`读不到配送范围（讯息写：${R.zoneLabel||"没有"}）`);
+    else{ R.zone=z.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (z.fee||0); R.warns.push(`配送范围客人自己选「${z.label}」，请看地址核对距离`); }
+  }
+  R.total=r2(sub-R.disc+R.sst+R.fee);
+  const cmp=(k,mine,name)=>{ const c=R.claimed[k]; if(c==null) return; if(Math.abs(c-mine)>0.009) R.issues.push(`${name}：讯息写 ${money(c)}，应为 ${money(mine)}`); };
+  cmp("sub",sub,"小计"); if(R.vcode) cmp("disc",R.disc,"优惠"); cmp("sst",R.sst,"SST"); if(R.type==="delivery") cmp("fee",R.fee,"运费"); cmp("total",R.total,"合计");
+  if(R.claimed.total==null) R.issues.push("讯息里没有「合计」");
+  if(R.claimed.paid!=null&&Math.abs(R.claimed.paid-R.total)>0.009) R.issues.push(`客人说已转账 ${money(R.claimed.paid)}，应付 ${money(R.total)}`);
+  return R;
+}
+
+function renderResult(R){
+  if(!R){ $("result").innerHTML=""; return; }
+  const bad=R.issues.length>0, warn=!bad&&R.warns.length>0;
+  const paid=R.claimed.paid!=null;
+  $("result").innerHTML=`<div class="verdict ${bad?"bad":warn?"warn":"ok"}">${bad?"❌ 金额或内容对不上，先别出餐，联系客人":warn?"⚠️ 金额正确，但有几点要注意":"✅ 金额正确"}
+      <span class="big">应收 ${money(R.total)}</span>
+      <span class="note" style="font-weight:600">${paid?`客人选「现在转账」${R.ref?"，参考号 <b>"+esc(R.ref)+"</b>":""} → 去 TNG / 银行 App 确认<b>真的收到 ${money(R.total)}</b>`:`到店付款 / 货到付款 → 收 ${money(R.total)}`}</span></div>
+    ${R.issues.length?`<div class="card"><h3>❌ 有问题</h3><ul class="issues">${R.issues.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    ${R.warns.length?`<div class="card"><h3 style="color:var(--warn)">⚠️ 注意</h3><ul class="issues">${R.warns.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    <div class="card"><h3>重算明细</h3><div class="scroll"><table>
+      <tr><th>菜品</th><th class="n">数量</th><th class="n">讯息写</th><th class="n">应为</th></tr>
+      ${R.lines.map(l=>`<tr class="${l.err?"bad":l.warn?"warn":""}"><td>${esc(l.text)}${l.err?'<span class="tag bad">✗</span>':l.warn?'<span class="tag warn">!</span>':'<span class="tag ok">✓</span>'}</td><td class="n">${esc(l.q||"")}</td><td class="n">${l.claimedAmt!=null?money(l.claimedAmt):"-"}</td><td class="n">${l.amt!=null?money(l.amt):"-"}</td></tr>`).join("")}
+      <tr><td colspan="3">小计</td><td class="n">${money(R.sub)}</td></tr>
+      ${R.vcode?`<tr><td colspan="3">优惠码 ${esc(R.vcode)} ${esc(R.vTitle||"")}</td><td class="n">− ${money(R.disc)}</td></tr>`:""}
+      ${sstRate()?`<tr><td colspan="3">SST ${Math.round(sstRate()*1000)/10}%</td><td class="n">${money(R.sst)}</td></tr>`:""}
+      ${R.type==="delivery"?`<tr><td colspan="3">运费 ${esc(R.zone||"")}</td><td class="n">${money(R.fee)}</td></tr>`:""}
+      <tr><th colspan="3" style="color:var(--tx);font-size:15px">合计（讯息写 ${R.claimed.total!=null?money(R.claimed.total):"-"}）</th><th class="n" style="color:var(--tx);font-size:15px">${money(R.total)}</th></tr>
+    </table></div>
+    <p class="note" style="margin:10px 0 0">${R.type==="delivery"?"🛵 外卖":"🛍️ 自取"} · ${esc(R.outlet||"分店?")} · ${esc(R.date||"日期?")} · ${esc(R.name||"")} ${esc(R.phone||"")}</p></div>
+    <div class="card"><h3>📥 记录到每月总结</h3><p class="note" style="margin:0 0 10px">确认收到钱 / 已出餐后再按。记录只存在<b>这部手机 / 电脑</b>的浏览器里，客人看不到。</p>
+      <button class="btn ${bad?"alt":"ok"}" id="save">${bad?"仍然记录（标示为有问题）":"✅ 记录这笔订单"}</button></div>`;
+  $("save").onclick=()=>saveRecord(R);
+}
+
+/* ---------- 记录（只存这部装置的 localStorage） ---------- */
+const KEY="mk_staff_orders_v1";
+function loadRecs(){ try{ const a=JSON.parse(localStorage.getItem(KEY)||"[]"); return Array.isArray(a)?a.filter(validRec):[]; }catch(e){ return []; } }
+function saveRecs(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); return true; }catch(e){ alert("这个浏览器不能储存（可能是无痕模式）。"); return false; } }
+const validRec = r => r&&typeof r==="object"&&typeof r.id==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(r.date||"")&&isFinite(r.total)&&Array.isArray(r.items);
+async function recId(R, raw){ return R.ref ? R.ref : "H"+(await sha256(norm(raw))).slice(0,10); }
+async function saveRecord(R){
+  const raw=$("msg").value, id=await recId(R,raw), recs=loadRecs(), i=recs.findIndex(x=>x.id===id);
+  if(i>=0&&!confirm("这笔订单之前已经记录过，要覆盖吗？")) return;
+  if(R.issues.length&&!confirm("这笔有问题，确定仍要记录吗？")) return;
+  const rec={id, ref:R.ref||"", date:R.date||ymd(new Date()), outlet:R.outlet||"", type:R.type, name:R.name||"", phone:R.phone||"",
+    items:R.lines.filter(l=>l.it).map(l=>({code:l.it.code||"",name:l.it.name,label:l.label,q:l.q,amt:l.amt})),
+    sub:R.sub, disc:R.disc, sst:R.sst, fee:R.fee, total:R.total, claimed:R.claimed.total??null, paidNow:R.claimed.paid!=null, vcode:R.vcode||"", ok:!R.issues.length, savedAt:new Date().toISOString()};
+  if(i>=0) recs[i]=rec; else recs.push(rec);
+  if(saveRecs(recs)) toast("已记录 ✓");
+}
+
+/* ---------- 每月总结 ---------- */
+let sumMonth=ymd(new Date()).slice(0,7), sumOutlet="";
+function renderSum(){
+  const all=loadRecs(), months=[...new Set([sumMonth,...all.map(r=>r.date.slice(0,7))])].sort().reverse();
+  const outs=[...new Set(all.map(r=>r.outlet).filter(Boolean))].sort();
+  const recs=all.filter(r=>r.date.slice(0,7)===sumMonth&&(!sumOutlet||r.outlet===sumOutlet)).sort((a,b)=>a.date<b.date?1:-1);
+  const sum=k=>r2(recs.reduce((s,r)=>s+(+r[k]||0),0));
+  const byOut={}; recs.forEach(r=>{ const k=r.outlet||"（未写分店）"; (byOut[k]=byOut[k]||{n:0,t:0}); byOut[k].n++; byOut[k].t=r2(byOut[k].t+r.total); });
+  const dish={}; recs.forEach(r=>r.items.forEach(x=>{ const k=(x.code?x.code+" ":"")+x.name+(x.label||""); (dish[k]=dish[k]||{q:0,t:0}); dish[k].q+=x.q; dish[k].t=r2(dish[k].t+x.amt); }));
+  const top=Object.entries(dish).sort((a,b)=>b[1].q-a[1].q||b[1].t-a[1].t).slice(0,15);
+  const [y,m]=sumMonth.split("-");
+  $("vSum").innerHTML=`<div class="card"><div class="row">
+      <select id="sMonth">${months.map(x=>`<option value="${esc(x)}" ${x===sumMonth?"selected":""}>${esc(x.replace("-"," 年 "))} 月</option>`).join("")}</select>
+      <select id="sOutlet"><option value="">全部分店</option>${outs.map(o=>`<option ${o===sumOutlet?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+      <p class="note" style="margin:8px 0 0">只统计在「核对订单」按过「记录」的网上订单，资料只在这部装置。其他店员的记录可用下面的「备份 / 合并」汇总过来。</p></div>
+    <div class="stats">
+      <div class="stat"><span>订单数</span><b>${recs.length}</b></div>
+      <div class="stat"><span>营业额（合计）</span><b>${money(sum("total"))}</b></div>
+      <div class="stat"><span>食物小计</span><b>${money(sum("sub"))}</b></div>
+      <div class="stat"><span>平均每单</span><b>${money(recs.length?sum("total")/recs.length:0)}</b></div>
+      <div class="stat"><span>优惠折扣</span><b>${money(sum("disc"))}</b></div>
+      <div class="stat"><span>SST</span><b>${money(sum("sst"))}</b></div>
+      <div class="stat"><span>运费</span><b>${money(sum("fee"))}</b></div>
+      <div class="stat"><span>自取 / 外卖</span><b>${recs.filter(r=>r.type!=="delivery").length} / ${recs.filter(r=>r.type==="delivery").length}</b></div>
+    </div>
+    ${recs.some(r=>!r.ok)?`<div class="verdict bad" style="font-size:15px">⚠️ 这个月有 ${recs.filter(r=>!r.ok).length} 笔记录时金额对不上</div>`:""}
+    <div class="card"><h3>按分店</h3><div class="scroll"><table><tr><th>分店</th><th class="n">订单</th><th class="n">营业额</th></tr>
+      ${Object.entries(byOut).sort((a,b)=>b[1].t-a[1].t).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n">${money(v.t)}</td></tr>`).join("")||`<tr><td colspan="3" class="note">没有记录</td></tr>`}</table></div></div>
+    <div class="card"><h3>热卖菜品 Top 15</h3><div class="scroll"><table><tr><th>菜品</th><th class="n">份数</th><th class="n">金额</th></tr>
+      ${top.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.q}</td><td class="n">${money(v.t)}</td></tr>`).join("")||`<tr><td colspan="3" class="note">没有记录</td></tr>`}</table></div></div>
+    <div class="card"><h3>订单列表（${esc(y)} 年 ${esc(+m)} 月）</h3><div class="scroll"><table><tr><th>日期</th><th>参考号</th><th>分店</th><th>客人</th><th class="n">合计</th><th></th></tr>
+      ${recs.map(r=>`<tr class="${r.ok?"":"bad"}"><td class="d">${esc(r.date.slice(5))}</td><td>${esc(r.ref||"-")}${r.ok?"":'<span class="tag bad">有问题</span>'}</td><td>${esc(r.outlet)}</td><td>${esc(r.name)}<div class="note">${esc(r.phone)}</div></td><td class="n">${money(r.total)}${r.type==="delivery"?'<div class="note">外卖</div>':""}</td><td><button class="btn alt sm" data-del="${esc(r.id)}">删</button></td></tr>`).join("")||`<tr><td colspan="6" class="note">这个月还没有记录</td></tr>`}</table></div></div>
+    <div class="card"><h3>导出 / 备份 / 合并</h3><div class="row">
+      <button class="btn alt sm" id="csv">⬇ 导出本月 CSV（Excel）</button>
+      <button class="btn alt sm" id="bak">⬇ 备份全部记录</button>
+      <label class="btn alt sm" style="display:inline-flex;align-items:center">⬆ 合并别人的备份<input type="file" id="imp" accept=".json,application/json" hidden></label></div>
+      <p class="note" style="margin:8px 0 0">换手机或清除浏览器资料前，先「备份」。同一笔订单（同参考号）合并时不会重复。</p></div>`;
+  $("sMonth").onchange=e=>{ sumMonth=e.target.value; renderSum(); };
+  $("sOutlet").onchange=e=>{ sumOutlet=e.target.value; renderSum(); };
+  $("vSum").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ if(!confirm("删除这笔记录？")) return; saveRecs(loadRecs().filter(r=>r.id!==b.dataset.del)); renderSum(); });
+  $("csv").onclick=()=>{
+    const q=v=>{ let s=String(v==null?"":v); if(/^[=+\-@\t\r]/.test(s)) s="'"+s; return '"'+s.replace(/"/g,'""')+'"'; };   /* 防 Excel 公式注入 */
+    const head=["日期","参考号","分店","类型","客人","电话","菜品","小计","优惠码","优惠","SST","运费","合计","讯息写的合计","金额正确"];
+    const rows=recs.map(r=>[r.date,r.ref,r.outlet,r.type==="delivery"?"外卖":"自取",r.name,r.phone,r.items.map(x=>`${x.code} ${x.name}${x.label} x${x.q}`).join("; "),r.sub,r.vcode,r.disc,r.sst,r.fee,r.total,r.claimed,r.ok?"是":"否"]);
+    download(`orders-${sumMonth}${sumOutlet?"-"+sumOutlet:""}.csv`,"﻿"+[head,...rows].map(a=>a.map(q).join(",")).join("\r\n"),"text/csv");
+  };
+  $("bak").onclick=()=>download(`orders-backup-${ymd(new Date())}.json`,JSON.stringify(loadRecs()),"application/json");
+  $("imp").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{
+    try{ const inc=JSON.parse(rd.result); if(!Array.isArray(inc)) throw 0; const ok=inc.filter(validRec), mine=loadRecs(), ids=new Set(mine.map(r=>r.id)); let n=0;
+      ok.forEach(r=>{ if(!ids.has(r.id)){ mine.push(r); ids.add(r.id); n++; } }); saveRecs(mine); toast(`合并了 ${n} 笔新记录`); renderSum();
+    }catch(_){ alert("这个文件不是订单备份。"); } }; rd.readAsText(f); };
+}
+function download(name,text,type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+
+/* ---------- 事件 ---------- */
+$("go").onclick=async()=>{ renderResult(await check($("msg").value)); $("result").scrollIntoView({behavior:"smooth",block:"start"}); };
+$("clr").onclick=()=>{ $("msg").value=""; renderResult(null); $("msg").focus(); };
+const tab=v=>{ $("tCheck").classList.toggle("on",v==="c"); $("tSum").classList.toggle("on",v==="s"); $("vCheck").hidden=v!=="c"; $("vSum").hidden=v!=="s"; if(v==="s") renderSum(); };
+$("tCheck").onclick=()=>tab("c"); $("tSum").onclick=()=>tab("s");
+})();
+</script>
+</body>
+</html>
