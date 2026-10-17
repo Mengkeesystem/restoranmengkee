@@ -152,13 +152,20 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 
 
 /* 页头 IG/FB（单色） */
-.tsoc{display:flex;align-items:center;gap:18px;margin-right:22px;flex:0 1 auto;min-width:0}
-.tsoc:not(:empty)+.brand{padding-left:22px;border-left:1px solid var(--line)}
+/* 页头 FB/IG：大屏幕贴在整个画面最左边（不占 logo/菜单原本的位置，参考 Oriental Kopi）；
+   屏幕不够宽时退回 logo 左边、只显示图标 */
+.tsoc{display:flex;align-items:center;gap:10px;margin-right:12px;flex:0 1 auto;min-width:0}
 .tsoc:empty{display:none}
+.tsoc:not(:empty)+.brand{padding-left:12px;border-left:1px solid var(--line)}
 .ts{display:inline-flex;align-items:center;gap:6px;color:var(--p);text-decoration:none;font-weight:800;font-size:14px;white-space:nowrap}
 .ts svg{width:22px;height:22px;flex:0 0 auto}
+.ts span{display:none}
 .ts:hover span{text-decoration:underline}
-@media(max-width:1180px){.ts span{display:none}.tsoc{gap:10px;margin-right:12px}.tsoc:not(:empty)+.brand{padding-left:12px}}
+@media(min-width:1260px){
+  .tsoc{position:absolute;left:24px;top:0;height:60px;margin:0;gap:14px}
+  .tsoc:not(:empty)+.brand{padding-left:0;border-left:0}
+}
+@media(min-width:1720px){.ts span{display:inline}.tsoc{gap:22px}}
 @media(max-width:400px){.tsoc{gap:8px;margin-right:8px}.tsoc:not(:empty)+.brand{padding-left:8px}.ts svg{width:20px;height:20px}}
 @media(max-width:480px){.brand img+span{display:none}}
 
