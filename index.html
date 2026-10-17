@@ -75,6 +75,14 @@ nav.links a:hover{background:#F6EADB}
 .olist.one{grid-template-columns:minmax(0,340px);justify-content:center}
 .outlet{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 14px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px}
 .outlet h3{margin:0;font-size:17px;color:var(--p)}
+/* 手机：只显示前 3 间，其余按箭头展开 */
+.omore{display:none}
+@media(max-width:560px){
+  #outletList:not(.open) .more{display:none}
+  .omore{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:16px 0 0;padding:11px 14px;background:#fff;color:var(--p);border:1px solid var(--p);border-radius:var(--r);font:inherit;font-weight:700;font-size:15px;cursor:pointer;box-shadow:3px 3px 0 rgba(0,0,0,.08)}
+  .omore .arr{display:inline-block;transition:transform .2s}
+  #outletList.open .omore .arr{transform:rotate(180deg)}
+}
 .outlet .ln{font-size:14px;color:var(--tx)}
 .outlet .ad{font-size:13.5px;color:var(--mut)}
 .outlet .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:auto;padding-top:8px}
@@ -397,7 +405,7 @@ const money = n => CUR+" "+(Math.round(n*100)/100).toFixed(2);
 
 /* ---------- 文字（中/英） ---------- */
 const T = {
-  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外卖",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点「导航」用 Google Maps 带路",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",
+  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外卖",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点「导航」用 Google Maps 带路",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
       navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"故事",navContact:"联系",
       open:"营业中",closed:"已打烊",closedToday:"今天休息",opensAt:"营业至",nextOpen:"下次营业",orderNow:"网上点餐",bookNow:"订位",
       days:["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],rest:"休息",
@@ -412,7 +420,7 @@ const T = {
       waOrder:"【网上点餐 - 自取】",waBook:"【网上订位】",
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda 外送",gf:"GrabFood 外送",follow:"关注我们 / 外送平台",
       until:"至",longTerm:"长期有效"},
-  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap “Directions” to open Google Maps",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",
+  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap “Directions” to open Google Maps",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",showLess:"Show less",
       navMenu:"Menu",navPromo:"Promos",navBook:"Book",navAbout:"Story",navContact:"Contact",
       open:"Open now",closed:"Closed",closedToday:"Closed today",opensAt:"Open until",nextOpen:"Next open",orderNow:"Order online",bookNow:"Book a table",
       days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],rest:"Closed",
@@ -550,14 +558,23 @@ function outletOptions(sel){
 function renderOutlets(){
   const os=outlets(); $("outlets").hidden=!os.length; if(!os.length) return;
   const groups=[]; os.forEach(o=>{ let g=groups.find(x=>x.region===(o.region||"")); if(!g){g={region:o.region||"",regionEn:o.regionEn,items:[]};groups.push(g);} g.items.push(o); });
-  $("outletList").innerHTML = groups.map(g=>`${g.region?`<h3 class="region">❖ ${esc(L(g,"region"))} ❖<small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
-    <div class="olist${g.items.length===1?" one":""}">${g.items.map(o=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet">
+  const SHOW=3; let idx=0;
+  $("outletList").innerHTML = groups.map(g=>{ const g0=idx; idx+=g.items.length; let k=g0; return `${g.region?`<h3 class="region${g0>=SHOW?" more":""}">❖ ${esc(L(g,"region"))} ❖<small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
+    <div class="olist${g.items.length===1?" one":""}${g0>=SHOW?" more":""}">${g.items.map(o=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet${k++>=SHOW?" more":""}">
       <h3>${esc(outletLabel(o))}</h3>
       ${o.hours?`<div class="ln">🕐 ${esc(o.hours)}</div>`:""}
       ${o.phone?`<div class="ln">📞 ${esc(o.phone)}</div>`:""}
       <div class="ad">📍 ${esc(o.address)}</div>
       <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">🧭 ${esc(t("nav"))}</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
-    </div>`;}).join("")}</div>`).join("");
+    </div>`;}).join("")}</div>`;}).join("")
+    + (os.length>SHOW?`<button type="button" class="omore" aria-expanded="false"><span class="lbl">${esc(t("allOutlets").replace("{n}",os.length))}</span> <span class="arr">▾</span></button>`:"");
+  const ob=document.querySelector("#outletList .omore"); if(ob) ob.addEventListener("click",()=>toggleOutlets(ob));
+}
+function toggleOutlets(b){
+  const box=$("outletList"), open=box.classList.toggle("open");
+  b.setAttribute("aria-expanded",open);
+  b.querySelector(".lbl").textContent = open ? t("showLess") : t("allOutlets").replace("{n}",outlets().length);
+  if(!open) $("outlets").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function activePromos(){
   const today=ymd(new Date());
