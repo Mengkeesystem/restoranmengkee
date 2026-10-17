@@ -37,8 +37,8 @@ window.SITE = {
 
   /* 社交平台 / 外卖平台链接，没有的留空 "" 就不会显示 */
   social: {
-    facebook: "",                         // TODO
-    instagram: "",                        // TODO
+    facebook: "https://www.facebook.com/share/1GN91yegZu/?mibextid=wwXIfr",
+    instagram: "https://www.instagram.com/restaurant_mengkee",
     foodpanda: "",                        // TODO
     grabfood: "",                         // TODO
   },

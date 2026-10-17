@@ -137,6 +137,18 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .promo .in{padding:18px 16px 16px}
 .promo h3{padding-right:52px}
 
+/* social icons */
+.soc{display:flex;gap:6px;flex:0 0 auto}
+.soc:empty{display:none}
+.si{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:#fff;border-radius:var(--rs);text-decoration:none}
+.si svg{width:18px;height:18px}
+.si-facebook{background:#1877F2}
+.si-instagram{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)}
+.si:hover{filter:brightness(1.1);box-shadow:2px 2px 0 rgba(0,0,0,.2)}
+.soc.foot{margin-bottom:10px}
+.soc.foot .si{width:36px;height:36px}
+@media(max-width:480px){.brand img+span{display:none}.si{width:32px;height:32px}}
+
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .promo{background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);border-left:6px solid var(--a)}
@@ -280,6 +292,7 @@ footer a{color:#fff}
 <header>
   <div class="wrap hd">
     <a class="brand" href="#top" id="brand"></a>
+    <div class="soc" id="socTop"></div>
     <nav class="links" id="nav"></nav>
     <button class="hbtn menuToggle" id="menuToggle" aria-label="Menu">☰</button>
     <button class="hbtn lang" id="langBtn">EN</button>
@@ -654,7 +667,17 @@ function renderAbout(){
   $("gallery").hidden = !(S.gallery||[]).length; $("gallerySec").hidden = !(S.gallery||[]).length;
   $("about").hidden = !(L(S,"story")||[]).length;
 }
+/* Facebook / Instagram 小图标（页头左上 + 页脚左下），点了开新分页 */
+const SOC_ICON = {
+  facebook:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.4H7.7V14h2.7v8h3.1z"/></svg>',
+  instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21.9 8.1c-.1-1.6-.4-3-1.6-4.2-1.2-1.2-2.6-1.5-4.2-1.6C14.5 2.2 9.5 2.2 7.9 2.3c-1.6.1-3 .4-4.2 1.6S2.2 6.5 2.1 8.1C2 9.7 2 14.3 2.1 15.9c.1 1.6.4 3 1.6 4.2s2.6 1.5 4.2 1.6c1.6.1 6.6.1 8.2 0 1.6-.1 3-.4 4.2-1.6 1.2-1.2 1.5-2.6 1.6-4.2.1-1.6.1-6.2 0-7.8zm-2.1 9.6a3.3 3.3 0 0 1-1.9 1.9c-1.3.5-4.4.4-5.9.4s-4.6.1-5.9-.4a3.3 3.3 0 0 1-1.9-1.9c-.5-1.3-.4-4.4-.4-5.7s-.1-4.4.4-5.7a3.3 3.3 0 0 1 1.9-1.9c1.3-.5 4.4-.4 5.9-.4s4.6-.1 5.9.4a3.3 3.3 0 0 1 1.9 1.9c.5 1.3.4 4.4.4 5.7s.1 4.4-.4 5.7z"/></svg>'
+};
+function socIconsHTML(){
+  const so=S.social||{};
+  return ["facebook","instagram"].filter(k=>so[k]).map(k=>`<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${k==="facebook"?"Facebook":"Instagram"}" title="${k==="facebook"?"Facebook":"Instagram"}">${SOC_ICON[k]}</a>`).join("");
+}
 function renderContact(){
+  $("socTop").innerHTML = socIconsHTML();
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
   $("hours").innerHTML = order.map(d=>{const h=hoursOf(d);return `<tr class="${d===today?"today":""}"><td>${esc(t("days")[d])}</td><td>${h?h.map(x=>esc(x[0]+" – "+x[1])).join(", "):esc(t("rest"))}</td></tr>`;}).join("");
   const so=S.social||{}, soc=[["facebook","fb","📘"],["instagram","ig","📸"],["foodpanda","fp","🐼"],["grabfood","gf","🛵"]].filter(x=>so[x[0]]);
@@ -668,7 +691,7 @@ function renderContact(){
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
     ${soc.length?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3><div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`;
-  $("foot").innerHTML = `<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+esc(t("outletsT"))+" "+outlets().length:"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
+  $("foot").innerHTML = `${socIconsHTML()?`<div class="soc foot">${socIconsHTML()}</div>`:""}<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
 }
 
 /* ---------- 购物车抽屉 ---------- */
