@@ -145,12 +145,15 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .sic svg{width:100%;height:100%;display:block}
 .si:hover .sit{color:var(--p);text-decoration:underline}
 .si:hover .sic{transform:translateY(-1px)}
-.soc.foot{gap:12px 22px;margin-bottom:14px;flex-wrap:wrap}
-.soc.foot .si{color:#fff;font-size:16px}
-.soc.foot .sic{width:38px;height:38px}
-.soc.foot .si:hover .sit{color:var(--a)}
-@media(max-width:1180px){header .sit{display:none}header .soc{gap:8px}}
-@media(max-width:480px){.brand img+span{display:none}}
+@media(max-width:380px){.brand{font-size:15px;gap:6px}.brand img{height:34px}}
+.hsoc{margin-top:26px;gap:12px 22px;flex-wrap:wrap}
+.hsoc .si{color:#fff;font-size:15px}
+.hsoc .sic{width:34px;height:34px}
+.hsoc .si:hover .sit{color:var(--a)}
+.csoc{margin-top:14px;gap:12px 24px;flex-wrap:wrap}
+.csoc .si{font-size:16px}
+.csoc .sic{width:38px;height:38px}
+
 
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -295,7 +298,6 @@ footer a{color:#fff}
 <header>
   <div class="wrap hd">
     <a class="brand" href="#top" id="brand"></a>
-    <div class="soc" id="socTop"></div>
     <nav class="links" id="nav"></nav>
     <button class="hbtn menuToggle" id="menuToggle" aria-label="Menu">☰</button>
     <button class="hbtn lang" id="langBtn">EN</button>
@@ -479,7 +481,8 @@ function renderHero(){
       ${S.ordering&&S.ordering.enabled?`<a class="btn" href="#menu" style="background:var(--a);color:var(--dk)">🛍️ ${esc(t("orderNow"))}</a>`:""}
       ${S.booking&&S.booking.enabled?`<a class="btn alt" href="#booking">📅 ${esc(t("bookNow"))}</a>`:""}
       ${outlets().length?`<a class="btn alt" href="#outlets">📍 ${esc(t("outletBtn"))}</a>`:""}
-    </div>`;
+    </div>
+    ${socIconsHTML()?`<div class="soc hsoc">${socIconsHTML(true)}</div>`:""}`;
 }
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
 const outletMap = o => o.map || ("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((S.nameEn||S.name||"")+" "+o.address));
@@ -682,10 +685,9 @@ function socIconsHTML(withLabel){
     return `<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${esc(SOC_NAME[k]+" "+lbl)}" title="${esc(SOC_NAME[k]+": "+lbl)}"><span class="sic">${SOC_ICON[k]}</span>${withLabel?`<span class="sit">${esc(lbl)}</span>`:""}</a>`; }).join("");
 }
 function renderContact(){
-  $("socTop").innerHTML = socIconsHTML(true);
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
   $("hours").innerHTML = order.map(d=>{const h=hoursOf(d);return `<tr class="${d===today?"today":""}"><td>${esc(t("days")[d])}</td><td>${h?h.map(x=>esc(x[0]+" – "+x[1])).join(", "):esc(t("rest"))}</td></tr>`;}).join("");
-  const so=S.social||{}, soc=[["facebook","fb","📘"],["instagram","ig","📸"],["foodpanda","fp","🐼"],["grabfood","gf","🛵"]].filter(x=>so[x[0]]);
+  const so=S.social||{}, soc=[["foodpanda","fp","🐼"],["grabfood","gf","🛵"]].filter(x=>so[x[0]]);
   $("contactInfo").innerHTML = `
     ${S.address?`<p><b>${esc(t("addr"))}:</b> ${esc(S.address)}</p>`:""}
     ${outlets().length?`<p><a class="btn alt" href="#outlets">📍 ${esc(t("allOutlets").replace("{n}",outlets().length))}</a></p>`:""}
@@ -695,8 +697,8 @@ function renderContact(){
       ${S.mapLink?`<a class="btn alt" href="${esc(S.mapLink)}" target="_blank" rel="noopener">📍 ${esc(t("map"))}</a>`:""}
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
-    ${soc.length?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3><div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`;
-  $("foot").innerHTML = `${socIconsHTML()?`<div class="soc foot">${socIconsHTML(true)}</div>`:""}<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
+    ${soc.length||socIconsHTML()?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3>${socIconsHTML()?`<div class="soc csoc">${socIconsHTML(true)}</div>`:""}${soc.length?`<div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`:""}`;
+  $("foot").innerHTML = `<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
 }
 
 /* ---------- 购物车抽屉 ---------- */
