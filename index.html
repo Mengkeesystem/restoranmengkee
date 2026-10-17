@@ -67,7 +67,7 @@ nav.links a:hover{background:#F6EADB}
 
 /* outlets */
 .region{text-align:center;color:var(--p);font-size:22px;margin:30px 0 16px;letter-spacing:2px}
-.region:first-of-type{margin-top:6px}
+.ogrp:first-child .region{margin-top:6px}
 .region small{display:block;font-size:13px;color:var(--mut);letter-spacing:0;font-weight:600}
 .olist{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 @media(max-width:900px){.olist{grid-template-columns:repeat(2,1fr)}}
@@ -78,10 +78,10 @@ nav.links a:hover{background:#F6EADB}
 /* 手机：只显示前 3 间，其余按箭头展开 */
 .omore{display:none}
 @media(max-width:560px){
-  #outletList:not(.open) .more{display:none}
+  .ogrp:not(.open) .more{display:none}
   .omore{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:16px 0 0;padding:11px 14px;background:#fff;color:var(--p);border:1px solid var(--p);border-radius:var(--r);font:inherit;font-weight:700;font-size:15px;cursor:pointer;box-shadow:3px 3px 0 rgba(0,0,0,.08)}
   .omore .arr{display:inline-block;transition:transform .2s}
-  #outletList.open .omore .arr{transform:rotate(180deg)}
+  .ogrp.open .omore .arr{transform:rotate(180deg)}
 }
 .outlet .ln{font-size:14px;color:var(--tx)}
 .outlet .ad{font-size:13.5px;color:var(--mut)}
@@ -558,23 +558,22 @@ function outletOptions(sel){
 function renderOutlets(){
   const os=outlets(); $("outlets").hidden=!os.length; if(!os.length) return;
   const groups=[]; os.forEach(o=>{ let g=groups.find(x=>x.region===(o.region||"")); if(!g){g={region:o.region||"",regionEn:o.regionEn,items:[]};groups.push(g);} g.items.push(o); });
-  const SHOW=3; let idx=0;
-  $("outletList").innerHTML = groups.map(g=>{ const g0=idx; idx+=g.items.length; let k=g0; return `${g.region?`<h3 class="region${g0>=SHOW?" more":""}">❖ ${esc(L(g,"region"))} ❖<small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
-    <div class="olist${g.items.length===1?" one":""}${g0>=SHOW?" more":""}">${g.items.map(o=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet${k++>=SHOW?" more":""}">
+  const SHOW=3;  // 手机版每个区域只显示前 3 间，其余按箭头展开（每区各自独立）
+  $("outletList").innerHTML = groups.map(g=>{ const many=g.items.length>SHOW; return `<div class="ogrp">${g.region?`<h3 class="region">❖ ${esc(L(g,"region"))} ❖<small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
+    <div class="olist${g.items.length===1?" one":""}">${g.items.map((o,k)=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet${k>=SHOW?" more":""}">
       <h3>${esc(outletLabel(o))}</h3>
       ${o.hours?`<div class="ln">🕐 ${esc(o.hours)}</div>`:""}
       ${o.phone?`<div class="ln">📞 ${esc(o.phone)}</div>`:""}
       <div class="ad">📍 ${esc(o.address)}</div>
       <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">🧭 ${esc(t("nav"))}</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
-    </div>`;}).join("")}</div>`;}).join("")
-    + (os.length>SHOW?`<button type="button" class="omore" aria-expanded="false"><span class="lbl">${esc(t("allOutlets").replace("{n}",os.length))}</span> <span class="arr">▾</span></button>`:"");
-  const ob=document.querySelector("#outletList .omore"); if(ob) ob.addEventListener("click",()=>toggleOutlets(ob));
+    </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
+  document.querySelectorAll("#outletList .omore").forEach(b=>b.addEventListener("click",()=>toggleOutlets(b)));
 }
 function toggleOutlets(b){
-  const box=$("outletList"), open=box.classList.toggle("open");
+  const grp=b.closest(".ogrp"), open=grp.classList.toggle("open");
   b.setAttribute("aria-expanded",open);
-  b.querySelector(".lbl").textContent = open ? t("showLess") : t("allOutlets").replace("{n}",outlets().length);
-  if(!open) $("outlets").scrollIntoView({behavior:"smooth",block:"start"});
+  b.querySelector(".lbl").textContent = open ? t("showLess") : t("allOutlets").replace("{n}",b.dataset.n);
+  if(!open) grp.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function activePromos(){
   const today=ymd(new Date());
