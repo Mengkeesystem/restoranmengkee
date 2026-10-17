@@ -68,6 +68,21 @@
 - 真正能「改网站内容」的只有 GitHub 账号 `Mengkeesystem` 和有写权限的协作者 → 账号必须开 2FA、别给不信任的人写权限。
 - `?paytest=1` 会显示业主个人 TNG QR（`images/test-tng-qr.jpg`），任何知道这个网址的人都看得到 → 填了正式商家 QR 后建议删掉这张图。
 
+## ⏳ 待办（第二步）：Pro 之后接付款网关 + 后台重算价钱（2026-10-17 记录）
+业主要求：升级 Supabase Pro、付款确认后台启用之后，**再做付款网关**，目标是像 Grab/Shopee 一样「客人在自己浏览器改价也没用」，不用店员手动核对。
+**为什么需要**：现在价钱是在客人浏览器算的，订单直接发 WhatsApp，没有服务器重算 → 客人可改自己那份的金额（只能靠 check.html + 看实际到账把关）。大平台安全是因为**服务器用自己存的价钱重算 + 付款网关按服务器算的金额扣款**。
+
+**要做的（顺序）：**
+1. 先完成上面「付款确认后台」那份清单（新 Supabase 项目、schema.sql、店员白名单）。
+2. **后台存菜单价**：在网站专用 Supabase 建 `menu_prices`（id, si, oi, price, soldOut/seasonal）、`vouchers`（hash, type, value, minSpend, maxOff, from, to）、`delivery_zones`、SST 税率；由 `config.js` 生成同步脚本或 SQL（改菜单价时两边要一起更新，或改成网站从 Supabase 读菜单）。
+3. **建单改成后台算钱**：`create_web_order` 不再收客人传来的 `p_amount`，改收购物车明细 `[{id,si,oi,q}]` + 优惠码 + 配送范围，由函数自己查价、算小计/优惠/SST/运费/合计，回传金额与 ref。
+4. **付款网关**：业主先申请商家账号（马来西亚常见：ToyyibPay、Billplz；要公司/商家资料、银行户口，审核需时间，会有每笔手续费）。用 **Supabase Edge Function** 持有网关 secret key（绝不放进网页/仓库），以后台算出的金额建付款单 → 客人跳到网关付款（FPX 网银 / DuitNow / 电子钱包）→ 网关 **callback（webhook）打到 Edge Function，验证签名后**把订单设为 paid → 客人网页轮询到 paid 自动跳 WhatsApp（沿用现有 `startAutoPay` 流程）。
+5. 网关接好后：店员不用手动按「已收款」（admin.html 改成只看订单 + 处理退款/异常）；check.html 保留作备用；WhatsApp 讯息里的金额改用后台回传的金额。
+6. 在 admin.html 加「每月总结」直接读 `web_orders`（全分店自动汇总，取代 check.html 的手动记录）。
+7. 安全：webhook 一定验签名/向网关查单确认，不能只信 callback 参数；Edge Function 用 service_role 时只在服务器端；CSP 的 `connect-src`/导向网关域名要加白名单。
+
+**业主说「开始做付款网关」时要先问的**：选哪家网关（是否已申请好商家账号、拿到 API key / secret / collection code）、手续费由谁承担（加进客人合计或店家吸收）、还要不要保留「到店付款/货到付款」。
+
 ## 测试
 Playwright（`/opt/pw-browsers/chromium`，`file://`）在 1280 宽和 393 宽（iPhone 15 Pro）跑：加购物车 → WhatsApp 下单内容、订位 → WhatsApp 内容、中英切换、无横向溢出、无 JS 错误。拦截 `https://wa.me/**` 读取组好的讯息。
 
