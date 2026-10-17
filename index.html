@@ -152,13 +152,14 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 
 
 /* 页头 IG/FB（单色） */
-.tsoc{display:flex;align-items:center;gap:18px;margin-left:18px;flex:0 1 auto;min-width:0}
+.tsoc{display:flex;align-items:center;gap:18px;margin-right:22px;flex:0 1 auto;min-width:0}
+.tsoc:not(:empty)+.brand{padding-left:22px;border-left:1px solid var(--line)}
 .tsoc:empty{display:none}
 .ts{display:inline-flex;align-items:center;gap:6px;color:var(--p);text-decoration:none;font-weight:800;font-size:14px;white-space:nowrap}
 .ts svg{width:22px;height:22px;flex:0 0 auto}
 .ts:hover span{text-decoration:underline}
-@media(max-width:1180px){.ts span{display:none}.tsoc{gap:10px;margin-left:10px}}
-@media(max-width:400px){.tsoc{gap:8px;margin-left:6px}.ts svg{width:20px;height:20px}}
+@media(max-width:1180px){.ts span{display:none}.tsoc{gap:10px;margin-right:12px}.tsoc:not(:empty)+.brand{padding-left:12px}}
+@media(max-width:400px){.tsoc{gap:8px;margin-right:8px}.tsoc:not(:empty)+.brand{padding-left:8px}.ts svg{width:20px;height:20px}}
 @media(max-width:480px){.brand img+span{display:none}}
 
 /* promos */
@@ -198,6 +199,11 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .item .ft{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px}
 .price{font-weight:800;font-size:17px;color:var(--p)}
 .price small{font-size:12px;color:var(--mut);font-weight:700}
+.ft .price{display:flex;flex-direction:column;line-height:1.25}
+.item .ft{gap:8px;flex-wrap:wrap}
+@media(max-width:380px){.item .ph,.item.noimg .ph{width:88px;min-width:88px;min-height:96px}.qty{gap:6px}.qty button{width:32px;height:32px;font-size:18px}.item .in{padding:9px 10px}}
+.price .amt{white-space:nowrap}
+.price .nosst{font-size:10.5px;font-weight:600;color:var(--mut);white-space:nowrap}
 .code{position:absolute;bottom:8px;right:8px;background:rgba(139,0,0,.88);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--rs)}
 .sizes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .sizes button{border:1px solid var(--line);background:#fff;border-radius:var(--rs);padding:5px 11px;font-size:13px;min-height:34px;color:var(--tx)}
@@ -303,8 +309,8 @@ footer a{color:#fff}
 <body>
 <header>
   <div class="wrap hd">
-    <a class="brand" href="#top" id="brand"></a>
     <div class="tsoc" id="socTop"></div>
+    <a class="brand" href="#top" id="brand"></a>
     <nav class="links" id="nav"></nav>
     <button class="hbtn menuToggle" id="menuToggle" aria-label="Menu">☰</button>
     <button class="hbtn lang" id="langBtn">EN</button>
@@ -354,7 +360,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",exSst:"(不含SST)",inclSst:"合计已含 {x}",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -369,7 +375,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",exSst:"(excl. SST)",inclSst:"Total includes {x}",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -550,7 +556,20 @@ function delFee(){
   const net=cartTotal()-vDiscount(cartTotal());
   return d.freeAbove&&net>=d.freeAbove ? 0 : (z.fee||0);
 }
-const finalTotal = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub)+delFee())*100)/100; };
+/* SST：按（食物小计 − 优惠）计算，运费不收 SST。税率在 config.js 的 ordering.sstRate */
+const sstRate = () => +(S.ordering&&S.ordering.sstRate)||0;
+const sstAmt = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub))*sstRate()*100)/100; };
+const sstLabel = () => `SST ${Math.round(sstRate()*1000)/10}%`;
+const finalTotal = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub)+sstAmt()+delFee())*100)/100; };
+function waTotalLines(){
+  const sub=cartTotal(), d=vDiscount(sub), out=[];
+  if(voucher||sstRate()||isDel()) out.push(`${t("subtotal")}: ${money(sub)}`);
+  if(voucher) out.push(`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${d>0?" −"+money(d):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${sub<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`);
+  if(sstRate()) out.push(`${sstLabel()}: ${money(sstAmt())}`);
+  if(isDel()) out.push(`${t("delFee")}: ${delFee()===0?t("free"):money(delFee())} (${delZoneObj().label})`);
+  out.push(`${t("total")}: ${money(finalTotal())}`);
+  return out;
+}
 async function applyVoucher(code, quiet){
   const msgEl=$("vMsg");
   try{
@@ -625,7 +644,7 @@ function renderMenu(){
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
-        <div class="ft"><span class="price">${priceTxt}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
+        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&sstRate()?`<small class="nosst">${esc(t("exSst"))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>{
     const i=+b.dataset.i; if(!openCats.has(i)){ openCats.add(i); renderMenu(); }
@@ -743,10 +762,11 @@ function renderDrawer(){
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(unitPrice(it,si)*cart[k])}</b></div>`;}).join("")
       + (vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
-      + (voucher||isDel()?`<div class="tot sub"><span>${esc(t("subtotal"))}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
+      + (voucher||isDel()||sstRate()?`<div class="tot sub"><span>${esc(t("subtotal"))}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
+      + (sstRate()?`<div class="tot sub"><span>${esc(sstLabel())}</span><span>${money(sstAmt())}</span></div>`:"")
       + (isDel()?`<div class="tot sub"><span>🛵 ${esc(t("delFee"))}${delZoneObj()?` <small class="note">(${esc(L(delZoneObj(),"label"))})</small>`:""}</span><span>${delZoneObj()?(delFee()===0?esc(t("free")):money(delFee())):`<small class="note">${esc(t("pickZone"))}</small>`}</span></div>${D.freeAbove&&delZoneObj()&&delFee()>0?`<p class="note" style="margin:-4px 0 6px;text-align:right">${esc(t("freeAbove").replace("{x}",money(D.freeAbove)))}</p>`:""}`:"")
       + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(finalTotal())}</span></div>`
-      + `${S.ordering&&L(S.ordering,"priceNote")?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(L(S.ordering,"priceNote"))}</p>`:""}
+      + `${sstRate()?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(t("inclSst").replace("{x}",sstLabel()))}</p>`:""}
       <div class="form">
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
         <div><label>${esc(t("phone"))}</label><input id="od_phone" type="tel" autocomplete="tel" value="${esc(prev.phone)}"></div>
@@ -779,7 +799,7 @@ function renderDrawer(){
     const pi=payInfo(oi), payLine = !pi ? null : payMode==="now" ? `${t("payMethod")}: ${t("payNowWa").replace("{x}",money(finalTotal()))}` : `${t("payMethod")}: ${t(isDel()?"payCod":"payCounter")}`;
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)} x${q} = ${money(unitPrice(it,si)*q)}`;});
     const note=$("od_note").value.trim();
-    openWa([t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...(voucher?[`${t("subtotal")}: ${money(cartTotal())}`,`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${vDiscount(cartTotal())>0?" −"+money(vDiscount(cartTotal())):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${cartTotal()<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`]:[]),...(isDel()?[...(voucher?[]:[`${t("subtotal")}: ${money(cartTotal())}`]),`${t("delFee")}: ${delFee()===0?t("free"):money(delFee())} (${delZoneObj().label})`]:[]),`${t("total")}: ${money(finalTotal())}${S.ordering&&S.ordering.priceNote?" ("+S.ordering.priceNote+")":""}`,"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,`${t(isDel()?"delTime":"pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n"), oi);
+    openWa([t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,`${t(isDel()?"delTime":"pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n"), oi);
   };
 }
 /* ---------- 付款（DuitNow QR / 银行转账） ----------

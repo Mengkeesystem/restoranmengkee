@@ -169,6 +169,7 @@ window.SITE = {
       noteEn: "Delivery fee by distance from the outlet: within 3km RM5, beyond 3km RM10. Our staff will verify the address.",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
+    sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST
     menuPhotos: ["images/menu-1.jpg", "images/menu-2.jpg"],   // 纸本菜单原图，可点开放大
     enabled: true,
     pickupLeadMinutes: 30,                // 最快几分钟后可自取

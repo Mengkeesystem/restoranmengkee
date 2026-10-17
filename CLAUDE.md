@@ -17,11 +17,12 @@
 - **页面顺序（业主指定，2026-10-15；10-17 改）**：首页（左：logo/店名/按钮，**右：本店故事卡片 `aside#about`**，手机上叠在下面）→ 优惠活动 → 菜单 → 订位 → 门店地址 → 营业时间/联系。菜单栏顺序同上。营业时间：周一至五 11:00–15:00、17:00–22:00；周六日 11:00–14:30、16:30–22:00（全分店统一）。
 - **设计风格（2026-10-17，业主要「有棱有角、不要太圆」）**：圆角统一用 `--r:3px`/`--rs:2px`（只有营业状态小圆点是圆的），标题用 Noto Serif SC（Google Fonts）+ 金色短横线，卡片用硬投影 `3px 3px 0`，首页有金色内框线和底部金边。之后新增元件也照这套，不要再用 999px 药丸圆角。
 - 优惠活动卡片可加 `badge`/`badgeEn` 角标（限时/平日/生日/预订）；目前 4 个都是**示例**，等业主给真实活动。
-- **Facebook / Instagram（2026-10-17，最终位置）**：① **页头左上**（logo 旁）：单色线条图标 + 名字，品牌红色，FB 在前（参考业主给的 Oriental Kopi 样式，`socTopHTML()`/`SOC_MONO`）；宽度 ≤1180px 只显示图标，≤480px 店名文字也隐藏只留 logo。② **联系区「关注我们」**：彩色官方图标（IG 渐层圆角方、FB 蓝圆）+ 账号名（`socIconsHTML(true)`/`SOC_ICON`）。首页红色区块、页脚**不放**（业主：下面只要一个）。名字用 `social.instagramName` / `social.facebookName`。点了开新分页。
+- **Facebook / Instagram（2026-10-17，最终位置）**：① **页头左上、logo 的左边**（业主指定「放 logo 左边」，中间有一条细分隔线）：单色线条图标 + 名字，品牌红色，FB 在前（参考业主给的 Oriental Kopi 样式，`socTopHTML()`/`SOC_MONO`）；宽度 ≤1180px 只显示图标，≤480px 店名文字也隐藏只留 logo。② **联系区「关注我们」**：彩色官方图标（IG 渐层圆角方、FB 蓝圆）+ 账号名（`socIconsHTML(true)`/`SOC_ICON`）。首页红色区块、页脚**不放**（业主：下面只要一个）。名字用 `social.instagramName` / `social.facebookName`。点了开新分页。
 - Logo：`images/logo.png`（业主提供的红底金字「明记」方形图），同时用作首页大图标和浏览器分页图标。
 - **优惠码 Voucher（2026-10-15）**：只在购物车结账时输入（业主要求把优惠活动区块的兑换框拿掉；`ordering.voucherInPromos:true` 可再打开）。`config.js` 的 `vouchers` 只存 `sha256("mk-voucher:" + 大写码)`，**原码绝不写进仓库**（公开仓库+公开网页，写明文等于公开）。类型 percent / amount / gift，可设 minSpend、maxOff、from/to。静态网站**无法限制使用次数**，WhatsApp 讯息带优惠码与折扣金额，由店员核对。业主给新码时：算哈希加进 `vouchers`，在 commit 讯息/文件里只写标题不写码。没有任何有效优惠码时，兑换框自动隐藏。
 - **结账付款（2026-10-15）**：购物车表单里有「💳 付款方式」：现在转账付款（显示 DuitNow QR + 银行户口 + 复制户口号按钮 + 应付金额=扣完优惠后的合计）/ 到店取餐时付款（`allowPayAtCounter:false` 可关掉）。资料在 `config.js` 的 `payment`，分店可用 `outlets[i].payment` 覆盖。`qr` 和 `accountNo` 都空就不显示。WhatsApp 讯息最后一行带付款方式，客人需把收据截图发 WhatsApp，店员核对。**没接付款网关**：静态网站无后台，客人可在浏览器改金额，所以靠人工核对收据。
 - **自取 / 外卖（2026-10-15）**：购物车顶部切换。外卖要填送餐地址 + 选配送范围，运费加进合计（顺序：小计 − 优惠 + 运费 = 合计；优惠的 minSpend 只看食物小计，不含运费）。设定在 `config.js` 的 `ordering.delivery`（zones 每档 label/fee、minOrder、freeAbove、leadMinutes、note）。业主目前规则：3km 内 RM5、3km 外 RM10，11 间都送；**客人自己选范围，店员看地址核对**（没接 Google 距离 API，以后要改按邮区或自动算距离再调整）。外卖时「到店付款」变「货到付款」，WhatsApp 标题变【网上点餐 - 外卖】并带地址与运费。
+- **SST（2026-10-17）**：`ordering.sstRate:0.06`。购物车：小计 − 优惠 + **SST 6%（按「小计 − 优惠」计，运费不收）** + 运费 = 合计；付款金额、WhatsApp 讯息都用含 SST 的合计（`waTotalLines()`）。菜单每道菜价钱下方小字「(不含SST)」。`sstRate:0` 则全部不显示。
 - 优惠 `promos` 按 `from`/`to` 自动显示/隐藏。
 - 购物车、语言、客人姓名电话存 `localStorage`（只在客人自己的浏览器，全部 try/catch，失效不影响使用）。
 - 所有 `config.js` 文字输出都经 `esc()` 转义（沿用 ERP 那边 XSS 教训）。
