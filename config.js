@@ -64,13 +64,15 @@ window.SITE = {
   ],
 
   /* ---------- 品牌故事 ---------- */
-  story: [                                // TODO 换成明记真实的故事
-    "明记从一间家乡小档口开始，几十年来只坚持一件事：用家里的做法，煮每天都吃得下的家常菜。",
-    "每一道煮炒都是现点现炒，酱料自家调配，食材每天新鲜进货。欢迎来坐坐，吃一顿像回家一样的饭。",
+  story: [
+    "明记家乡小食店成立于 2005 年，故事从旧巴生路的一个家乡小档口开始。",
+    "21 年来，明记只坚持一件事：用家里的做法，煮大家每天都吃不腻的家常菜。",
+    "我们坚持现点现炒、酱料自家熬制、食材每日新鲜采办。不管外面多忙，欢迎随时来坐坐，吃一顿像回家一样热腾腾的饭。",
   ],
   storyEn: [
-    "Meng Kee began as a small hometown stall with one simple belief: cook everyday food the way it's done at home.",
-    "Every dish is wok-fried to order with house-made sauces and fresh daily ingredients. Come in and eat like you're home.",
+    "Meng Kee Restaurant was founded in 2005, starting out as a small hometown stall on Old Klang Road.",
+    "For 21 years, we have held on to one thing: cooking the home-style dishes everyone can enjoy every day, the way it's done at home.",
+    "Every dish is wok-fried to order, our sauces are made in-house, and our ingredients are bought fresh every day. However busy life gets, drop by anytime for a warm meal that feels like home.",
   ],
 
   /* 环境照片：放进 images/ 文件夹，写文件名。留空数组则不显示这一块 */
