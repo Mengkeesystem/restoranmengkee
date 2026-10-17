@@ -849,7 +849,7 @@ let payMode = null;
 const PAY_TEST = /[?&]paytest=1\b/.test(location.search);
 function payInfo(oi){
   const o = (oi!==undefined&&oi!==""&&outlets()[+oi]) || null;
-  if(PAY_TEST && !(S.payment&&(S.payment.qr||S.payment.accountNo))) return {qr:"images/test-qr.png",bankName:"TEST BANK（测试用）",accountName:"TEST ONLY 测试用",accountNo:"0000 0000 0000",allowPayAtCounter:true,note:"⚠️ 这是测试模式，不要真的转账。"};
+  if(PAY_TEST && !(S.payment&&(S.payment.qr||S.payment.accountNo))) return {qr:"images/test-tng-qr.jpg",allowPayAtCounter:true,note:"🧪 测试模式：Touch 'n Go eWallet（CHONG YOU XIAN）。付款后勾选「我已完成付款」，订单会发到 WhatsApp。"};
   const p = Object.assign({}, S.payment||{}, (o&&o.payment)||{});
   return (p.qr||p.accountNo) ? p : null;
 }
