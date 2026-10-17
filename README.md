@@ -38,3 +38,22 @@ images/      照片：菜品图、门面/环境照、logo、首页大图
 
 ## 复制给其他店（例如牛室 Beef House）
 `index.html` 原封不动，只换 `config.js` 和 `images/`。详见 `CLAUDE.md`。
+
+## 付款确认小后台（Supabase，可选）
+设定好之后：客人选「现在转账付款」→ 扫码付款 → 网页自动等待 → **店员在 `admin.html` 核对收款后按「✅ 已收款」→ 客人网页自动跳到 WhatsApp 发订单**（客人不用自己勾选）。
+没设定的话，网站照旧用「客人自己勾选我已付款」的流程。
+
+**一次性设定（约 10 分钟）：**
+1. 到 https://supabase.com 用明记的邮箱登录 → **New project**（名字例如 `mengkee-website`，地区选 Singapore）。
+   ⚠️ 这是**官网专用的新项目**，不要用明记 / 牛室 ERP 的 Supabase 项目。
+2. 左边 **SQL Editor** → 把本仓库 `supabase/schema.sql` 整份贴进去 → **Run**。
+3. 左边 **Authentication → Users → Add user**：为每位店员建账号（邮箱 + 密码，勾 Auto Confirm）。
+4. 回到 **SQL Editor**，把店员邮箱加进白名单（每人一行）：
+   ```sql
+   insert into public.web_staff (email) values ('店员邮箱@example.com') on conflict do nothing;
+   ```
+5. 左边 **Project Settings → API**：复制 **Project URL** 和 **anon public** key，填进 `config.js` 的 `backend`（或把这两个交给 Claude 帮你填）。
+   ⚠️ 只填 **anon public** key，**绝对不要**用 `service_role` key。
+6. 店员打开 `https://<网站网址>/admin.html` 登录，保持页面开着（会响铃提示新订单）。
+
+**店员日常：** 有新订单响铃 → 打开 TNG / 银行 App 核对「金额 + 参考号（MKmmdd-xxxx）」→ 对得上按「✅ 已收款」，对不上按「✖ 拒绝」。

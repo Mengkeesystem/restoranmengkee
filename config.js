@@ -143,6 +143,15 @@ window.SITE = {
     allowPayAtCounter: true,
   },
 
+  /* ---------- 付款确认小后台（Supabase，官网专用项目，跟 ERP 分开）----------
+   * 两个都填好：选「现在转账付款」的客人付款后，网页自动等店员在 admin.html 按「已收款」，再自动跳 WhatsApp。
+   * 留空：客人自己勾「我已完成付款」再发 WhatsApp（旧流程）。
+   * anon key 是公开用的（publishable），可以放网页；绝对不要放 service_role key。设定步骤见 README。 */
+  backend: {
+    supabaseUrl: "",        // 例如 "https://xxxx.supabase.co"
+    supabaseAnonKey: "",    // Project Settings → API → anon public key
+  },
+
   /* ---------- 订位设定 ---------- */
   booking: {
     enabled: true,

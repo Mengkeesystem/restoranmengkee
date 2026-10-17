@@ -130,6 +130,13 @@ nav.links a:hover{background:#F6EADB}
 .psdone h3{margin:0;color:var(--ok)}
 .psdone p{margin:0;color:var(--mut)}
 
+.pswait{display:flex;gap:12px;align-items:center;padding:12px;border:2px dashed var(--line);background:#FFFBF0;font-weight:700}
+.pswait.on{border-color:var(--a)}
+.pswait.bad{border-color:var(--p);background:#FDF1F1}
+.pswait .note{font-weight:500;margin-top:4px}
+.spin{flex:0 0 auto;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--p);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* vouchers */
 .vbox{margin-bottom:18px;border-left:6px solid var(--a)}
 .vbox h3{margin:0 0 4px;font-size:18px}
@@ -397,7 +404,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",checkoutPay:"下单并付款",payNextHint:"按「下单并付款」后会显示 QR 码和户口，付款后再发送订单。",psTitle:"付款",psStep1:"确认订单",psStep2:"扫码付款",psStep3:"发送订单",psRef:"参考号",psRefHint:"转账时请把参考号填在备注 / Reference，方便店员核对。",psSaveQr:"保存 QR 图片",psPaid:"我已完成付款 {x}",psSend:"付款完成，发送订单到 WhatsApp",psAfter:"发送后请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。",psSentT:"订单已发送到 WhatsApp",psSentB:"请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。如果 WhatsApp 没有打开，按下面的按钮再试一次。",psReopen:"重新打开 WhatsApp",psFinish:"完成",psThanks:"谢谢！订单已送出",exSst:"(不含SST)",inclSst:"合计已含 {x}",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",payAutoWa:"已转账 {x}（店家已在系统确认收款）",psCreating:"正在建立订单…",psWaitT:"等待店家确认收款…",psWaitB:"付款后请留在此页面（可以先切去 TNG / 银行 App 付款再回来），店家确认收到款项后，会自动打开 WhatsApp 发送订单。",psRejT:"店家未能确认这笔付款",psTimeoutT:"还没收到店家确认",psContact:"请 WhatsApp 联系我们，并附上付款截图和参考号。",psContactBtn:"WhatsApp 联系店家",psHelpMsg:"你好，我刚网上下单并已付款 {x}，参考号 {r}，还没收到确认，麻烦帮忙查看。",psPaidT:"已确认收款！",psPaidB:"正在打开 WhatsApp 发送订单… 如果没有自动打开，请按下面的按钮。",psOpenWa:"打开 WhatsApp 发送订单",psLeaveWarn:"关闭后就不会自动跳到 WhatsApp。如果已经付款，请留在此页面等店家确认。确定要关闭吗？",checkoutPay:"下单并付款",payNextHint:"按「下单并付款」后会显示 QR 码和户口，付款后再发送订单。",psTitle:"付款",psStep1:"确认订单",psStep2:"扫码付款",psStep3:"发送订单",psRef:"参考号",psRefHint:"转账时请把参考号填在备注 / Reference，方便店员核对。",psSaveQr:"保存 QR 图片",psPaid:"我已完成付款 {x}",psSend:"付款完成，发送订单到 WhatsApp",psAfter:"发送后请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。",psSentT:"订单已发送到 WhatsApp",psSentB:"请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。如果 WhatsApp 没有打开，按下面的按钮再试一次。",psReopen:"重新打开 WhatsApp",psFinish:"完成",psThanks:"谢谢！订单已送出",exSst:"(不含SST)",inclSst:"合计已含 {x}",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -412,7 +419,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",checkoutPay:"Order & pay",payNextHint:"Tap “Order & pay” to see the QR code and bank details, then send your order after paying.",psTitle:"Payment",psStep1:"Confirm order",psStep2:"Scan & pay",psStep3:"Send order",psRef:"Reference",psRefHint:"Please put this reference in your transfer note so we can match your payment.",psSaveQr:"Save QR image",psPaid:"I have paid {x}",psSend:"Paid — send order via WhatsApp",psAfter:"After sending, attach your payment screenshot in WhatsApp; we will confirm after checking.",psSentT:"Order sent to WhatsApp",psSentB:"Please attach your payment screenshot in the WhatsApp chat — we will confirm after checking. If WhatsApp did not open, tap below to try again.",psReopen:"Open WhatsApp again",psFinish:"Done",psThanks:"Thank you! Order sent",exSst:"(excl. SST)",inclSst:"Total includes {x}",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",payAutoWa:"Transferred {x} (payment confirmed by store)",psCreating:"Creating your order…",psWaitT:"Waiting for the store to confirm your payment…",psWaitB:"After paying, stay on this page (you can switch to your TNG / banking app and come back). Once we confirm the payment, WhatsApp opens automatically with your order.",psRejT:"We could not confirm this payment",psTimeoutT:"No confirmation yet",psContact:"Please WhatsApp us with your payment screenshot and reference.",psContactBtn:"WhatsApp the store",psHelpMsg:"Hi, I ordered online and paid {x}, reference {r}, but have not received confirmation. Could you please check?",psPaidT:"Payment confirmed!",psPaidB:"Opening WhatsApp to send your order… If it does not open, tap the button below.",psOpenWa:"Open WhatsApp to send order",psLeaveWarn:"If you close this, WhatsApp will not open automatically. If you have paid, please stay and wait for confirmation. Close anyway?",checkoutPay:"Order & pay",payNextHint:"Tap “Order & pay” to see the QR code and bank details, then send your order after paying.",psTitle:"Payment",psStep1:"Confirm order",psStep2:"Scan & pay",psStep3:"Send order",psRef:"Reference",psRefHint:"Please put this reference in your transfer note so we can match your payment.",psSaveQr:"Save QR image",psPaid:"I have paid {x}",psSend:"Paid — send order via WhatsApp",psAfter:"After sending, attach your payment screenshot in WhatsApp; we will confirm after checking.",psSentT:"Order sent to WhatsApp",psSentB:"Please attach your payment screenshot in the WhatsApp chat — we will confirm after checking. If WhatsApp did not open, tap below to try again.",psReopen:"Open WhatsApp again",psFinish:"Done",psThanks:"Thank you! Order sent",exSst:"(excl. SST)",inclSst:"Total includes {x}",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -838,7 +845,7 @@ function renderDrawer(){
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)} x${q} = ${money(unitPrice(it,si)*q)}`;});
     const note=$("od_note").value.trim();
     const buildMsg = payLine => [t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,`${t(isDel()?"delTime":"pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n");
-    if(pi && payMode==="now"){ openPayStep(oi, buildMsg); return; }
+    if(pi && payMode==="now"){ openPayStep(oi, buildMsg, {name, phone, type:isDel()?"delivery":"pickup", outlet: oi!==undefined&&oi!==""?outlets()[+oi].name:""}); return; }
     openWa(buildMsg(pi?`${t("payMethod")}: ${t(isDel()?"payCod":"payCounter")}`:null), oi);
   };
 }
@@ -863,11 +870,53 @@ const bankHTML = p => !p.accountNo?"":`<div class="bank">
  * 没接付款网关，「付款成功」由客人确认，店员凭 WhatsApp 收据截图核对。 */
 let payPending=null;
 function genRef(){ const d=new Date(); return "MK"+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"-"+String(Math.floor(1000+Math.random()*9000)); }
-function openPayStep(oi, buildMsg){
-  payPending={oi, buildMsg, ref:genRef(), amount:finalTotal(), sent:false};
-  renderPayStep(); $("paystep").classList.add("show");
+/* 小后台（Supabase）：有设定 config.js 的 backend 时，「付款成功」改由店员在 admin.html 确认，
+   客人网页自动轮询，确认后自动跳 WhatsApp；没设定就用「客人自己勾选」的旧流程。 */
+const PB = () => { const b=S.backend||{}; return b.supabaseUrl&&b.supabaseAnonKey ? b : null; };
+async function pbRpc(fn, args){
+  const b=PB(), r=await fetch(b.supabaseUrl.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:b.supabaseAnonKey,Authorization:"Bearer "+b.supabaseAnonKey,"Content-Type":"application/json"},body:JSON.stringify(args)});
+  if(!r.ok) throw new Error(await r.text()); return r.json();
 }
-function closePayStep(){ $("paystep").classList.remove("show"); $("paystep").innerHTML=""; payPending=null; }
+function openPayStep(oi, buildMsg, meta){
+  payPending={oi, buildMsg, meta:meta||{}, ref:genRef(), amount:finalTotal(), sent:false, auto:!!PB(), st:PB()?"creating":"manual"};
+  renderPayStep(); $("paystep").classList.add("show");
+  if(payPending.auto) startAutoPay();
+}
+async function startAutoPay(){
+  const P=payPending; if(!P) return;
+  P.msg=P.buildMsg(`${t("payMethod")}: ${t("payAutoWa").replace("{x}",money(P.amount))} · ${t("psRef")} ${P.ref}`);
+  for(let i=0;i<3;i++){
+    try{
+      P.token = await pbRpc("create_web_order",{p_ref:P.ref,p_outlet:P.meta.outlet||"",p_type:P.meta.type||"",p_name:P.meta.name||"",p_phone:P.meta.phone||"",p_amount:P.amount,p_message:P.msg});
+      break;
+    }catch(e){
+      if(/duplicate|unique/i.test(String(e.message))&&i<2){ P.ref=genRef(); P.msg=P.buildMsg(`${t("payMethod")}: ${t("payAutoWa").replace("{x}",money(P.amount))} · ${t("psRef")} ${P.ref}`); continue; }
+      if(payPending!==P) return;
+      P.auto=false; P.st="manual"; renderPayStep(); return;   /* 后台连不上 → 退回客人自己勾选 */
+    }
+  }
+  if(payPending!==P) return;
+  P.st="waiting"; P.since=Date.now(); renderPayStep();
+  const tick=async()=>{
+    if(payPending!==P||P.st!=="waiting") return;
+    try{
+      const st=await pbRpc("web_order_status",{p_ref:P.ref,p_token:P.token});
+      if(payPending!==P) return;
+      if(st==="paid"){ stopAutoPay(P); P.st="paid"; P.sent=true; renderPayStep(); setTimeout(()=>{ if(payPending===P) window.location.href=waLink(P.msg,P.oi); },900); return; }
+      if(st==="rejected"){ stopAutoPay(P); P.st="rejected"; renderPayStep(); return; }
+    }catch(e){}
+    if(Date.now()-P.since>30*60*1000){ stopAutoPay(P); P.st="timeout"; renderPayStep(); }
+  };
+  P.timer=setInterval(tick,3000);
+  P.onVis=()=>{ if(document.visibilityState==="visible") tick(); };
+  document.addEventListener("visibilitychange",P.onVis);
+}
+function stopAutoPay(P){ if(P&&P.timer){ clearInterval(P.timer); P.timer=null; } if(P&&P.onVis){ document.removeEventListener("visibilitychange",P.onVis); P.onVis=null; } }
+function closePayStep(force){
+  const P=payPending;
+  if(!force&&P&&P.st==="waiting"&&!confirm(t("psLeaveWarn"))) return;
+  stopAutoPay(P); $("paystep").classList.remove("show"); $("paystep").innerHTML=""; payPending=null;
+}
 function renderPayStep(){
   const P=payPending; if(!P) return; const p=payInfo(P.oi)||{};
   const steps=[t("psStep1"),t("psStep2"),t("psStep3")], cur=P.sent?4:2;
@@ -879,11 +928,15 @@ function renderPayStep(){
       <div class="psref">${esc(t("psRef"))} <b>${esc(P.ref)}</b> <button type="button" class="btn alt copy" onclick="__site.copy('${esc(P.ref)}')">${esc(t("copy"))}</button><div class="note">${esc(t("psRefHint"))}</div></div>
       ${p.qr?`<div class="psqr"><img src="${esc(p.qr)}" alt="DuitNow QR"><a class="btn alt" href="${esc(p.qr)}" download>⬇ ${esc(t("psSaveQr"))}</a><div class="note">${esc(t("payQrHint"))}</div></div>`:""}
       ${bankHTML(p)}
-      <label class="pscheck"><input type="checkbox" id="psChk" onchange="__site.psCheck(this.checked)"> ${esc(t("psPaid").replace("{x}",money(P.amount)))}</label>
+      ${!P.auto?`<label class="pscheck"><input type="checkbox" id="psChk" onchange="__site.psCheck(this.checked)"> ${esc(t("psPaid").replace("{x}",money(P.amount)))}</label>
       <button type="button" class="btn wa psgo" id="psSend" disabled onclick="__site.psSend()">💬 ${esc(t("psSend"))}</button>
       <div class="note">${esc(L(p,"note")||t("psAfter"))}</div>`
-    :`<div class="psdone"><div class="big">✅</div><h3>${esc(t("psSentT"))}</h3><p>${esc(t("psSentB"))}</p>
-      <button type="button" class="btn alt" onclick="__site.psResend()">💬 ${esc(t("psReopen"))}</button>
+      : P.st==="creating"?`<div class="pswait"><span class="spin"></span>${esc(t("psCreating"))}</div>`
+      : P.st==="waiting"?`<div class="pswait on"><span class="spin"></span><div><b>${esc(t("psWaitT"))}</b><div class="note">${esc(t("psWaitB"))}</div></div></div>`
+      : `<div class="pswait bad"><div><b>${esc(t(P.st==="rejected"?"psRejT":"psTimeoutT"))}</b><div class="note">${esc(t("psContact"))}</div></div></div>
+         <a class="btn wa psgo" href="${esc(waLink(t("psHelpMsg").replace("{r}",P.ref).replace("{x}",money(P.amount)),P.oi))}" target="_blank" rel="noopener">💬 ${esc(t("psContactBtn"))}</a>`}`
+    :`<div class="psdone"><div class="big">✅</div><h3>${esc(t(P.auto?"psPaidT":"psSentT"))}</h3><p>${esc(t(P.auto?"psPaidB":"psSentB"))}</p>
+      <button type="button" class="btn ${P.auto?"wa":"alt"}" onclick="__site.psResend()">💬 ${esc(t(P.auto?"psOpenWa":"psReopen"))}</button>
       <button type="button" class="btn" onclick="__site.psDone()">${esc(t("psFinish"))}</button></div>`}
   </div>`;
 }
@@ -892,7 +945,7 @@ function payStepSend(){
   P.msg=P.buildMsg(`${t("payMethod")}: ${t("payNowWa").replace("{x}",money(P.amount))} · ${t("psRef")} ${P.ref}`);
   openWa(P.msg, P.oi); P.sent=true; renderPayStep();
 }
-function payStepDone(){ cart={}; saveCart(); closePayStep(); if(drawerOpen) closeDrawer(); refreshCart(); toast(t("psThanks")); }
+function payStepDone(){ cart={}; saveCart(); closePayStep(true); if(drawerOpen) closeDrawer(); refreshCart(); toast(t("psThanks")); }
 function payBoxHTML(oi){
   const p=payInfo(oi); if(!p) return "";
   const counterOK = p.allowPayAtCounter!==false;

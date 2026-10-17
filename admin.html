@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>店员后台 · 付款确认</title>
+<link rel="icon" href="images/logo.png">
+<script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--p:#B4232A;--a:#F2B417;--dk:#2A1A14;--bg:#FFFBF5;--tx:#2A1A14;--mut:#7A6A60;--line:#E3D3C2;--ok:#1F8A4C;--r:3px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;line-height:1.5;-webkit-tap-highlight-color:transparent}
+header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:3px solid var(--a);display:flex;align-items:center;gap:10px;padding:10px 16px}
+header img{height:36px}
+header b{color:var(--p);font-size:17px}
+header .sp{flex:1}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+.btn{border:0;border-radius:var(--r);padding:10px 16px;font-weight:800;font-size:15px;cursor:pointer;min-height:42px;background:var(--p);color:#fff;font-family:inherit}
+.btn.alt{background:#fff;color:var(--p);border:2px solid var(--p)}
+.btn.ok{background:var(--ok)}
+.btn.sm{padding:6px 12px;min-height:34px;font-size:13px}
+.btn:disabled{opacity:.5}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:3px 3px 0 rgba(180,35,42,.10)}
+input,select{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);font-family:inherit;background:#fff}
+label{font-weight:700;font-size:14px;display:block;margin:10px 0 4px}
+.err{color:var(--p);min-height:20px;font-size:14px;margin-top:8px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:#fff;padding:8px 14px;font-weight:800;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:14px}
+.tabs button.on{background:var(--p);border-color:var(--p);color:#fff}
+.tabs .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;background:var(--a);color:var(--dk);border-radius:2px;font-size:12px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bar select{width:auto;min-width:200px}
+.live{font-size:13px;color:var(--mut)}
+.live i{display:inline-block;width:8px;height:8px;background:var(--ok);border-radius:50%;margin-right:6px;animation:bl 1.4s infinite}
+@keyframes bl{50%{opacity:.25}}
+.ord{background:#fff;border:1px solid var(--line);border-left:6px solid var(--a);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
+.ord.paid{border-left-color:var(--ok)}
+.ord.rejected{border-left-color:#999;opacity:.8}
+.ord.new{animation:flash 1.2s 3}
+@keyframes flash{50%{background:#FFF3C4}}
+.oh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.ref{font-size:20px;font-weight:900;letter-spacing:1px}
+.amt{font-size:26px;font-weight:900;color:var(--p);white-space:nowrap}
+.meta{font-size:14px;color:var(--mut);margin-top:4px}
+.meta b{color:var(--tx)}
+.tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:2px;margin-left:6px;vertical-align:middle}
+.tag.pending{background:#FFF0C2;color:#8A5A00}.tag.paid{background:#E2F5E9;color:var(--ok)}.tag.rejected{background:#eee;color:#666}.tag.old{background:#FDE2E2;color:var(--p)}
+details{margin-top:8px}
+summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--p)}
+pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px solid var(--line);padding:10px;font-size:13.5px;margin:8px 0 0;font-family:inherit}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.acts .btn{flex:1;min-width:140px}
+.who{font-size:12px;color:var(--mut);margin-top:6px}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+.hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+"use strict";
+const S = window.SITE || {}, B = S.backend || {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+const money = n => "RM " + (Math.round((+n)*100)/100).toFixed(2);
+const app = $("app");
+document.title = (S.name||"") + " · 店员后台";
+$("hTitle").textContent = (S.name||"") + " · 付款确认";
+
+if(!B.supabaseUrl || !B.supabaseAnonKey || !window.supabase){
+  app.innerHTML = `<div class="card"><h2 style="margin-top:0;color:var(--p)">后台还没设定</h2><p>请先照 README「付款确认小后台」的步骤建好 Supabase 项目，并把网址和 anon key 填进 <code>config.js</code> 的 <code>backend</code>。</p></div>`;
+  return;
+}
+const sb = window.supabase.createClient(B.supabaseUrl, B.supabaseAnonKey);
+let me=null, tab="pending", outletF="", orders=[], seen=new Set(), first=true, timer=null;
+
+/* 提示音（新订单） */
+function beep(){ try{ const c=new (window.AudioContext||window.webkitAudioContext)(); [0,0.18,0.36].forEach((d,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.frequency.value=[880,1175,1568][i]; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.0001,c.currentTime+d); g.gain.exponentialRampToValueAtTime(.3,c.currentTime+d+.02); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+d+.25); o.start(c.currentTime+d); o.stop(c.currentTime+d+.3); }); }catch(e){} }
+
+function loginView(msg){
+  $("logoutBtn").hidden=true; $("hUser").textContent="";
+  app.innerHTML = `<div class="card" style="max-width:420px;margin:30px auto">
+    <h2 style="margin-top:0;color:var(--p)">店员登录</h2>
+    <label>邮箱</label><input id="em" type="email" autocomplete="username">
+    <label>密码</label><input id="pw" type="password" autocomplete="current-password">
+    <div class="err" id="lerr">${esc(msg||"")}</div>
+    <button class="btn" id="lbtn" style="width:100%;margin-top:6px">登录</button>
+    <p class="live" style="margin-top:14px">账号由老板在 Supabase 后台建立，并加入店员白名单才能使用。</p></div>`;
+  const go=async()=>{ $("lbtn").disabled=true; $("lerr").textContent="";
+    const {error}=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});
+    $("lbtn").disabled=false; if(error){ $("lerr").textContent="登录失败："+error.message; return; } boot(); };
+  $("lbtn").onclick=go; $("pw").onkeydown=e=>{ if(e.key==="Enter") go(); };
+}
+
+async function boot(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ loginView(); return; }
+  me=session.user;
+  const {data:ok, error} = await sb.rpc("is_web_staff");
+  if(error||!ok){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
+  $("hUser").textContent=me.email; $("logoutBtn").hidden=false;
+  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); loginView(); };
+  app.innerHTML = `<div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在 TNG / 银行 App 核对收到的金额和参考号，再按「已收款」</b>，客人的网页会自动跳到 WhatsApp 发订单。</div>
+    <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span></div>
+    <div class="tabs" id="tabs"></div><div id="list"></div>`;
+  $("of").onchange=e=>{ outletF=e.target.value; render(); };
+  await load(); timer=setInterval(load,5000);
+}
+
+async function load(){
+  const since=new Date(Date.now()-3*24*3600*1000).toISOString();
+  const {data, error} = await sb.from("web_orders").select("id,ref,outlet,order_type,customer_name,customer_phone,amount,message,status,created_at,confirmed_at,confirmed_by").gte("created_at",since).order("created_at",{ascending:false}).limit(300);
+  if(error){ if($("list")) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
+  const fresh = data.filter(o=>o.status==="pending" && !seen.has(o.id));
+  data.forEach(o=>seen.add(o.id));
+  orders=data;
+  if(!first && fresh.length){ beep(); document.title="🔔 新订单 · "+(S.name||""); setTimeout(()=>document.title=(S.name||"")+" · 店员后台",8000); }
+  render(first?[]:fresh.map(o=>o.id)); first=false;
+}
+
+function ago(ts){ const m=Math.floor((Date.now()-new Date(ts))/60000); return m<1?"刚刚":m<60?m+" 分钟前":Math.floor(m/60)+" 小时前"; }
+function hhmm(ts){ const d=new Date(ts); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+
+function render(newIds){
+  newIds=newIds||[];
+  const list=orders.filter(o=>!outletF||o.outlet===outletF);
+  const cnt={pending:0,paid:0,rejected:0}; list.forEach(o=>cnt[o.status]++);
+  $("tabs").innerHTML=[["pending","待确认"],["paid","已收款"],["rejected","已拒绝"]].map(([k,l])=>`<button class="${tab===k?"on":""}" data-k="${k}">${l}<span class="n">${cnt[k]}</span></button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ tab=b.dataset.k; render(); });
+  const rows=list.filter(o=>o.status===tab);
+  $("list").innerHTML = rows.length? rows.map(o=>{
+    const old = o.status==="pending" && (Date.now()-new Date(o.created_at))>30*60000;
+    return `<div class="ord ${o.status}${newIds.includes(o.id)?" new":""}">
+      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${o.status}">${o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${old?`<span class="tag old">超过 30 分钟</span>`:""}
+        <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外卖":"🛍️ 自取"}</div>
+        <div class="meta">👤 <b>${esc(o.customer_name||"")}</b> · 📞 <a href="tel:${esc(String(o.customer_phone||"").replace(/[^\d+]/g,""))}">${esc(o.customer_phone||"")}</a></div></div>
+        <div class="amt">${money(o.amount)}</div></div>
+      <details ${o.status==="pending"?"open":""}><summary>订单内容</summary><pre>${esc(o.message)}</pre></details>
+      ${o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
+        :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}</div>`}
+    </div>`; }).join("") : `<div class="empty">${tab==="pending"?"目前没有待确认的订单 ☕":"没有记录"}</div>`;
+  $("list").querySelectorAll("button[data-act]").forEach(b=>b.onclick=()=>act(b));
+}
+
+async function act(b){
+  const st=b.dataset.act, q = st==="paid"
+    ? `确认已收到 ${b.dataset.amt}（参考号 ${b.dataset.ref}）？\n按确定后，客人的网页会自动跳到 WhatsApp 发订单。`
+    : `确定拒绝订单 ${b.dataset.ref}？客人的网页会显示「未能确认付款」。`;
+  if(!confirm(q)) return;
+  b.disabled=true;
+  const {error}=await sb.from("web_orders").update({status:st,confirmed_at:new Date().toISOString(),confirmed_by:me.email}).eq("id",+b.dataset.id).eq("status","pending");
+  if(error){ alert("更新失败："+error.message); b.disabled=false; return; }
+  await load();
+}
+
+sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT") loginView(); });
+boot();
+})();
+</script>
+</body>
+</html>
