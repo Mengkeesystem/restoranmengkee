@@ -193,11 +193,36 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
   .mcat .grid{grid-template-columns:1fr;gap:10px}
   .item .ph,.item.noimg .ph{width:104px;min-width:104px;min-height:104px}
 }
-.mphotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
-.mphotos a{position:relative;display:block;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);text-decoration:none}
-.mphotos img{width:100%;aspect-ratio:3/2;object-fit:cover}
-.mphotos span{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:var(--rs)}
-@media(max-width:560px){.mphotos{grid-template-columns:1fr 1fr;gap:8px}.mphotos span{font-size:11px}}
+.mslider{position:relative;margin-bottom:18px;background:var(--dk);border:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10)}
+.mtrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.mtrack::-webkit-scrollbar{display:none}
+.mslide{flex:0 0 100%;scroll-snap-align:center;position:relative;border:0;padding:0;background:var(--dk);cursor:zoom-in;display:block}
+.mslide img{width:100%;height:440px;object-fit:contain;display:block;user-select:none}
+.mslide span{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.7);color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:var(--rs)}
+.mnav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:56px;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:30px;line-height:1;border-radius:var(--rs);z-index:2}
+.mnav:hover{background:var(--p)}
+.mnav.prev{left:8px}.mnav.next{right:8px}
+.mdots{position:absolute;right:12px;bottom:12px;display:flex;gap:6px}
+.mdots i{width:18px;height:4px;background:rgba(255,255,255,.45)}
+.mdots i.on{background:var(--a)}
+@media(max-width:560px){.mslide img{height:auto;aspect-ratio:3/2}.mslide span{font-size:11px}.mnav{width:32px;height:44px;font-size:24px}}
+/* 全屏放大 */
+.lb{position:fixed;inset:0;z-index:200;background:#140B08;display:none;flex-direction:column}
+.lb.show{display:flex}
+.lbbar{display:flex;align-items:center;gap:12px;color:#fff;padding:10px 12px calc(10px) 16px;padding-top:calc(10px + env(safe-area-inset-top));font-weight:700}
+.lbhint{flex:1;font-size:12px;font-weight:500;opacity:.65;text-align:center}
+.lbx{width:44px;height:44px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:22px;border-radius:var(--rs)}
+.lbx:hover{background:var(--p);border-color:var(--p)}
+.lbtrack{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior:contain}
+.lbtrack::-webkit-scrollbar{display:none}
+.lbslide{flex:0 0 100%;scroll-snap-align:center;overflow:auto;display:flex;align-items:center;justify-content:center;padding:0 0 calc(12px + env(safe-area-inset-bottom))}
+.lbslide img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;user-select:none}
+.lbslide img.zoom{max-width:none;max-height:none;width:220%;cursor:zoom-out;align-self:flex-start}
+@media(min-width:900px){.lbslide img.zoom{width:160%}}
+.lbnav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:72px;border:0;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:36px;border-radius:var(--rs)}
+@media(max-width:560px){.lbnav{width:36px;height:56px;font-size:28px}.lbnav.prev{left:4px}.lbnav.next{right:4px}}
+.lbnav:hover{background:var(--p)}
+.lbnav.prev{left:10px}.lbnav.next{right:10px}
 .qty{display:flex;align-items:center;gap:8px}
 .qty button{width:36px;height:36px;border-radius:var(--rs);border:0;background:var(--p);color:#fff;font-size:20px;line-height:1;font-weight:700}
 .qty button.minus{background:#F6EADB;color:var(--p)}
@@ -280,6 +305,7 @@ footer a{color:#fff}
 <div class="ov" id="ov"></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true"></div>
 <div class="toast" id="toast"></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true"></div>
 
 <script>
 (function(){
@@ -303,7 +329,7 @@ const T = {
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款（点图可放大保存）",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -318,7 +344,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay (tap to enlarge & save)",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -394,6 +420,8 @@ window.__site = {
   add:(id,d)=>{ const it=allItems[id]; if(!it) return; const p=curPick(it); stepKey(keyOf(id,p.si,p.oi),d); },
   step:(k,d)=>stepKey(k,d),
   vRemove:()=>removeVoucher(),
+  lb:(i)=>lbShow(i), lbClose:()=>lbClose(), lbGo:(d)=>lbGo(d),
+  mslide:(d)=>{ const tr=$("mtrack"); if(!tr) return; const n=menuPhotos().length; const i=(Math.round(tr.scrollLeft/tr.clientWidth)+d+n)%n; tr.scrollTo({left:i*tr.clientWidth,behavior:"smooth"}); },
   cat:(i)=>{ if(openCats.has(i)) openCats.delete(i); else openCats.add(i); renderMenu(); if(openCats.has(i)){ const el=$("cat-"+i); const top=el.getBoundingClientRect().top; if(top<110||top>window.innerHeight-80) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"}); } },
   otype:(v)=>{ orderType=(v==="delivery"&&DEL())?"delivery":"pickup"; store.set("site_otype",orderType); refreshCart(); },
   pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); },
@@ -533,11 +561,33 @@ function renderPromos(){
 /* 菜单分类默认折叠，客人点开才显示菜品 */
 const openCats = new Set();
 const catCartCount = c => Object.entries(cart).reduce((n,[k,q])=>{ const {it}=parseKey(k); return n+((c.items||[]).includes(it)?q:0); },0);
+/* ---------- 纸本菜单：滑动 + 点开全屏放大（同一页，不跳走） ---------- */
+let lbIdx=0, lbOpen=false;
+const menuPhotos = () => (S.ordering&&S.ordering.menuPhotos)||[];
+function renderMenuPhotos(){
+  const mp=menuPhotos(); if(!mp.length){ $("menuPhotos").innerHTML=""; return; }
+  $("menuPhotos").innerHTML = `<div class="mslider">
+    <div class="mtrack" id="mtrack">${mp.map((src,i)=>`<button type="button" class="mslide" onclick="__site.lb(${i})" aria-label="${esc(t("menuPhoto"))} ${i+1}"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" loading="lazy" draggable="false"><span>🔍 ${esc(t("menuPhoto"))} ${i+1} / ${mp.length} · ${esc(t("tapZoom"))}</span></button>`).join("")}</div>
+    ${mp.length>1?`<button type="button" class="mnav prev" onclick="__site.mslide(-1)" aria-label="prev">‹</button><button type="button" class="mnav next" onclick="__site.mslide(1)" aria-label="next">›</button><div class="mdots">${mp.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>`:""}
+  </div>`;
+  const tr=$("mtrack");
+  tr.addEventListener("scroll",()=>{ const i=Math.round(tr.scrollLeft/tr.clientWidth); document.querySelectorAll(".mdots i").forEach((d,k)=>d.classList.toggle("on",k===i)); },{passive:true});
+}
+function lbRender(){
+  const mp=menuPhotos();
+  $("lb").innerHTML = `<div class="lbbar"><span>${esc(t("menuPhoto"))} ${lbIdx+1} / ${mp.length}</span><span class="lbhint">${esc(t("lbHint"))}</span><button type="button" class="lbx" onclick="__site.lbClose()" aria-label="close">✕</button></div>
+    <div class="lbtrack" id="lbtrack">${mp.map((src,i)=>`<div class="lbslide"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" onclick="this.classList.toggle('zoom')" draggable="false"></div>`).join("")}</div>
+    ${mp.length>1?`<button type="button" class="lbnav prev" onclick="__site.lbGo(-1)" aria-label="prev">‹</button><button type="button" class="lbnav next" onclick="__site.lbGo(1)" aria-label="next">›</button>`:""}`;
+  const tr=$("lbtrack"); tr.scrollLeft=lbIdx*tr.clientWidth;
+  tr.addEventListener("scroll",()=>{ const i=Math.round(tr.scrollLeft/tr.clientWidth); if(i!==lbIdx){ lbIdx=i; const b=$("lb").querySelector(".lbbar span"); if(b) b.textContent=`${t("menuPhoto")} ${i+1} / ${mp.length}`; } },{passive:true});
+}
+function lbShow(i){ lbIdx=i; lbOpen=true; $("lb").classList.add("show"); document.body.style.overflow="hidden"; lbRender(); }
+function lbClose(){ lbOpen=false; $("lb").classList.remove("show"); $("lb").innerHTML=""; if(!drawerOpen) document.body.style.overflow=""; }
+function lbGo(d){ const mp=menuPhotos(), tr=$("lbtrack"); if(!tr) return; lbIdx=(lbIdx+d+mp.length)%mp.length; tr.querySelectorAll("img.zoom").forEach(x=>x.classList.remove("zoom")); tr.scrollTo({left:lbIdx*tr.clientWidth,behavior:"smooth"}); }
 function renderMenu(){
   const on = S.ordering&&S.ordering.enabled;
   $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}" class="${openCats.has(i)?"on":""}">${esc(L(c,"cat"))}</button>`).join("");
   const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
-  $("menuPhotos").innerHTML = mp.length?`<div class="mphotos">${mp.map((src,i)=>`<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" loading="lazy"><span>🔍 ${esc(t("menuPhoto"))} ${i+1}</span></a>`).join("")}</div>`:"";
   $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c);
     return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}"><span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
     (c.items||[]).map(it=>{
@@ -720,7 +770,7 @@ function closeDrawer(){ drawerOpen=false; $("drawer").classList.remove("show"); 
 function refreshCartFab(){ $("fab").classList.toggle("show", cartCount()>0 && !drawerOpen && !!(S.ordering&&S.ordering.enabled)); }
 
 (async()=>{ const c=store.get("site_voucher",""); if(c) await applyVoucher(c,true); })();
-function renderAll(){ renderHeader(); renderHero(); renderOutlets(); renderPromos(); refreshCart(); renderBooking(); renderAbout(); renderContact(); }
+function renderAll(){ renderHeader(); renderHero(); renderOutlets(); renderMenuPhotos(); renderPromos(); refreshCart(); renderBooking(); renderAbout(); renderContact(); }
 
 /* ---------- 事件 ---------- */
 if(S.theme){ const r=document.documentElement.style; if(S.theme.primary) r.setProperty("--p",S.theme.primary); if(S.theme.accent) r.setProperty("--a",S.theme.accent); if(S.theme.dark) r.setProperty("--dk",S.theme.dark); }
@@ -728,7 +778,7 @@ $("langBtn").onclick=()=>{lang=lang==="en"?"zh":"en";store.set("site_lang",lang)
 $("cartBtn").onclick=openDrawer; $("fab").onclick=openDrawer; $("ov").onclick=closeDrawer;
 $("menuToggle").onclick=()=>$("nav").classList.toggle("open");
 $("nav").addEventListener("click",e=>{ if(e.target.tagName==="A") $("nav").classList.remove("open"); });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&drawerOpen) closeDrawer(); });
+document.addEventListener("keydown",e=>{ if(lbOpen){ if(e.key==="Escape") lbClose(); else if(e.key==="ArrowRight") lbGo(1); else if(e.key==="ArrowLeft") lbGo(-1); return; } if(e.key==="Escape"&&drawerOpen) closeDrawer(); });
 setInterval(renderHero,60000);
 renderAll();
 })();
