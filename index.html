@@ -845,8 +845,11 @@ function renderDrawer(){
 /* ---------- 付款（DuitNow QR / 银行转账） ----------
  * config.js 的 payment；分店可用 outlets[i].payment 覆盖。没填 qr 也没填 accountNo 就不显示。 */
 let payMode = null;
+/* 测试模式：网址加 ?paytest=1 才用假 QR/户口（给业主自己测付款流程，客人看不到） */
+const PAY_TEST = /[?&]paytest=1\b/.test(location.search);
 function payInfo(oi){
   const o = (oi!==undefined&&oi!==""&&outlets()[+oi]) || null;
+  if(PAY_TEST && !(S.payment&&(S.payment.qr||S.payment.accountNo))) return {qr:"images/test-qr.png",bankName:"TEST BANK（测试用）",accountName:"TEST ONLY 测试用",accountNo:"0000 0000 0000",allowPayAtCounter:true,note:"⚠️ 这是测试模式，不要真的转账。"};
   const p = Object.assign({}, S.payment||{}, (o&&o.payment)||{});
   return (p.qr||p.accountNo) ? p : null;
 }
