@@ -51,6 +51,22 @@
 
 **同时最好一起补的资料**（不阻塞后台）：正式商家收款 QR + 银行户口（`payment`；现在测试模式用的是业主个人 TNG QR）、真实本店故事/优惠活动、Facebook 专页名、A007/A017 菜名价钱。
 
+## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
+**已做的防护（改代码时别拿掉）：**
+- 所有输出都经 `esc()`；`admin.html` 显示客人填的姓名/电话/订单内容也全部 `esc()`（客人可经 RPC 写任意文字进数据库，店员页是最需要防 XSS 的地方）。
+- **CSP**（`<meta http-equiv="Content-Security-Policy">`，index.html 与 admin.html 各一）：只准本站脚本（+内联，因为有 inline onclick 和 document.write config.js），外站脚本、外送数据（connect 只给 `*.supabase.co`）、插件、表单外送全挡。新增外部资源（新字体/地图/CDN）要同步改 CSP，否则会被挡。已测：注入的外站脚本和 fetch 都被拒绝。
+- `admin.html` 的 supabase-js 有 **SRI integrity**（sha384，对应 2.45.4 的 `dist/umd/supabase.js`）；升级版本要重算 hash：`openssl dgst -sha384 -binary supabase.js | openssl base64 -A`。admin 加 `noindex`。
+- **localStorage 不可信**：购物车载入时只留「key 跟 `keyOf()` 产生的完全一样 + 数量 1–99 整数」的行；`allItems` 用 `Object.create(null)`；`site_lang` 只认 zh/en；`site_zone` 只认数字。原因：GitHub Pages 的 `mengkeesystem.github.io` 下**所有仓库同一个 origin**（若明记 ERP 也挂在这个账号的 Pages，它跟官网共用 localStorage），所以别的页面写进来的值都要当攻击输入。
+- 价钱/合计**一律用 config.js 的价钱重算**，不读 localStorage 里的金额。
+- 后台 `schema.sql`：匿名只能调两个函数；`create_web_order` 检查 ref 格式、金额、order_type、电话 8–15 位、同电话 10 分钟最多 3 笔待确认、全站每分钟 60 笔；店员只有 `status/confirmed_at/confirmed_by` 三栏的 update 权限（改不了金额/订单内容）；非白名单登录者看不到任何订单。已在本地 Postgres 16 跑过攻击测试全部被挡。
+
+**静态网站本质上挡不了的（靠店员流程）：**
+- 客人可以在**自己的**浏览器改网页（改价钱、改合计、改 WhatsApp 讯息）——这只影响他自己那份，别的客人看到的网页不会变；但他发来的订单金额可能是假的。→ 店员必须**按菜单价自己核对**品项×数量，**以 TNG/银行 App 里实际到账为准**，不看客人截图（截图可伪造）。
+- 优惠码哈希可被离线猜（码太短/太好猜就会被试出来）→ 码要用不好猜的，店员核对 WhatsApp 里的优惠码。
+- 别人可以复制整个网站换成自己的 QR 骗客人（仿冒站）→ 宣传时只给官方网址；以后考虑绑自己的域名。
+- 真正能「改网站内容」的只有 GitHub 账号 `Mengkeesystem` 和有写权限的协作者 → 账号必须开 2FA、别给不信任的人写权限。
+- `?paytest=1` 会显示业主个人 TNG QR（`images/test-tng-qr.jpg`），任何知道这个网址的人都看得到 → 填了正式商家 QR 后建议删掉这张图。
+
 ## 测试
 Playwright（`/opt/pw-browsers/chromium`，`file://`）在 1280 宽和 393 宽（iPhone 15 Pro）跑：加购物车 → WhatsApp 下单内容、订位 → WhatsApp 内容、中英切换、无横向溢出、无 JS 错误。拦截 `https://wa.me/**` 读取组好的讯息。
 

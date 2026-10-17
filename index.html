@@ -8,6 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
 <meta name="description" content="">
 <meta http-equiv="Cache-Control" content="no-cache">
+<!-- 安全：只允许载入本站脚本（+ 内联），禁止外站脚本/插件/表单外送；connect 只给 Supabase（付款后台） -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- config.js（店名/号码/菜单/价钱）每分钟换一次网址参数，避免浏览器沿用旧的缓存内容 -->
 <script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
 <noscript><script src="config.js"></script></noscript>
@@ -436,7 +439,7 @@ const T = {
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda Delivery",gf:"GrabFood Delivery",follow:"Follow us / Delivery",
       until:"to",longTerm:"Ongoing"}
 };
-let lang = store.get("site_lang","zh");
+let lang = store.get("site_lang","zh")==="en" ? "en" : "zh";
 const t = k => (T[lang]&&T[lang][k]) || T.zh[k] || k;
 const L = (o,k) => (lang==="en" && o[k+"En"]) ? o[k+"En"] : o[k];
 
@@ -471,7 +474,7 @@ function openState(){
 
 /* ---------- 购物车 ---------- */
 /* 每道菜可有多个份量(prices)和做法(options)；购物车每一行的 key = 菜id|份量序号|做法序号 */
-const allItems = {};
+const allItems = Object.create(null);   /* 无原型：localStorage 里的 "__proto__"/"constructor" 之类 id 查不到东西 */
 (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{allItems[it.id]=it;}));
 const canOrder = it => !it.soldOut && !it.seasonal;
 const sizeNames = (it,lg) => { const n=(it.prices||[]).length; const zh=it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); const en=it.sizesEn||(n===2?["S","L"]:n===3?["S","M","L"]:n===4?["S","M","L","XL"]:[]); return (lg||lang)==="en"?en:zh; };
@@ -479,7 +482,12 @@ const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
 const parseKey = k => { const [id,si,oi]=k.split("|"); return {it:allItems[id], si:+si||0, oi:+oi||0}; };
 const keyOf = (id,si,oi) => id+"|"+(si||0)+"|"+(oi||0);
 let cart = store.get("site_cart",{});
-Object.keys(cart).forEach(k=>{ const {it,si,oi}=parseKey(k); if(!it||!canOrder(it)||!(cart[k]>0)||(it.prices&&si>=it.prices.length)||(it.options&&oi>=it.options.length)) delete cart[k]; });
+/* localStorage 可被改：只留「格式完全标准」的 key（菜id|整数|整数，跟 keyOf 产生的一模一样）和 1–99 的整数数量，其余一律丢掉。
+   这样 key 里不可能夹带引号/HTML，后面拼进 onclick 也安全。 */
+if(!cart||typeof cart!=="object"||Array.isArray(cart)) cart={};
+cart=Object.keys(cart).reduce((c,k)=>{ const {it,si,oi}=parseKey(k), q=cart[k];
+  if(it&&canOrder(it)&&k===keyOf(it.id,si,oi)&&/^[\w-]+$/.test(it.id)&&Number.isInteger(q)&&q>=1&&q<=99&&(it.prices?si<it.prices.length:si===0)&&(it.options?oi<it.options.length:oi===0)) c[k]=q;
+  return c; },{});
 const pick = {};   /* 卡片上目前选的份量/做法 */
 const curPick = it => pick[it.id] || (pick[it.id]={si:0,oi:0});
 const saveCart = () => store.set("site_cart",cart);
@@ -518,7 +526,7 @@ function waLink(text,outletIdx){ const o=outletIdx!==undefined&&outletIdx!==""?o
 function openWa(text,outletIdx){ const u=waLink(text,outletIdx); const w=window.open(u,"_blank"); if(w){try{w.opener=null;}catch(e){}} else { window.location.href=u; } }
 let toastT;
 function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),1400); }
-const phoneOk = p => p.replace(/\D/g,"").length>=9;
+const phoneOk = p => { const n=p.replace(/\D/g,"").length; return n>=9 && n<=15; };
 const itemName = it => lang==="en" && it.nameEn ? it.nameEn : it.name;
 
 /* ---------- 渲染 ---------- */
@@ -609,7 +617,7 @@ const vDesc = v => L(v,"title") || (v.type==="percent"?`${v.value}% off`:v.type=
 /* ---------- 自取 / 外卖 ---------- */
 const DEL = () => (S.ordering&&S.ordering.delivery&&S.ordering.delivery.enabled) ? S.ordering.delivery : null;
 let orderType = store.get("site_otype","pickup"); if(orderType!=="delivery"||!DEL()) orderType="pickup";
-let delZone = String(store.get("site_zone",""));
+let delZone = String(store.get("site_zone","")); if(!/^\d{1,2}$/.test(delZone)) delZone="";
 const isDel = () => orderType==="delivery" && !!DEL();
 const delZoneObj = () => { const d=DEL(); return d&&delZone!==""?(d.zones||[])[+delZone]:null; };
 function delFee(){

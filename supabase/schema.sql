@@ -68,8 +68,16 @@ declare v_token uuid;
 begin
   if p_ref is null or p_ref !~ '^MK[0-9]{4}-[0-9]{4}$' then raise exception 'bad ref'; end if;
   if p_amount is null or p_amount <= 0 or p_amount >= 10000 then raise exception 'bad amount'; end if;
-  -- 简单防洗单：全站每分钟最多 30 笔
-  if (select count(*) from public.web_orders where created_at > now() - interval '1 minute') >= 30 then
+  if p_type not in ('pickup','delivery') then raise exception 'bad type'; end if;
+  if p_phone is null or regexp_replace(p_phone, '[^0-9]', '', 'g') !~ '^[0-9]{8,15}$' then raise exception 'bad phone'; end if;
+  if p_message is null or length(p_message) < 10 then raise exception 'bad message'; end if;
+  -- 防洗单：同一个电话 10 分钟内最多 3 笔待确认；全站每分钟最多 60 笔
+  if (select count(*) from public.web_orders
+      where status = 'pending' and created_at > now() - interval '10 minutes'
+        and regexp_replace(customer_phone, '[^0-9]', '', 'g') = regexp_replace(p_phone, '[^0-9]', '', 'g')) >= 3 then
+    raise exception 'too many pending orders for this phone';
+  end if;
+  if (select count(*) from public.web_orders where created_at > now() - interval '1 minute') >= 60 then
     raise exception 'too many orders, try again later';
   end if;
   insert into public.web_orders (ref, outlet, order_type, customer_name, customer_phone, amount, message)
@@ -90,7 +98,9 @@ end $$;
 -- 6) 权限：匿名只能执行这两个函数，不能碰表 ---------------------------
 revoke all on public.web_orders from anon;
 revoke all on public.web_staff  from anon, authenticated;
-grant select, update on public.web_orders to authenticated;   -- 仍受上面 RLS 限制（只有白名单店员）
+grant select on public.web_orders to authenticated;                                   -- 仍受上面 RLS 限制（只有白名单店员）
+revoke update on public.web_orders from authenticated;
+grant update (status, confirmed_at, confirmed_by) on public.web_orders to authenticated; -- 店员只能改状态，不能改金额/订单内容
 revoke all on function public.create_web_order(text,text,text,text,text,numeric,text) from public;
 revoke all on function public.web_order_status(text,uuid) from public;
 grant execute on function public.create_web_order(text,text,text,text,text,numeric,text) to anon, authenticated;
