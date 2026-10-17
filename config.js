@@ -78,13 +78,38 @@ window.SITE = {
 
   /* ---------- 优惠活动 / 节日套餐 ----------
    * from/to 是显示期间(含当天)，过期会自动隐藏，不用手动删。to 留空 = 长期 */
-  promos: [                               // TODO 示例活动
+  promos: [                               // TODO 以下是示例活动，请换成明记真实的活动（过期会自动隐藏）
     {
-      title: "开张优惠：堂食满 RM50 送饮料一杯",
-      titleEn: "Opening promo: free drink with RM50 dine-in",
-      body: "活动期间堂食消费满 RM50，送冰柠檬茶一杯。",
-      bodyEn: "Spend RM50 on dine-in and get a free iced lemon tea.",
+      badge: "限时", badgeEn: "Limited",
+      title: "开张优惠：堂食满 RM50 送凉水一杯",
+      titleEn: "Opening promo: free herbal drink with RM50 dine-in",
+      body: "活动期间堂食消费满 RM50，送自家凉水一杯（热/冷）。",
+      bodyEn: "Spend RM50 on dine-in and get a free homemade herbal drink (hot/cold).",
       from: "2026-10-01", to: "2026-12-31", image: "",
+    },
+    {
+      badge: "平日", badgeEn: "Weekdays",
+      title: "平日午市：招牌菜 9 折",
+      titleEn: "Weekday lunch: 10% off signature dishes",
+      body: "星期一至五 11am–3pm 堂食，点任何「招牌」标签的菜品享 9 折。",
+      bodyEn: "Mon–Fri 11am–3pm dine-in: 10% off any dish marked Signature.",
+      from: "2026-10-01", to: "2026-12-31", image: "",
+    },
+    {
+      badge: "生日", badgeEn: "Birthday",
+      title: "生日月份：送招牌豆腐一份",
+      titleEn: "Birthday month: free Signature Beancurd",
+      body: "生日当月出示身份证，堂食满 RM80 送招牌豆腐（小）一份。",
+      bodyEn: "Show your IC in your birthday month — spend RM80 on dine-in for a free Signature Beancurd (S).",
+      from: "2026-10-01", to: "", image: "",
+    },
+    {
+      badge: "预订", badgeEn: "Pre-order",
+      title: "农历新年团圆饭：开放预订",
+      titleEn: "Chinese New Year reunion dinner: now taking bookings",
+      body: "6–10 人团圆套餐，含松鱼头、琵琶鸭、咖喱三鲜煲等招牌菜。请提前 7 天 WhatsApp 预订。",
+      bodyEn: "Reunion sets for 6–10 pax featuring our signature bighead carp, pipa duck and seafood curry. Book 7 days ahead on WhatsApp.",
+      from: "2026-10-15", to: "2027-02-28", image: "",
     },
   ],
 
