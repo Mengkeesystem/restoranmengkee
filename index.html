@@ -146,14 +146,20 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .si:hover .sit{color:var(--p);text-decoration:underline}
 .si:hover .sic{transform:translateY(-1px)}
 @media(max-width:380px){.brand{font-size:15px;gap:6px}.brand img{height:34px}}
-.hsoc{margin-top:26px;gap:12px 22px;flex-wrap:wrap}
-.hsoc .si{color:#fff;font-size:15px}
-.hsoc .sic{width:34px;height:34px}
-.hsoc .si:hover .sit{color:var(--a)}
 .csoc{margin-top:14px;gap:12px 24px;flex-wrap:wrap}
 .csoc .si{font-size:16px}
 .csoc .sic{width:38px;height:38px}
 
+
+/* 页头 IG/FB（单色） */
+.tsoc{display:flex;align-items:center;gap:18px;margin-left:18px;flex:0 1 auto;min-width:0}
+.tsoc:empty{display:none}
+.ts{display:inline-flex;align-items:center;gap:6px;color:var(--p);text-decoration:none;font-weight:800;font-size:14px;white-space:nowrap}
+.ts svg{width:22px;height:22px;flex:0 0 auto}
+.ts:hover span{text-decoration:underline}
+@media(max-width:1180px){.ts span{display:none}.tsoc{gap:10px;margin-left:10px}}
+@media(max-width:400px){.tsoc{gap:8px;margin-left:6px}.ts svg{width:20px;height:20px}}
+@media(max-width:480px){.brand img+span{display:none}}
 
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -298,6 +304,7 @@ footer a{color:#fff}
 <header>
   <div class="wrap hd">
     <a class="brand" href="#top" id="brand"></a>
+    <div class="tsoc" id="socTop"></div>
     <nav class="links" id="nav"></nav>
     <button class="hbtn menuToggle" id="menuToggle" aria-label="Menu">☰</button>
     <button class="hbtn lang" id="langBtn">EN</button>
@@ -481,8 +488,7 @@ function renderHero(){
       ${S.ordering&&S.ordering.enabled?`<a class="btn" href="#menu" style="background:var(--a);color:var(--dk)">🛍️ ${esc(t("orderNow"))}</a>`:""}
       ${S.booking&&S.booking.enabled?`<a class="btn alt" href="#booking">📅 ${esc(t("bookNow"))}</a>`:""}
       ${outlets().length?`<a class="btn alt" href="#outlets">📍 ${esc(t("outletBtn"))}</a>`:""}
-    </div>
-    ${socIconsHTML()?`<div class="soc hsoc">${socIconsHTML(true)}</div>`:""}`;
+    </div>`;
 }
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
 const outletMap = o => o.map || ("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((S.nameEn||S.name||"")+" "+o.address));
@@ -679,12 +685,23 @@ const SOC_ICON = {
   facebook:'<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#1877F2"/><path fill="#fff" d="M22.2 20.6l.7-4.6h-4.4v-3c0-1.3.6-2.5 2.6-2.5h2V6.6s-1.8-.3-3.6-.3c-3.6 0-6 2.2-6 6.2V16h-4v4.6h4V32a16 16 0 0 0 4.9 0V20.6h3.8z"/></svg>'
 };
 const SOC_NAME = {instagram:"Instagram", facebook:"Facebook"};
+/* 页头左上：单色线条图标 + 名字（参考业主给的 Oriental Kopi 样式），FB 在前 */
+const SOC_MONO = {
+  facebook:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-1.6 19.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 12 2z"/></svg>',
+  instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg>'
+};
+function socTopHTML(){
+  const so=S.social||{};
+  return ["facebook","instagram"].filter(k=>so[k]).map(k=>{ const lbl=so[k+"Name"]||SOC_NAME[k];
+    return `<a class="ts ts-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${esc(SOC_NAME[k]+" "+lbl)}" title="${esc(SOC_NAME[k]+": "+lbl)}">${SOC_MONO[k]}<span>${esc(lbl)}</span></a>`; }).join("");
+}
 function socIconsHTML(withLabel){
   const so=S.social||{};
   return ["instagram","facebook"].filter(k=>so[k]).map(k=>{ const lbl=so[k+"Name"]||SOC_NAME[k];
     return `<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${esc(SOC_NAME[k]+" "+lbl)}" title="${esc(SOC_NAME[k]+": "+lbl)}"><span class="sic">${SOC_ICON[k]}</span>${withLabel?`<span class="sit">${esc(lbl)}</span>`:""}</a>`; }).join("");
 }
 function renderContact(){
+  $("socTop").innerHTML = socTopHTML();
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
   $("hours").innerHTML = order.map(d=>{const h=hoursOf(d);return `<tr class="${d===today?"today":""}"><td>${esc(t("days")[d])}</td><td>${h?h.map(x=>esc(x[0]+" – "+x[1])).join(", "):esc(t("rest"))}</td></tr>`;}).join("");
   const so=S.social||{}, soc=[["foodpanda","fp","🐼"],["grabfood","gf","🛵"]].filter(x=>so[x[0]]);
