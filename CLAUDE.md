@@ -31,6 +31,25 @@
 - 所有 `config.js` 文字输出都经 `esc()` 转义（沿用 ERP 那边 XSS 教训）。
 - 手机体验沿用 ERP 的教训：输入框 16px（防 iOS 自动放大）、`safe-area-inset-bottom`、抽屉 `overscroll-behavior:contain` + 打开时锁 body 滚动、`touch-action:manipulation`。
 
+## ⏳ 待办：业主 Supabase 升级 Pro 后，启用付款确认后台（2026-10-17 记录）
+业主说：等 Supabase 升级到 Pro 就开始做。业主说「开始」时**直接照下面做，不用再重新讨论方案**（方案已定：A. 店员按确认 + 官网专用的新 Supabase 项目）。代码已写好在仓库里（`supabase/schema.sql`、`admin.html`、`index.html` 的 `startAutoPay`），只差接上项目。
+注：Pro 是按 organization 收费，同一个 org 里每多一个项目还有额外的 compute 费用，以 Supabase 账单页为准。
+
+**业主要做（我在旁边一步步带）：**
+1. Supabase 后台 → New project，名字如 `mengkee-website`，Region 选 Singapore。**不能用牛室 ERP 的项目**；也不要用明记 ERP 的项目，要新的。
+2. SQL Editor → 贴上整份 `supabase/schema.sql` → Run。
+3. Authentication → Users → Add user：给每个要确认付款的店员建账号（邮箱+密码）。
+4. 把店员邮箱给我，我写好 `insert into public.web_staff (email) values (...)` 让业主去 SQL Editor 跑。
+5. Project Settings → API：把 **Project URL** 和 **anon public key** 发给我。**绝不要给 service_role key**。
+
+**我要做：**
+1. 填进 `config.js` → `backend:{supabaseUrl:"...", supabaseAnonKey:"..."}`。
+2. 用 Playwright 对**真实项目**测：打开 `/?paytest=1` 下单 → `web_orders` 出现 pending → 用店员账号登录 `admin.html` 按「已收款」→ 客人页面自动跳 wa.me；再测「拒绝」。测完把测试订单在 SQL Editor 删掉。（沙箱如连不到 supabase.co / jsdelivr，就请业主自己在手机走一遍。）
+3. 推 main，告诉业主店员入口 `https://mengkeesystem.github.io/restoranmengkee/admin.html`，营业时间要有人开着它（新订单会响铃）。
+4. 更新本文件：把「目前未启用」改成「已启用（日期）」。
+
+**同时最好一起补的资料**（不阻塞后台）：正式商家收款 QR + 银行户口（`payment`；现在测试模式用的是业主个人 TNG QR）、真实本店故事/优惠活动、Facebook 专页名、A007/A017 菜名价钱。
+
 ## 测试
 Playwright（`/opt/pw-browsers/chromium`，`file://`）在 1280 宽和 393 宽（iPhone 15 Pro）跑：加购物车 → WhatsApp 下单内容、订位 → WhatsApp 内容、中英切换、无横向溢出、无 JS 错误。拦截 `https://wa.me/**` 读取组好的讯息。
 
