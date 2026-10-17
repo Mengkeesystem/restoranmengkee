@@ -7,6 +7,13 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>店员 · 订单核对</title>
 <link rel="icon" href="images/logo.png">
+<!-- 加到手机主画面：图标、名字、全屏开启 -->
+<link rel="manifest" href="check.webmanifest">
+<link rel="apple-touch-icon" href="images/logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="订单核对">
+<meta name="theme-color" content="#B4232A">
 <script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
 <style>
 :root{--p:#B4232A;--a:#F2B417;--dk:#2A1A14;--bg:#FFFBF5;--tx:#2A1A14;--mut:#7A6A60;--line:#E3D3C2;--ok:#1F8A4C;--warn:#B7791F;--r:3px}
@@ -60,11 +67,15 @@ h3{margin:0 0 10px;color:var(--p);font-size:16px}
 <header><img src="images/logo.png" alt=""><b id="hTitle">订单核对</b></header>
 <div class="wrap">
   <div class="tabs"><button id="tCheck" class="on">🔍 核对订单</button><button id="tSum">📊 每月总结</button></div>
+  <details class="card" id="installTip"><summary style="font-weight:800;cursor:pointer;color:var(--p)">📲 把这页加到手机主画面（像 App 一样一按就开）</summary>
+    <p style="margin:10px 0 4px"><b>iPhone（Safari 打开这页）：</b>按底部「分享」<span style="font-size:18px">⬆︎</span> → 往下找「加入主画面 / Add to Home Screen」→ 右上角「加入」。</p>
+    <p style="margin:4px 0"><b>Android（Chrome 打开这页）：</b>按右上角「⋮」→「加到主画面 / 安装应用程式」→「加入」。</p>
+    <p class="note" style="margin:4px 0 0">主画面会出现明记 logo「订单核对」。用 WhatsApp 内建浏览器打开的话，先按右上角选「用 Safari / Chrome 打开」再加。</p></details>
   <div id="vCheck">
     <div class="card">
       <h3>把客人的 WhatsApp 订单整段贴进来</h3>
       <textarea id="msg" placeholder="长按客人的订单讯息 → 复制 → 贴在这里"></textarea>
-      <div class="row" style="margin-top:10px"><button class="btn" id="go">🔍 核对</button><button class="btn alt" id="clr">清空</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn ok" id="pasteGo" hidden>📋 一键贴上并核对</button><button class="btn" id="go">🔍 核对</button><button class="btn alt" id="clr">清空</button></div>
       <p class="note" style="margin:8px 0 0">系统会用<b>网站现在的菜单价钱</b>重新计算（小计 − 优惠 + SST + 运费），跟客人讯息里写的对比。<b>收钱以 TNG / 银行 App 实际到账为准，不看客人截图。</b></p>
     </div>
     <div id="result"></div>
@@ -279,6 +290,11 @@ function renderSum(){
 function download(name,text,type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
 
 /* ---------- 事件 ---------- */
+/* 一键贴上：读剪贴簿（浏览器会问一次是否允许），贴上后直接核对 */
+if(navigator.clipboard&&navigator.clipboard.readText){ $("pasteGo").hidden=false;
+  $("pasteGo").onclick=async()=>{ try{ const txt=await navigator.clipboard.readText(); if(!txt.trim()){ toast("剪贴簿是空的，先去 WhatsApp 复制订单"); return; } $("msg").value=txt; $("go").click(); }catch(e){ toast("无法读取剪贴簿，请长按输入框手动贴上"); $("msg").focus(); } }; }
+/* 已经从主画面打开（App 模式）就收起安装说明 */
+if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches||navigator.standalone) $("installTip").hidden=true;
 $("go").onclick=async()=>{ renderResult(await check($("msg").value)); $("result").scrollIntoView({behavior:"smooth",block:"start"}); };
 $("clr").onclick=()=>{ $("msg").value=""; renderResult(null); $("msg").focus(); };
 const tab=v=>{ $("tCheck").classList.toggle("on",v==="c"); $("tSum").classList.toggle("on",v==="s"); $("vCheck").hidden=v!=="c"; $("vSum").hidden=v!=="s"; if(v==="s") renderSum(); };
