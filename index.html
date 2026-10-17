@@ -55,15 +55,15 @@ nav.links a:hover{background:#F6EADB}
 .hero h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.15;padding:0}
 .hero h1::after{display:none}
 .hero p{font-size:18px;opacity:.92;margin:0 0 22px}
-.status{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:6px 14px;font-weight:700;margin-bottom:18px}
+.status{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:6px 14px;font-weight:700;margin-top:20px}
 .dot{width:10px;height:10px;border-radius:50%;background:#bbb}
 .dot.on{background:#4ADE80}.dot.off{background:#F87171}
 .hero .acts{display:flex;flex-wrap:wrap;gap:10px}
 .hero .btn.alt{background:transparent;color:#fff;border-color:#fff}
 
 /* hero logo */
-.hlogo{width:96px;height:96px;border-radius:var(--r);box-shadow:0 6px 18px rgba(0,0,0,.25);margin-bottom:16px}
-@media(min-width:760px){.hlogo{width:120px;height:120px}}
+.hlogo{width:132px;height:132px;border-radius:var(--r);box-shadow:0 6px 18px rgba(0,0,0,.25);margin-bottom:16px}
+@media(min-width:760px){.hlogo{width:176px;height:176px}}
 
 /* outlets */
 .region{text-align:center;color:var(--p);font-size:22px;margin:30px 0 16px;letter-spacing:2px}
@@ -494,14 +494,14 @@ function renderHero(){
   if(S.heroImage){ $("hero").classList.add("img"); $("hero").style.backgroundImage=`url("${encodeURI(S.heroImage)}")`; }
   $("heroIn").innerHTML = `
     ${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}
-    <div class="status"><span class="dot ${st.open?"on":"off"}"></span>${stTxt}</div>
     <h1>${esc(L(S,"name"))}</h1>
     <p>${esc(L(S,"tagline"))}</p>
     <div class="acts">
       ${S.ordering&&S.ordering.enabled?`<a class="btn" href="#menu" style="background:var(--a);color:var(--dk)">🛍️ ${esc(t("orderNow"))}</a>`:""}
       ${S.booking&&S.booking.enabled?`<a class="btn alt" href="#booking">📅 ${esc(t("bookNow"))}</a>`:""}
       ${outlets().length?`<a class="btn alt" href="#outlets">📍 ${esc(t("outletBtn"))}</a>`:""}
-    </div>`;
+    </div>
+    <div class="status"><span class="dot ${st.open?"on":"off"}"></span>${stTxt}</div>`;
 }
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
 const outletMap = o => o.map || ("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((S.nameEn||S.name||"")+" "+o.address));
