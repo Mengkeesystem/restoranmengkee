@@ -177,7 +177,7 @@ async function check(raw){
     const h=await sha256(VSALT+R.vcode.toUpperCase()), v=vouchers().find(x=>x.hash===h), d=R.date||ymd(new Date());
     if(!v) R.issues.push(`优惠码「${R.vcode}」不是有效的优惠码`);
     else if((v.from&&d<v.from)||(v.to&&d>v.to)) R.issues.push(`优惠码「${R.vcode}」在 ${d} 不在有效期内`);
-    else if(sub<(v.minSpend||0)) R.issues.push(`优惠码「${R.vcode}」要满 ${money(v.minSpend)}，这单只有 ${money(sub)}`);
+    else if(sub<(v.minSpend||0)){ if(R.claimed.disc>0) R.issues.push(`优惠码「${R.vcode}」要满 ${money(v.minSpend)}，这单只有 ${money(sub)}，不能扣钱`); else R.warns.push(`客人输入了优惠码「${R.vcode}」但未满 ${money(v.minSpend)}，所以没有折扣（正确）`); }
     else{ let off=v.type==="percent"?sub*(v.value||0)/100:v.type==="amount"?(v.value||0):0; if(v.maxOff) off=Math.min(off,v.maxOff); R.disc=r2(Math.min(off,sub)); R.vTitle=v.title||""; if(v.type==="gift"&&v.gift) R.warns.push(`优惠码送：${v.gift}`); }
   }
   R.sst=r2((sub-R.disc)*sstRate());
