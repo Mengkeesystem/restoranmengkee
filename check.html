@@ -195,11 +195,13 @@ async function check(raw){
       if(R.geo&&oll){
         const km=kmBetween(R.geo.lat,R.geo.lng,oll.lat,oll.lng), zi=zs.findIndex(x=>typeof x.maxKm==="number"&&km<=x.maxKm), want=zs[zi<0?zs.length-1:zi];
         R.km=km;
-        if(want!==z){ R.issues.push(`客人定位离分店直线约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
+        if(typeof D.maxKm==="number"&&km>D.maxKm) R.issues.push(`客人离分店直线约 ${km.toFixed(1)} km，超过最远送餐距离 ${D.maxKm} km`);
+        else if(want!==z){ R.issues.push(`客人定位离分店直线约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
         else R.warns.push(`定位核对 ✓ 离分店直线约 ${km.toFixed(1)} km（「${z.label}」）。定位是客人手机给的，请再看一眼地址是否在同一区`);
       } else if(R.geo) R.warns.push(`客人有定位，但找不到这间分店的地图位置，无法自动核对距离；配送范围「${z.label}」请看地址核对`);
       else R.warns.push(`配送范围客人自己选「${z.label}」，请看地址核对距离`);
-      R.zone=zz.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (zz.fee||0);
+      if(zz.perKm&&R.km==null) R.issues.push(`「${zz.label}」要按距离加钱，但讯息里没有可核对的定位，请看地址自己算`);
+      R.zone=zz.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (zz.fee||0)+(zz.perKm&&R.km!=null?Math.max(0,Math.ceil(Math.round((R.km-(zz.perKmFrom||0))*100)/100))*zz.perKm:0);
     }
   }
   R.total=r2(sub-R.disc+R.sst+R.fee);
