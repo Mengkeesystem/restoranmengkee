@@ -805,6 +805,8 @@ window.SITE = {
       "items": [
         {
           "id": "A047",
+          "tt": "叶嫩微滑 · 清香微苦，回甘",
+          "ttEn": "Tender leaves · Light, slightly bitter, sweet finish",
           "code": "A047",
           "name": "田七",
           "nameEn": "Tien Chi",
@@ -975,6 +977,8 @@ window.SITE = {
         },
         {
           "id": "ADD1",
+          "tt": "咸鱼香脆 · 咸香下饭",
+          "ttEn": "Crispy salted fish · Savoury, great with rice",
           "code": "",
           "name": "加咸鱼",
           "nameEn": "Add Salted Fish",
@@ -1120,6 +1124,8 @@ window.SITE = {
       "items": [
         {
           "id": "A067S",
+          "tt": "瓜软肉嫩 · 清甜温润，家常老火汤",
+          "ttEn": "Soft melon, tender pork · Light and sweet home-style soup",
           "code": "A067",
           "name": "老黄瓜炖瘦肉",
           "nameEn": "Chinese Melon Soup",
@@ -1130,6 +1136,8 @@ window.SITE = {
         },
         {
           "id": "A068",
+          "tt": "西洋菜软滑 · 清甜润喉",
+          "ttEn": "Soft watercress · Light, sweet and soothing",
           "code": "A068",
           "name": "西洋菜汤炖瘦肉",
           "nameEn": "Watercress Soup",
@@ -1140,6 +1148,8 @@ window.SITE = {
         },
         {
           "id": "A069",
+          "tt": "花生粉糯，粉葛绵软 · 清甜温和",
+          "ttEn": "Soft peanuts & arrowroot · Mild and sweet",
           "code": "A069",
           "name": "花生粉葛汤",
           "nameEn": "Peanuts & Arrowroot Soup",
@@ -1158,6 +1168,8 @@ window.SITE = {
       "items": [
         {
           "id": "B001",
+          "tt": "花香清淡 · 解腻",
+          "ttEn": "Light floral aroma · Refreshing",
           "code": "B001",
           "name": "香片",
           "nameEn": "Jasmine Tea",
@@ -1168,6 +1180,8 @@ window.SITE = {
         },
         {
           "id": "B002",
+          "tt": "茶味醇厚 · 解油腻",
+          "ttEn": "Smooth and mellow · Cuts the grease",
           "code": "B002",
           "name": "普洱",
           "nameEn": "Pu-erh",
@@ -1178,6 +1192,8 @@ window.SITE = {
         },
         {
           "id": "B003",
+          "tt": "茶香浓 · 微甘回甘",
+          "ttEn": "Fragrant · Slight sweet aftertaste",
           "code": "B003",
           "name": "铁观音",
           "nameEn": "Tieguanyin",
@@ -1188,6 +1204,8 @@ window.SITE = {
         },
         {
           "id": "B004",
+          "tt": "普洱加菊花 · 醇厚带清香",
+          "ttEn": "Pu-erh with chrysanthemum · Mellow and floral",
           "code": "B004",
           "name": "菊普",
           "nameEn": "Chrysanthemum Pu-erh",
@@ -1198,6 +1216,8 @@ window.SITE = {
         },
         {
           "id": "B005",
+          "tt": "茶味浓郁 · 耐泡",
+          "ttEn": "Strong and full-bodied",
           "code": "B005",
           "name": "茶王",
           "nameEn": "Tea King",
@@ -1208,6 +1228,8 @@ window.SITE = {
         },
         {
           "id": "B006",
+          "tt": "菊花清香 · 清淡",
+          "ttEn": "Light chrysanthemum aroma",
           "code": "B006",
           "name": "菊花",
           "nameEn": "Chrysanthemum",
@@ -1224,6 +1246,8 @@ window.SITE = {
       "items": [
         {
           "id": "B008",
+          "tt": "自家熬煮凉茶 · 清润微甘",
+          "ttEn": "Homemade herbal drink · Cooling, lightly sweet",
           "code": "B008",
           "name": "凉水 (热/冷)",
           "nameEn": "Homemade Herbal (Hot/Cold)",
@@ -1235,6 +1259,8 @@ window.SITE = {
         },
         {
           "id": "B009",
+          "tt": "竹蔗马蹄 · 清甜解渴",
+          "ttEn": "Sugarcane & water chestnut · Sweet and thirst-quenching",
           "code": "B009",
           "name": "竹蔗马蹄",
           "nameEn": "Sugarcane",
@@ -1242,6 +1268,8 @@ window.SITE = {
         },
         {
           "id": "B010",
+          "tt": "洋参菊花 · 清香微甘",
+          "ttEn": "Ginseng & chrysanthemum · Light, slightly sweet",
           "code": "B010",
           "name": "洋参菊花",
           "nameEn": "Chrysanthemum",
@@ -1249,6 +1277,8 @@ window.SITE = {
         },
         {
           "id": "B011",
+          "tt": "爱玉滑溜 · 酸甜冰凉",
+          "ttEn": "Smooth jelly · Sweet, tangy and icy",
           "code": "B011",
           "name": "爱玉冰",
           "nameEn": "Ai Yu",
@@ -1256,6 +1286,8 @@ window.SITE = {
         },
         {
           "id": "B012",
+          "tt": "冰凉解渴",
+          "ttEn": "Cold and refreshing",
           "code": "B012",
           "name": "100号",
           "nameEn": "100 Plus",
@@ -1263,6 +1295,8 @@ window.SITE = {
         },
         {
           "id": "B013",
+          "tt": "冰凉有气",
+          "ttEn": "Cold and fizzy",
           "code": "B013",
           "name": "可乐",
           "nameEn": "Coca Cola",
@@ -1270,6 +1304,8 @@ window.SITE = {
         },
         {
           "id": "B014",
+          "tt": "冰凉清爽",
+          "ttEn": "Cold and crisp",
           "code": "B014",
           "name": "啤酒",
           "nameEn": "Tiger",
@@ -1277,6 +1313,8 @@ window.SITE = {
         },
         {
           "id": "B015",
+          "tt": "浓郁微苦",
+          "ttEn": "Rich, slightly bitter",
           "code": "B015",
           "name": "黑啤酒",
           "nameEn": "Guinness",
