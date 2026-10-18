@@ -98,11 +98,20 @@
 
 **业主说「开始做付款网关」时要先问的**：选哪家网关（是否已申请好商家账号、拿到 API key / secret / collection code）、手续费由谁承担（加进客人合计或店家吸收）、还要不要保留「到店付款/货到付款」。
 
+## ⏳ 上线前待补（2026-10-19 全面检查后记录，业主说先记着、暂时不动）
+全面检查结果：XSS 注入攻击（菜名/分店名/优惠/客人资料/localStorage/地图查询结果）三个页面都挡住；手机+电脑 44 项功能测试全过；9 种篡改订单 check.html 都判对。还缺：
+1. **正式收款 QR + 银行户口**（`config.js` → `payment`）——没填之前正式网址「网上点餐暂停」，**最优先**。
+2. 填好正式 QR 后**删掉 `images/test-tng-qr.jpg`**（业主个人 TNG，`?paytest=1` 任何人看得到）。
+3. **店面电话** `phone` 还是空的（「暂停下单」提示叫客人打电话，但页面没有号码）。
+4. 真实资料：优惠活动（4 个都是示例）、Facebook 专页名、店内照片（`gallery` 空，区块隐藏）、A007/A017 菜名价钱、A069 价钱（暂估）。
+5. 业主自己：GitHub 开 2FA；考虑自有域名（如 mengkee.com.my）。
+- 已做（2026-10-19）：**分享预览**——`index.html` `<head>` 写死 `og:title/description/url/image`（logo）+ 静态 `<title>`/`description`（WhatsApp/FB 不跑 JS，不能靠 config 动态设）。⚠️ 复制给牛室时这几行要一起改。
+
 ## 测试
 Playwright（`/opt/pw-browsers/chromium`，`file://`）在 1280 宽和 393 宽（iPhone 15 Pro）跑：加购物车 → WhatsApp 下单内容、订位 → WhatsApp 内容、中英切换、无横向溢出、无 JS 错误。拦截 `https://wa.me/**` 读取组好的讯息。
 
 ## 复制给牛室 Beef House 时要改的（因店制宜）
-1. `config.js` 全部内容：店名、logo、电话/WhatsApp、地址/地图、营业时间、社交链接、故事、照片。
+1. `config.js` 全部内容：店名、logo、电话/WhatsApp、地址/地图、营业时间、社交链接、故事、照片。**还有 `index.html` `<head>` 里写死的 `<title>`、description、og: 分享预览几行**。
 2. **菜单结构不同**：牛室主体是 **buffet 吃到饱（按人头/时段计价）** + 单点牛扒/饮料。buffet 不适合「加购物车自取」，建议：
    - buffet 价格（成人/儿童/长者、平日/周末、午餐/晚餐）做成菜单里一个只展示、不能下单的分类（品项不放价钱按钮，或加 `soldOut`-类似的「仅堂食」标记——需要在 `index.html` 加一个 `dineInOnly` 选项）；
    - 单点牛扒/饮料照常可自取下单。
