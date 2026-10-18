@@ -408,7 +408,7 @@ const money = n => CUR+" "+(Math.round(n*100)/100).toFixed(2);
 
 /* ---------- 文字（中/英） ---------- */
 const T = {
-  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外卖",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点「导航」用 Google Maps 带路",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
+  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外卖",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点 Google Maps 或 Waze 直接导航",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
       navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"故事",navContact:"联系",
       open:"营业中",closed:"已打烊",closedToday:"今天休息",opensAt:"营业至",nextOpen:"下次营业",orderNow:"网上点餐",bookNow:"订位",
       days:["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],rest:"休息",
@@ -419,11 +419,11 @@ const T = {
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
-      call:"打电话",wa:"WhatsApp",map:"在 Google Maps 打开",addr:"地址",
+      call:"打电话",wa:"WhatsApp",map:"在 Google Maps 打开",waze:"用 Waze 导航",addr:"地址",
       waOrder:"【网上点餐 - 自取】",waBook:"【网上订位】",
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda 外送",gf:"GrabFood 外送",follow:"关注我们 / 外送平台",
       until:"至",longTerm:"长期有效"},
-  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap “Directions” to open Google Maps",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",showLess:"Show less",
+  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap Google Maps or Waze for directions",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",showLess:"Show less",
       navMenu:"Menu",navPromo:"Promos",navBook:"Book",navAbout:"Story",navContact:"Contact",
       open:"Open now",closed:"Closed",closedToday:"Closed today",opensAt:"Open until",nextOpen:"Next open",orderNow:"Order online",bookNow:"Book a table",
       days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],rest:"Closed",
@@ -434,7 +434,7 @@ const T = {
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
-      call:"Call",wa:"WhatsApp",map:"Open in Google Maps",addr:"Address",
+      call:"Call",wa:"WhatsApp",map:"Open in Google Maps",waze:"Navigate with Waze",addr:"Address",
       waOrder:"[Online Order - Pickup]",waBook:"[Table Booking]",
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda Delivery",gf:"GrabFood Delivery",follow:"Follow us / Delivery",
       until:"to",longTerm:"Ongoing"}
@@ -558,6 +558,8 @@ function renderHero(){
     <div class="status"><span class="dot ${st.open?"on":"off"}"></span>${stTxt}</div>`;
 }
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
+/* Waze：用地址搜索并直接开始导航；分店可在 config.js 用 waze 自订链接 */
+const wazeLink = (addr, custom) => custom || ("https://waze.com/ul?q="+encodeURIComponent(addr)+"&navigate=yes");
 const outletMap = o => o.map || ("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((S.nameEn||S.name||"")+" "+o.address));
 const outletLabel = o => (lang==="en"&&o.nameEn)?o.nameEn:o.name;
 function outletOptions(sel){
@@ -573,7 +575,7 @@ function renderOutlets(){
       ${o.hours?`<div class="ln">🕐 ${esc(o.hours)}</div>`:""}
       ${o.phone?`<div class="ln">📞 ${esc(o.phone)}</div>`:""}
       <div class="ad">📍 ${esc(o.address)}</div>
-      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">🧭 ${esc(t("nav"))}</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
+      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">📍 Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze))}" target="_blank" rel="noopener">🚗 Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
     </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
   document.querySelectorAll("#outletList .omore").forEach(b=>b.addEventListener("click",()=>toggleOutlets(b)));
 }
@@ -799,7 +801,7 @@ function renderContact(){
     <div style="display:flex;flex-wrap:wrap;gap:10px">
       ${S.phone?`<a class="btn alt" href="tel:${esc(String(S.phone).replace(/[^\d+]/g,""))}">📞 ${esc(t("call"))}</a>`:""}
       ${S.whatsapp?`<a class="btn wa" href="${esc(waLink(""))}" target="_blank" rel="noopener">💬 ${esc(t("wa"))}</a>`:""}
-      ${S.mapLink?`<a class="btn alt" href="${esc(S.mapLink)}" target="_blank" rel="noopener">📍 ${esc(t("map"))}</a>`:""}
+      ${S.mapLink?`<a class="btn alt" href="${esc(S.mapLink)}" target="_blank" rel="noopener">📍 ${esc(t("map"))}</a>`:""}${S.address&&!outlets().length?`<a class="btn alt waze" href="${esc(wazeLink(S.address,S.waze))}" target="_blank" rel="noopener">🚗 ${esc(t("waze"))}</a>`:""}
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
     ${soc.length||socIconsHTML()?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3>${socIconsHTML()?`<div class="soc csoc">${socIconsHTML(true)}</div>`:""}${soc.length?`<div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`:""}`;
