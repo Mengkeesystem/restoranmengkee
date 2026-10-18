@@ -223,6 +223,12 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .promo .in{padding:16px}
 .promo h3{margin:0 0 6px;font-size:18px}
 .promo .dt{color:var(--mut);font-size:13px;margin-top:8px}
+/* 优惠活动：滑到时卡片从左右两边滑进来（单数从左、双数从右，一张接一张） */
+#promos{overflow-x:hidden;overflow-x:clip}
+.promo.rv{opacity:0;transform:translateX(-48px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.75,.25,1);transition-delay:var(--d,0s)}
+.promo.rv:nth-child(even){transform:translateX(48px)}
+.promo.rv.seen{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.promo.rv{opacity:1;transform:none;transition:none}}
 
 /* menu */
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px;position:sticky;top:60px;background:var(--bg);z-index:5;padding-top:8px;-ms-overflow-style:none;scrollbar-width:none}
@@ -672,6 +678,21 @@ function renderPromos(){
   $("promoList").innerHTML = ps.map(p=>`<div class="promo">${L(p,"badge")?`<span class="badge">${esc(L(p,"badge"))}</span>`:""}${p.image?`<img src="${esc(p.image)}" alt="" loading="lazy">`:""}
     <div class="in"><h3>${esc(L(p,"title"))}</h3><div>${esc(L(p,"body"))}</div>
     <div class="dt">${p.to?`${esc(p.from||"")} ${esc(t("until"))} ${esc(p.to)}`:esc(t("longTerm"))}</div></div></div>`).join("");
+  revealPromos();
+}
+/* 滚到优惠活动时才滑进来；已经出现过的（例如切换语言重绘）直接显示，不再重播 */
+let promosSeen=false, promoIO=null;
+function revealPromos(){
+  const cards=[...document.querySelectorAll("#promoList .promo")];
+  if(promosSeen || !("IntersectionObserver" in window) || (window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+  if(promoIO) promoIO.disconnect();
+  cards.forEach((c,i)=>{ c.classList.add("rv"); c.style.setProperty("--d",(Math.min(i,5)*0.12)+"s"); });
+  promoIO=new IntersectionObserver(es=>{
+    if(!es.some(e=>e.isIntersecting)) return;
+    promosSeen=true; promoIO.disconnect();
+    requestAnimationFrame(()=>cards.forEach(c=>c.classList.add("seen")));
+  },{threshold:0.12,rootMargin:"0px 0px -8% 0px"});
+  promoIO.observe($("promoList"));
 }
 /* 菜单分类默认折叠，客人点开才显示菜品 */
 const openCats = new Set();
