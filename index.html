@@ -228,7 +228,16 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .promo.rv{opacity:0;transform:translateX(-48px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.75,.25,1);transition-delay:var(--d,0s)}
 .promo.rv:nth-child(even){transform:translateX(48px)}
 .promo.rv.seen{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.promo.rv{opacity:1;transform:none;transition:none}}
+/* 菜单：分类标题滚到时从左右滑进来；点开分类时菜品一道接一道滑进来 */
+#menu{overflow-x:hidden;overflow-x:clip}
+.mcat.rv{opacity:0;transform:translateX(-48px);transition:opacity .55s ease,transform .65s cubic-bezier(.2,.75,.25,1);transition-delay:var(--d,0s)}
+.mcat.rv:nth-of-type(even){transform:translateX(48px)}
+.mcat.rv.seen{opacity:1;transform:none}
+@keyframes rvL{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+@keyframes rvR{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+.item.pop{animation:rvL .5s cubic-bezier(.2,.75,.25,1) both;animation-delay:var(--d,0s)}
+.item.pop:nth-child(even){animation-name:rvR}
+@media (prefers-reduced-motion:reduce){.promo.rv,.mcat.rv{opacity:1;transform:none;transition:none}.item.pop{animation:none}}
 
 /* menu */
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px;position:sticky;top:60px;background:var(--bg);z-index:5;padding-top:8px;-ms-overflow-style:none;scrollbar-width:none}
@@ -519,7 +528,7 @@ window.__site = {
   vRemove:()=>removeVoucher(),
   lb:(i)=>lbShow(i), lbClose:()=>lbClose(), lbGo:(d)=>lbGo(d),
   mslide:(d)=>{ const tr=$("mtrack"); if(!tr) return; const n=menuPhotos().length; const i=(Math.round(tr.scrollLeft/tr.clientWidth)+d+n)%n; tr.scrollTo({left:i*tr.clientWidth,behavior:"smooth"}); },
-  cat:(i)=>{ if(openCats.has(i)) openCats.delete(i); else openCats.add(i); renderMenu(); if(openCats.has(i)){ const el=$("cat-"+i); const top=el.getBoundingClientRect().top; if(top<110||top>window.innerHeight-80) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"}); } },
+  cat:(i)=>{ if(openCats.has(i)) openCats.delete(i); else { openCats.add(i); justOpened=i; } renderMenu(); if(openCats.has(i)){ const el=$("cat-"+i); const top=el.getBoundingClientRect().top; if(top<110||top>window.innerHeight-80) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"}); } },
   otype:(v)=>{ orderType=(v==="delivery"&&DEL())?"delivery":"pickup"; store.set("site_otype",orderType); refreshCart(); },
   pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); if($("od_send")) $("od_send").innerHTML=sendLabel(oi); },
   psClose:()=>closePayStep(), psCheck:(v)=>{ $("psSend").disabled=!v; }, psSend:()=>payStepSend(), psDone:()=>payStepDone(), psResend:()=>{ if(payPending) openWa(payPending.msg,payPending.oi); },
@@ -680,6 +689,21 @@ function renderPromos(){
     <div class="dt">${p.to?`${esc(p.from||"")} ${esc(t("until"))} ${esc(p.to)}`:esc(t("longTerm"))}</div></div></div>`).join("");
   revealPromos();
 }
+const motionOK = () => ("IntersectionObserver" in window) && !(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+/* 菜单分类标题：每个分类第一次滚进画面时滑进来，只播一次（renderMenu 每次加购物车都会重绘，所以用 catSeen 记住） */
+const catSeen=new Set(); let catIO=null;
+function revealCats(){
+  if(!motionOK()) return;
+  if(catIO) catIO.disconnect();
+  const els=[...document.querySelectorAll("#menuList .mcat")].filter(el=>!catSeen.has(el.id));
+  if(!els.length) return;
+  els.forEach(el=>el.classList.add("rv"));
+  catIO=new IntersectionObserver(es=>{
+    const hit=es.filter(e=>e.isIntersecting).map(e=>e.target).sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
+    hit.forEach((el,k)=>{ catSeen.add(el.id); catIO.unobserve(el); el.style.setProperty("--d",(Math.min(k,6)*0.08)+"s"); requestAnimationFrame(()=>el.classList.add("seen")); });
+  },{threshold:0.1,rootMargin:"0px 0px -6% 0px"});
+  els.forEach(el=>catIO.observe(el));
+}
 /* 滚到优惠活动时才滑进来；已经出现过的（例如切换语言重绘）直接显示，不再重播 */
 let promosSeen=false, promoIO=null;
 function revealPromos(){
@@ -696,6 +720,7 @@ function revealPromos(){
 }
 /* 菜单分类默认折叠，客人点开才显示菜品 */
 const openCats = new Set();
+let justOpened = -1;   /* 刚点开的分类：这次重绘时菜品播放滑入动画，之后（例如加购物车重绘）不再播 */
 const catCartCount = c => Object.entries(cart).reduce((n,[k,q])=>{ const {it}=parseKey(k); return n+((c.items||[]).includes(it)?q:0); },0);
 /* ---------- 纸本菜单：滑动 + 点开全屏放大（同一页，不跳走） ---------- */
 let lbIdx=0, lbOpen=false;
@@ -726,11 +751,11 @@ function renderMenu(){
   const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
   $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c);
     return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}"><span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
-    (c.items||[]).map(it=>{
+    (c.items||[]).map((it,ii)=>{
       const id=esc(it.id).replace(/'/g,""), p=curPick(it), k=keyOf(it.id,p.si,p.oi), q=cart[k]||0;
       const sn=sizeNames(it);
       const priceTxt = it.seasonal ? esc(t("season")) : it.prices ? money(it.prices[p.si]) : money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
-      return `<div class="item${it.image?"":" noimg"}"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
+      return `<div class="item${it.image?"":" noimg"}${i===justOpened&&motionOK()?" pop":""}" style="--d:${Math.min(ii,8)*0.06}s"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
         ${it.tag?`<span class="tag">${esc(lang==="en"?"Signature":it.tag)}</span>`:""}${it.code?`<span class="code">${esc(it.code)}</span>`:""}${it.soldOut?`<div class="so">${esc(t("soldOut"))}</div>`:""}</div>
         <div class="in"><h4>${esc(itemName(it))}</h4>${lang!=="en"&&it.nameEn?`<div class="en">${esc(it.nameEn)}</div>`:""}
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
@@ -738,8 +763,11 @@ function renderMenu(){
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
         <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&sstRate()?`<small class="nosst">${esc(t("exSst"))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
+  if(justOpened>=0) catSeen.add("cat-"+justOpened);   /* 客人自己点开的分类不再淡入，免得标题闪一下 */
+  justOpened=-1;
+  revealCats();
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>{
-    const i=+b.dataset.i; if(!openCats.has(i)){ openCats.add(i); renderMenu(); }
+    const i=+b.dataset.i; if(!openCats.has(i)){ openCats.add(i); justOpened=i; renderMenu(); }
     const el=$("cat-"+i); window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});
   });
 }
