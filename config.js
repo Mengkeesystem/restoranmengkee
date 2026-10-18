@@ -166,6 +166,7 @@ window.SITE = {
     minDaysAhead: 0,                      // 0 = 可订当天
     maxDaysAhead: 30,
     slotMinutes: 30,                      // 时间选项间隔
+    leadHours: 12,                        // 最少提前几小时订位（2026-10-18 业主定 12 小时）
   },
 
   /* ---------- 网上点餐(自取) ---------- */
