@@ -293,6 +293,12 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
   .item .ph,.item.noimg .ph{width:104px;min-width:104px;min-height:104px}
 }
 .mslider{position:relative;margin-bottom:18px;background:var(--dk);border:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10)}
+/* 菜单照片：滚到时轻轻淡入、上浮 12px，照片从 1.05 倍慢慢缩回原大小（跟优惠/菜单的左右滑入区分开，效果较柔和） */
+.mslider.rv{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease}
+.mslider.rv .mslide img{transform:scale(1.05);transition:transform 1.4s cubic-bezier(.2,.7,.3,1)}
+.mslider.rv.seen{opacity:1;transform:none}
+.mslider.rv.seen .mslide img{transform:none}
+@media (prefers-reduced-motion:reduce){.mslider.rv,.mslider.rv .mslide img{opacity:1;transform:none;transition:none}}
 .mtrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .mtrack::-webkit-scrollbar{display:none}
 .mslide{flex:0 0 100%;scroll-snap-align:center;position:relative;border:0;padding:0;background:var(--dk);cursor:zoom-in;display:block}
@@ -731,7 +737,10 @@ function renderMenuPhotos(){
     <div class="mtrack" id="mtrack">${mp.map((src,i)=>`<button type="button" class="mslide" onclick="__site.lb(${i})" aria-label="${esc(t("menuPhoto"))} ${i+1}"><img src="${esc(src)}" alt="${esc(t("menuPhoto"))} ${i+1}" loading="lazy" draggable="false"><span>🔍 ${esc(t("menuPhoto"))} ${i+1} / ${mp.length} · ${esc(t("tapZoom"))}</span></button>`).join("")}</div>
     ${mp.length>1?`<button type="button" class="mnav prev" onclick="__site.mslide(-1)" aria-label="prev">‹</button><button type="button" class="mnav next" onclick="__site.mslide(1)" aria-label="next">›</button><div class="mdots">${mp.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>`:""}
   </div>`;
-  const tr=$("mtrack");
+  const tr=$("mtrack"), box=$("menuPhotos").querySelector(".mslider");
+  if(motionOK()){ box.classList.add("rv");
+    const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); requestAnimationFrame(()=>box.classList.add("seen")); } },{threshold:0.15});
+    io.observe(box); }
   tr.addEventListener("scroll",()=>{ const i=Math.round(tr.scrollLeft/tr.clientWidth); document.querySelectorAll(".mdots i").forEach((d,k)=>d.classList.toggle("on",k===i)); },{passive:true});
 }
 function lbRender(){
