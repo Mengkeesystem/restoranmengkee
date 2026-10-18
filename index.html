@@ -70,6 +70,13 @@ nav.links a:hover{background:#F6EADB}
 
 /* outlets */
 .region{text-align:center;color:var(--p);font-size:22px;margin:30px 0 16px;letter-spacing:2px}
+/* 门店地址：区域标题字距由宽收紧淡入；分店卡片像翻起来一样轻轻立起（上浮 + 微微后仰回正），一张接一张 */
+.region.rv{opacity:0;letter-spacing:10px;transition:opacity .7s ease,letter-spacing .9s cubic-bezier(.2,.7,.3,1)}
+.region.rv.seen{opacity:1;letter-spacing:2px}
+.olist{perspective:900px}
+.outlet.rv{opacity:0;transform:translateY(18px) rotateX(10deg);transform-origin:50% 100%;transition:opacity .6s ease,transform .7s cubic-bezier(.2,.75,.25,1);transition-delay:var(--d,0s)}
+.outlet.rv.seen{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.region.rv,.outlet.rv{opacity:1;transform:none;letter-spacing:2px;transition:none}}
 .ogrp:first-child .region{margin-top:6px}
 .region small{display:block;font-size:13px;color:var(--mut);letter-spacing:0;font-weight:600}
 .olist{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -599,6 +606,7 @@ function renderOutlets(){
       <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">📍 Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze))}" target="_blank" rel="noopener">🚗 Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
     </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
   document.querySelectorAll("#outletList .omore").forEach(b=>b.addEventListener("click",()=>toggleOutlets(b)));
+  revealOutlets();
 }
 function toggleOutlets(b){
   const grp=b.closest(".ogrp"), open=grp.classList.toggle("open");
@@ -709,6 +717,19 @@ function revealCats(){
     hit.forEach((el,k)=>{ catSeen.add(el.id); catIO.unobserve(el); el.style.setProperty("--d",(Math.min(k,6)*0.08)+"s"); requestAnimationFrame(()=>el.classList.add("seen")); });
   },{threshold:0.1,rootMargin:"0px 0px -6% 0px"});
   els.forEach(el=>catIO.observe(el));
+}
+/* 门店地址：每个区域标题/分店卡片第一次进画面时播一次（切换语言重绘不重播；手机展开「查看全部」时，新出现的卡片也会照样立起来） */
+const outSeen=new Set(); let outIO=null;
+function revealOutlets(){
+  if(!motionOK()) return;
+  if(outIO) outIO.disconnect();
+  const els=[...document.querySelectorAll("#outletList .region, #outletList .outlet")];
+  els.forEach((el,i)=>{ el.dataset.rk=i; if(!outSeen.has(i)) el.classList.add("rv"); });
+  outIO=new IntersectionObserver(es=>{
+    const hit=es.filter(e=>e.isIntersecting).map(e=>e.target).sort((a,b)=>(+a.dataset.rk)-(+b.dataset.rk));
+    hit.forEach((el,k)=>{ outSeen.add(+el.dataset.rk); outIO.unobserve(el); el.style.setProperty("--d",(Math.min(k,5)*0.1)+"s"); requestAnimationFrame(()=>el.classList.add("seen")); });
+  },{threshold:0.15,rootMargin:"0px 0px -6% 0px"});
+  els.forEach(el=>{ if(!outSeen.has(+el.dataset.rk)) outIO.observe(el); });
 }
 /* 滚到优惠活动时才滑进来；已经出现过的（例如切换语言重绘）直接显示，不再重播 */
 let promosSeen=false, promoIO=null;
