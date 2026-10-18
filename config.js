@@ -1216,8 +1216,8 @@ window.SITE = {
         },
         {
           "id": "B005",
-          "tt": "店里最浓的一款茶，入口醇厚，回甘持久，越泡越香 · 配煮炒、鱼头最解腻，爱喝浓茶的必点",
-          "ttEn": "Our strongest tea — full-bodied with a long sweet aftertaste, gets better with each brew · Perfect with stir-fries and fish head, a must for strong-tea lovers",
+          "tt": "醇厚饱满，带兰花香、焙火香 · 回甘强烈，非常耐泡",
+          "ttEn": "Full-bodied, with orchid and roasted notes · Strong sweet aftertaste, lasts many brews",
           "code": "B005",
           "name": "茶王",
           "nameEn": "Tea King",
