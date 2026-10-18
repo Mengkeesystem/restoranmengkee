@@ -299,6 +299,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .item h4{margin:0;font-size:16px}
 .item .en{color:var(--mut);font-size:13px}
 .item .ds{color:var(--mut);font-size:13px;margin-top:4px}
+.item .tt{color:#7a5a2a;font-size:12.5px;margin-top:4px;line-height:1.45}
 .item .ft{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px}
 .price{font-weight:800;font-size:17px;color:var(--p)}
 .price small{font-size:12px;color:var(--mut);font-weight:700}
@@ -991,6 +992,7 @@ function renderMenu(){
       return `<div class="item${it.image?"":" noimg"}${i===justOpened&&motionOK()?" pop":""}" style="--d:${Math.min(ii,8)*0.06}s"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
         ${it.tag?`<span class="tag">${esc(lang==="en"?"Signature":it.tag)}</span>`:""}${it.code?`<span class="code">${esc(it.code)}</span>`:""}${it.soldOut?`<div class="so">${esc(t("soldOut"))}</div>`:""}</div>
         <div class="in"><h4>${esc(itemName(it))}</h4>${lang!=="en"&&it.nameEn?`<div class="en">${esc(it.nameEn)}</div>`:""}
+        ${L(it,"tt")?`<div class="tt">${esc(L(it,"tt"))}</div>`:""}
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}

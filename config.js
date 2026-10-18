@@ -213,6 +213,8 @@ window.SITE = {
       "items": [
         {
           "id": "A001",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 鲜香甘甜，姜蓉微辣",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Fresh and sweet, light ginger-chilli kick",
           "code": "A001",
           "name": "招牌蒸松鱼头",
           "nameEn": "Signature Steamed Bighead Carp",
@@ -222,6 +224,8 @@ window.SITE = {
         },
         {
           "id": "A002",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 酸甜微辣 (Tiga Rasa)",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Sweet, sour, mildly spicy (Tiga Rasa)",
           "code": "A002",
           "name": "酱蒸松鱼头 (微辣)",
           "nameEn": "Steamed with Spicy Paste Bean",
@@ -230,6 +234,8 @@ window.SITE = {
         },
         {
           "id": "A003",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 姜丝鲜香，较清淡",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Fresh ginger aroma, lighter taste",
           "code": "A003",
           "name": "清蒸松鱼头",
           "nameEn": "Steamed with Ginger Silk",
@@ -237,6 +243,8 @@ window.SITE = {
         },
         {
           "id": "A004",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 面豉苦瓜，咸香下饭",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Taucu & bitter gourd, savoury with rice",
           "code": "A004",
           "name": "炒松鱼头",
           "nameEn": "Stir-Fried Bighead Carp",
@@ -245,6 +253,8 @@ window.SITE = {
         },
         {
           "id": "A005",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 酸辣开胃",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Appetising sour and spicy",
           "code": "A005",
           "name": "娘惹蒸松鱼头",
           "nameEn": "Steamed with Nyonya Style",
@@ -253,6 +263,8 @@ window.SITE = {
         },
         {
           "id": "A006",
+          "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 咸香，稍偏咸",
+          "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Rich and savoury, a bit salty",
           "code": "A006",
           "name": "豆豉面豉蒸松鱼头 (咸)",
           "nameEn": "Steamed with Black Bean Taucu",
@@ -269,6 +281,8 @@ window.SITE = {
       "items": [
         {
           "id": "A008",
+          "tt": "肉质紧实细嫩，刺少 · 鲜香甘甜，姜蓉微辣",
+          "ttEn": "Firm, tender flesh, few bones · Fresh and sweet, light ginger-chilli kick",
           "code": "A008",
           "name": "招牌蒸金凤鱼",
           "nameEn": "Signature Steamed Red Tilapia",
@@ -280,6 +294,8 @@ window.SITE = {
         },
         {
           "id": "A009",
+          "tt": "肉质紧实细嫩，刺少 · 酸甜微辣 (Tiga Rasa)",
+          "ttEn": "Firm, tender flesh, few bones · Sweet, sour, mildly spicy (Tiga Rasa)",
           "code": "A009",
           "name": "酱蒸金凤鱼 (微辣)",
           "nameEn": "Steamed with Spicy Paste Bean",
@@ -291,6 +307,8 @@ window.SITE = {
         },
         {
           "id": "A010",
+          "tt": "肉质紧实细嫩，刺少 · 姜丝鲜香，较清淡",
+          "ttEn": "Firm, tender flesh, few bones · Fresh ginger aroma, lighter taste",
           "code": "A010",
           "name": "清蒸金凤鱼",
           "nameEn": "Steamed with Ginger Silk",
@@ -303,6 +321,8 @@ window.SITE = {
         },
         {
           "id": "A011",
+          "tt": "肉质紧实细嫩，刺少 · 面豉苦瓜，咸香下饭",
+          "ttEn": "Firm, tender flesh, few bones · Taucu & bitter gourd, savoury with rice",
           "code": "A011",
           "name": "炒金凤鱼",
           "nameEn": "Stir-Fried Red Tilapia",
@@ -310,6 +330,8 @@ window.SITE = {
         },
         {
           "id": "A012",
+          "tt": "肉质紧实细嫩，刺少 · 香脆可口",
+          "ttEn": "Firm, tender flesh, few bones · Crispy and fragrant",
           "code": "A012",
           "name": "油浸金凤鱼",
           "nameEn": "Deep-Fried Red Tilapia",
@@ -321,6 +343,8 @@ window.SITE = {
         },
         {
           "id": "A013",
+          "tt": "肉质紧实细嫩，刺少 · 酸辣开胃",
+          "ttEn": "Firm, tender flesh, few bones · Appetising sour and spicy",
           "code": "A013",
           "name": "娘惹蒸金凤鱼",
           "nameEn": "Steamed with Nyonya Style",
@@ -332,6 +356,8 @@ window.SITE = {
         },
         {
           "id": "A014",
+          "tt": "外酥脆、肉细嫩，刺少 · 酸辣开胃",
+          "ttEn": "Crispy outside, tender inside, few bones · Sour and spicy",
           "code": "A014",
           "name": "娘惹炸金凤鱼",
           "nameEn": "Deep-Fried with Nyonya Style",
@@ -343,6 +369,8 @@ window.SITE = {
         },
         {
           "id": "A015",
+          "tt": "肉质紧实细嫩，刺少 · 椰香咸甜，几乎不辣",
+          "ttEn": "Firm, tender flesh, few bones · Savoury-sweet coconut curry, barely spicy",
           "code": "A015",
           "name": "咖喱金凤鱼",
           "nameEn": "Curry Red Tilapia",
@@ -350,6 +378,8 @@ window.SITE = {
         },
         {
           "id": "A016",
+          "tt": "肉质紧实细嫩，刺少 · 咸香，稍偏咸",
+          "ttEn": "Firm, tender flesh, few bones · Rich and savoury, a bit salty",
           "code": "A016",
           "name": "豆豉面豉蒸金凤鱼 (咸)",
           "nameEn": "Steamed with Black Bean Taucu",
@@ -367,6 +397,8 @@ window.SITE = {
       "items": [
         {
           "id": "A018",
+          "tt": "肉滑弹，胶质多 · 椰香咸甜，几乎不辣",
+          "ttEn": "Bouncy flesh, collagen-rich · Coconut curry, barely spicy",
           "code": "A018",
           "name": "咖喱石斑鱼头",
           "nameEn": "Grouper Head (Curry)",
@@ -375,6 +407,8 @@ window.SITE = {
         },
         {
           "id": "A019",
+          "tt": "肉厚细腻、入口即化，刺少 · 咸鲜回甘，油脂香浓",
+          "ttEn": "Thick, melt-in-mouth flesh, few bones · Savoury, rich natural oils",
           "code": "A019",
           "name": "马友鱼",
           "nameEn": "Threadfin",
@@ -391,6 +425,8 @@ window.SITE = {
         },
         {
           "id": "A020",
+          "tt": "肉嫩滑，几乎无刺 · 清甜鲜美",
+          "ttEn": "Tender and smooth, almost boneless · Light and sweet",
           "code": "A020",
           "name": "红尾斑 / 红尾白须公",
           "nameEn": "Catfish",
@@ -411,6 +447,8 @@ window.SITE = {
       "items": [
         {
           "id": "A021",
+          "tt": "蚌肉滑嫩多汁 · 清鲜带甘，海水鲜味",
+          "ttEn": "Juicy, tender clams · Light, sweet, briny",
           "code": "A021",
           "name": "招牌蒸啦啦",
           "nameEn": "Signature Lala",
@@ -423,6 +461,8 @@ window.SITE = {
         },
         {
           "id": "A022",
+          "tt": "蚌肉爽滑弹牙 · 香辣惹味，蒜香虾米味浓",
+          "ttEn": "Springy clams · Spicy, garlic & dried-shrimp aroma",
           "code": "A022",
           "name": "金香啦啦",
           "nameEn": "Kam Heong Lala",
@@ -433,6 +473,8 @@ window.SITE = {
         },
         {
           "id": "A023",
+          "tt": "海鲜爽弹、豆腐软滑 · 椰香咸甜，几乎不辣",
+          "ttEn": "Bouncy seafood, silky tofu · Coconut curry, barely spicy",
           "code": "A023",
           "name": "咖喱三鲜煲",
           "nameEn": "Mixed Seafood Curry",
@@ -440,6 +482,8 @@ window.SITE = {
         },
         {
           "id": "A024",
+          "tt": "苏东爽脆弹牙 · 酸辣开胃，娘惹香料",
+          "ttEn": "Crisp, springy squid · Sour-spicy Nyonya spices",
           "code": "A024",
           "name": "娘惹蒸苏东",
           "nameEn": "Nyonya Style Squid",
@@ -447,6 +491,8 @@ window.SITE = {
         },
         {
           "id": "A025",
+          "tt": "苏东嫩滑弹口 · 清鲜带甘",
+          "ttEn": "Tender, bouncy squid · Light and sweet",
           "code": "A025",
           "name": "招牌蒸苏东",
           "nameEn": "Signature Squid",
@@ -454,6 +500,8 @@ window.SITE = {
         },
         {
           "id": "A026",
+          "tt": "外脆内嫩弹牙 · 咸香惹味",
+          "ttEn": "Crispy outside, springy inside · Savoury",
           "code": "A026",
           "name": "炸苏东",
           "nameEn": "Deep-Fried Squid",
@@ -464,6 +512,8 @@ window.SITE = {
         },
         {
           "id": "A027",
+          "tt": "外酥内弹 · 椒盐香咸，微辣",
+          "ttEn": "Crispy, bouncy · Salt & pepper, mildly spicy",
           "code": "A027",
           "name": "椒盐苏东",
           "nameEn": "Salt & Pepper Squid",
@@ -474,6 +524,8 @@ window.SITE = {
         },
         {
           "id": "A028",
+          "tt": "外酥内弹，咸蛋沙沙 · 咸香浓郁",
+          "ttEn": "Crispy, sandy salted-egg coating · Rich and savoury",
           "code": "A028",
           "name": "咸蛋苏东",
           "nameEn": "Salted Egg Yolk Fried Squid",
@@ -485,6 +537,8 @@ window.SITE = {
         },
         {
           "id": "A029",
+          "tt": "虾肉厚实弹牙，虾膏丰腴 · 鲜甜浓香",
+          "ttEn": "Thick, bouncy, rich roe · Sweet and fragrant",
           "code": "A029",
           "name": "招牌蒸大头虾",
           "nameEn": "Signature King Prawn",
@@ -494,6 +548,8 @@ window.SITE = {
         },
         {
           "id": "A030",
+          "tt": "虾肉厚实弹牙，虾膏丰腴 · 鲜甜浓香",
+          "ttEn": "Thick, bouncy, rich roe · Sweet and fragrant",
           "code": "A030",
           "name": "干煎大头虾",
           "nameEn": "Pan Fried King Prawn",
@@ -503,6 +559,8 @@ window.SITE = {
         },
         {
           "id": "A031",
+          "tt": "虾肉紧实弹牙 · 鲜甜多汁",
+          "ttEn": "Firm, bouncy prawn · Sweet and juicy",
           "code": "A031",
           "name": "招牌蒸老虎虾",
           "nameEn": "Signature Tiger Prawn",
@@ -511,6 +569,8 @@ window.SITE = {
         },
         {
           "id": "A032",
+          "tt": "虾肉紧实爽脆 · 鲜甜多汁",
+          "ttEn": "Firm, crisp prawn · Sweet and juicy",
           "code": "A032",
           "name": "干煎老虎虾",
           "nameEn": "Pan Fried Tiger Prawn",
@@ -519,6 +579,8 @@ window.SITE = {
         },
         {
           "id": "A033",
+          "tt": "虾肉紧实弹牙 · 咸蛋咸香",
+          "ttEn": "Firm, bouncy prawn · Savoury salted egg",
           "code": "A033",
           "name": "咸蛋炒老虎虾",
           "nameEn": "Salted Egg Yolk Tiger Prawn",
@@ -532,6 +594,8 @@ window.SITE = {
       "items": [
         {
           "id": "A034",
+          "tt": "皮糯肉软，胶质黏口 · 卤香咸甜，微带药材香",
+          "ttEn": "Sticky skin, soft meat · Savoury-sweet braise, light herbal note",
           "code": "A034",
           "name": "卤猪脚",
           "nameEn": "Signature Stewed Pork",
@@ -547,6 +611,8 @@ window.SITE = {
         },
         {
           "id": "A035",
+          "tt": "外皮酥脆，内馅扎实 · 五香咸香",
+          "ttEn": "Crispy skin, meaty filling · Savoury five-spice",
           "code": "A035",
           "name": "五香肉卷",
           "nameEn": "Lo Bak",
@@ -557,6 +623,8 @@ window.SITE = {
         },
         {
           "id": "A036",
+          "tt": "外脆内嫩多汁 · 南乳咸香回甘",
+          "ttEn": "Crispy and juicy · Fermented beancurd, sweet finish",
           "code": "A036",
           "name": "南乳炸肉",
           "nameEn": "Deep-Fried Marinated Pork",
@@ -568,6 +636,8 @@ window.SITE = {
         },
         {
           "id": "A037",
+          "tt": "外酥内嫩 · 酸甜微辣开胃",
+          "ttEn": "Crispy and tender · Sweet-sour, slightly spicy",
           "code": "A037",
           "name": "咕老肉",
           "nameEn": "Sweet and Sour Pork",
@@ -580,6 +650,8 @@ window.SITE = {
         },
         {
           "id": "A038",
+          "tt": "肉质软嫩多汁 · 咸鲜清甜，冬菜香",
+          "ttEn": "Soft, juicy meat · Savoury-sweet preserved vegetable",
           "code": "A038",
           "name": "冬菜蒸猪肉",
           "nameEn": "Dong Choi Steam Meat Patty",
@@ -593,6 +665,8 @@ window.SITE = {
         },
         {
           "id": "A039",
+          "tt": "排骨软嫩脱骨 · 咖喱香辣，微带椰香",
+          "ttEn": "Fall-off-the-bone · Spicy curry, hint of coconut",
           "code": "A039",
           "name": "咖喱排骨",
           "nameEn": "Curry Pork Ribs",
@@ -604,6 +678,8 @@ window.SITE = {
         },
         {
           "id": "A040",
+          "tt": "肉嫩多汁、软脱骨 · 豆豉咸香，蒜香浓",
+          "ttEn": "Tender, juicy ribs · Black bean and garlic",
           "code": "A040",
           "name": "豉汁排骨",
           "nameEn": "Black Bean Paste Pork Ribs",
@@ -616,6 +692,8 @@ window.SITE = {
         },
         {
           "id": "A041",
+          "tt": "五花肉软糯，肥而不腻 · 咸鱼香浓，下饭",
+          "ttEn": "Soft pork belly, not greasy · Salted fish, great with rice",
           "code": "A041",
           "name": "咸鱼花腩煲",
           "nameEn": "Claypot Pork Belly with Salted Fish",
@@ -632,6 +710,8 @@ window.SITE = {
       "items": [
         {
           "id": "A042",
+          "tt": "皮脆肉嫩 · 卤香咸甜",
+          "ttEn": "Crispy skin, tender meat · Savoury-sweet braise",
           "code": "A042",
           "name": "琵琶鸭",
           "nameEn": "Pipa Duck",
@@ -654,6 +734,8 @@ window.SITE = {
         },
         {
           "id": "A043",
+          "tt": "外酥脆、内多汁 · 南乳咸香回甘",
+          "ttEn": "Crispy and juicy · Fermented beancurd flavour",
           "code": "A043",
           "name": "南乳炸鸡",
           "nameEn": "Deep-Fried Marinated Chicken",
@@ -667,6 +749,8 @@ window.SITE = {
         },
         {
           "id": "A044",
+          "tt": "鸡肉嫩滑入味 · 酱香浓，九层塔麻油香",
+          "ttEn": "Tender chicken · Rich sauce, basil & sesame oil",
           "code": "A044",
           "name": "三杯鸡",
           "nameEn": "Taiwan Style Chicken",
@@ -677,6 +761,8 @@ window.SITE = {
         },
         {
           "id": "A045",
+          "tt": "去骨鸡翼，皮微脆肉嫩 · 酸甜微辣",
+          "ttEn": "Boneless wing, tender · Sweet-sour, slightly spicy",
           "code": "A045",
           "name": "飞鸡翼",
           "nameEn": "Chicken Wing with Sauce",
@@ -690,6 +776,8 @@ window.SITE = {
         },
         {
           "id": "A046",
+          "tt": "鸡肉滑嫩，原汁多 · 药材清香回甘",
+          "ttEn": "Silky, juicy chicken · Light herbal, sweet finish",
           "code": "A046",
           "name": "杞子当归蒸菜园鸡",
           "nameEn": "Steamed Herb Chicken",
@@ -734,6 +822,8 @@ window.SITE = {
         },
         {
           "id": "A048",
+          "tt": "爽脆多汁 · 清甜微苦",
+          "ttEn": "Crisp and juicy · Sweet, slightly bitter",
           "code": "A048",
           "name": "油麦",
           "nameEn": "Yau Mak",
@@ -751,6 +841,8 @@ window.SITE = {
         },
         {
           "id": "A049",
+          "tt": "梗脆叶软 · 清香微甘",
+          "ttEn": "Crisp stems, soft leaves · Light and sweet",
           "code": "A049",
           "name": "蕹菜",
           "nameEn": "Kang Kung",
@@ -768,6 +860,8 @@ window.SITE = {
         },
         {
           "id": "A050",
+          "tt": "叶滑茎嫩 · 清甜温和",
+          "ttEn": "Silky leaves, tender stems · Mild and sweet",
           "code": "A050",
           "name": "番薯苗",
           "nameEn": "Sweet Potato Leaf",
@@ -785,6 +879,8 @@ window.SITE = {
         },
         {
           "id": "A051",
+          "tt": "嫩滑爽口 · 清甜鲜嫩",
+          "ttEn": "Tender and smooth · Sweet and fresh",
           "code": "A051",
           "name": "帝王苗",
           "nameEn": "Dai Wong Miu",
@@ -802,6 +898,8 @@ window.SITE = {
         },
         {
           "id": "A052",
+          "tt": "梗脆叶嫩 · 清甜淡雅",
+          "ttEn": "Crisp stems, tender leaves · Sweet and delicate",
           "code": "A052",
           "name": "奶白",
           "nameEn": "Nai Bak",
@@ -819,6 +917,8 @@ window.SITE = {
         },
         {
           "id": "A053",
+          "tt": "爽脆多汁 · 清甜解腻",
+          "ttEn": "Crunchy and juicy · Light and refreshing",
           "code": "A053",
           "name": "芽菜",
           "nameEn": "Bean Sprout",
@@ -836,6 +936,8 @@ window.SITE = {
         },
         {
           "id": "A054",
+          "tt": "叶嫩梗脆 · 清甜带甘",
+          "ttEn": "Tender leaves, crisp stems · Sweet and refreshing",
           "code": "A054",
           "name": "青龙菜",
           "nameEn": "Qing Long",
@@ -850,6 +952,8 @@ window.SITE = {
         },
         {
           "id": "A055",
+          "tt": "多样蔬菜爽脆 · 参峇香辣，虾米味浓",
+          "ttEn": "Crunchy mixed veg · Spicy sambal, dried shrimp",
           "code": "A055",
           "name": "四大天王",
           "nameEn": "Spicy Mixed Vegetable",
@@ -861,6 +965,8 @@ window.SITE = {
         },
         {
           "id": "A056",
+          "tt": "双菜爽脆多汁 · 清甜，蒜香提味",
+          "ttEn": "Crunchy and juicy · Sweet, with garlic",
           "code": "A056",
           "name": "青龙菜炒芽菜",
           "nameEn": "Stir-Fried Bean Sprout with Qing Long",
@@ -882,6 +988,8 @@ window.SITE = {
       "items": [
         {
           "id": "A057",
+          "tt": "外酥内嫩 · 咸香微甜（自制海鲜豆腐）",
+          "ttEn": "Crispy outside, silky inside · Savoury-sweet (homemade seafood tofu)",
           "code": "A057",
           "name": "招牌豆腐",
           "nameEn": "Signature Fried Beancurd",
@@ -908,6 +1016,8 @@ window.SITE = {
         },
         {
           "id": "A058",
+          "tt": "豆腐嫩滑如水 · 葱油虾米，清鲜温和",
+          "ttEn": "Silky-smooth tofu · Scallion oil & dried shrimp, mild",
           "code": "A058",
           "name": "葱油豆腐",
           "nameEn": "Scallion Steamed Beancurd",
@@ -916,6 +1026,8 @@ window.SITE = {
         },
         {
           "id": "A059",
+          "tt": "外焦香、内滑嫩 · 酱香浓，蛋香足",
+          "ttEn": "Seared outside, silky inside · Rich sauce with egg",
           "code": "A059",
           "name": "铁板豆腐",
           "nameEn": "Sizzling Beancurd",
@@ -926,6 +1038,8 @@ window.SITE = {
         },
         {
           "id": "A060",
+          "tt": "边脆心嫩，蛋黄流心 · 蛋香浓，咸香",
+          "ttEn": "Crispy edges, runny yolk · Rich and savoury",
           "code": "A060",
           "name": "荷包蛋",
           "nameEn": "Poached Egg",
@@ -935,6 +1049,8 @@ window.SITE = {
         },
         {
           "id": "A061",
+          "tt": "外微焦、内松软 · 蛋香十足",
+          "ttEn": "Lightly browned, fluffy · Full egg flavour",
           "code": "A061",
           "name": "煎蛋",
           "nameEn": "Omelette",
@@ -942,6 +1058,8 @@ window.SITE = {
         },
         {
           "id": "A062",
+          "tt": "蛋松软、葱爽甜 · 咸香开胃",
+          "ttEn": "Fluffy egg, sweet onion · Savoury",
           "code": "A062",
           "name": "大葱蛋",
           "nameEn": "Onion Omelette",
@@ -949,6 +1067,8 @@ window.SITE = {
         },
         {
           "id": "A063",
+          "tt": "蛋嫩、苦瓜脆 · 微苦回甘",
+          "ttEn": "Tender egg, crisp bitter gourd · Slightly bitter, sweet finish",
           "code": "A063",
           "name": "苦瓜蛋",
           "nameEn": "Bitter Gourd Omelette",
@@ -957,6 +1077,8 @@ window.SITE = {
         },
         {
           "id": "A064",
+          "tt": "滑嫩细致 · 鸡蛋咸蛋皮蛋，咸鲜浓郁",
+          "ttEn": "Silky · Egg, salted egg & century egg, rich",
           "code": "A064",
           "name": "三皇蛋",
           "nameEn": "Three Flavours Steam Egg",
@@ -965,6 +1087,8 @@ window.SITE = {
         },
         {
           "id": "A065",
+          "tt": "滑嫩如布丁 · 清鲜温和",
+          "ttEn": "Silky like pudding · Light and mild",
           "code": "A065",
           "name": "蒸水蛋",
           "nameEn": "Steamed Egg",
@@ -972,6 +1096,8 @@ window.SITE = {
         },
         {
           "id": "A066",
+          "tt": "蛋松软、菜圃爽脆 · 咸香带甜",
+          "ttEn": "Fluffy egg, crunchy preserved radish · Savoury-sweet",
           "code": "A066",
           "name": "菜圃煎蛋",
           "nameEn": "Choy Po Omelette",
@@ -979,6 +1105,8 @@ window.SITE = {
         },
         {
           "id": "A067",
+          "tt": "蛋松软、虾仁弹牙 · 鲜甜咸香",
+          "ttEn": "Fluffy egg, bouncy shrimp · Sweet and savoury",
           "code": "A067",
           "name": "虾仁煎蛋",
           "nameEn": "Shrimp Omelette",
