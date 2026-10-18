@@ -187,17 +187,17 @@ async function check(raw){
     if(!D) R.issues.push("网站目前没有开外卖");
     else if(!z) R.issues.push(`读不到配送范围（讯息写：${R.zoneLabel||"没有"}）`);
     else{
-      /* 讯息有「送餐定位」+ 分店有坐标 → 自己重算直线距离，用应有的那一档算运费 */
+      /* 讯息有「送餐定位」+ 分店有坐标 → 自己重算路程（直线 × roadFactor），用应有的那一档算运费 */
       const os=Array.isArray(S.outlets)?S.outlets:[], o=os.length?os.find(o=>norm(o.name)===norm(R.outlet)||norm(o.nameEn)===norm(R.outlet)):S;
       let zz=z;
       let oll=o&&typeof o.lat==="number"&&typeof o.lng==="number"?{lat:o.lat,lng:o.lng}:null;
       if(R.geo&&o&&!oll&&o.address&&window.MKGEO){ const g=await MKGEO.geocode(o.address); if(g){ oll=g; R.outletMap=`https://www.google.com/maps?q=${g.lat},${g.lng}`; if(g.lvl!=="exact") R.warns.push("分店位置是按分店地址估算的（地图上没找到完整门牌），距离可能差几百米"); } }
       if(R.geo&&oll){
-        const km=kmBetween(R.geo.lat,R.geo.lng,oll.lat,oll.lng), zi=zs.findIndex(x=>typeof x.maxKm==="number"&&km<=x.maxKm), want=zs[zi<0?zs.length-1:zi];
+        const rf=(+D.roadFactor>=1&&+D.roadFactor<=3)?+D.roadFactor:1, km=kmBetween(R.geo.lat,R.geo.lng,oll.lat,oll.lng)*rf, zi=zs.findIndex(x=>typeof x.maxKm==="number"&&km<=x.maxKm), want=zs[zi<0?zs.length-1:zi];
         R.km=km;
-        if(typeof D.maxKm==="number"&&km>D.maxKm) R.issues.push(`客人离分店直线约 ${km.toFixed(1)} km，超过最远送餐距离 ${D.maxKm} km`);
-        else if(want!==z){ R.issues.push(`客人定位离分店直线约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
-        else R.warns.push(`定位核对 ✓ 离分店直线约 ${km.toFixed(1)} km（「${z.label}」）。定位是客人手机给的，请再看一眼地址是否在同一区`);
+        if(typeof D.maxKm==="number"&&km>D.maxKm) R.issues.push(`客人离分店路程约 ${km.toFixed(1)} km，超过最远送餐距离 ${D.maxKm} km`);
+        else if(want!==z){ R.issues.push(`客人定位离分店路程约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
+        else R.warns.push(`定位核对 ✓ 离分店路程约 ${km.toFixed(1)} km（「${z.label}」）（路程=直线×1.3 估算）。位置是按客人填的地址查的，请再看一眼地址是否在同一区`);
       } else if(R.geo) R.warns.push(`客人有定位，但找不到这间分店的地图位置，无法自动核对距离；配送范围「${z.label}」请看地址核对`);
       else R.warns.push(`配送范围客人自己选「${z.label}」，请看地址核对距离`);
       if(zz.perKm&&R.km==null) R.issues.push(`「${zz.label}」要按距离加钱，但讯息里没有可核对的定位，请看地址自己算`);
