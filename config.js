@@ -1295,8 +1295,8 @@ window.SITE = {
         },
         {
           "id": "B013",
-          "tt": "冰凉有气",
-          "ttEn": "Cold and fizzy",
+          "tt": "冰凉清爽",
+          "ttEn": "Cold and refreshing",
           "code": "B013",
           "name": "可乐",
           "nameEn": "Coca Cola",
@@ -1304,8 +1304,8 @@ window.SITE = {
         },
         {
           "id": "B014",
-          "tt": "冰凉清爽",
-          "ttEn": "Cold and crisp",
+          "tt": "下班了 犒劳一下辛苦的自己 来杯 冰凉清爽外国凉茶吧~",
+          "ttEn": "Done with work? Treat yourself to an ice-cold, refreshing \"foreign herbal tea\"~",
           "code": "B014",
           "name": "啤酒",
           "nameEn": "Tiger",
@@ -1313,8 +1313,8 @@ window.SITE = {
         },
         {
           "id": "B015",
-          "tt": "浓郁微苦",
-          "ttEn": "Rich, slightly bitter",
+          "tt": "浓郁微苦，简直就是夜间版“冰美式”，成年人的专属去火续命水！☕️",
+          "ttEn": "Rich and slightly bitter — basically a night-time iced Americano, the grown-up's cooling lifesaver! ☕️",
           "code": "B015",
           "name": "黑啤酒",
           "nameEn": "Guinness",
