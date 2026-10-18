@@ -49,6 +49,8 @@ window.SITE = {
    * 按 region 分组显示（顺序 = 第一次出现的顺序）。
    * 每间可选填：hours(营业时间文字)、phone(显示用电话)、whatsapp(该店号码，国家码开头)、map(Google Maps 链接)。
    * 没填 map 会自动用地址搜 Google Maps；没填 whatsapp 订位/点餐就发到上面的总号码。 */
+  /* 分店坐标 lat/lng（外卖自动算距离用）：在 Google Maps 长按分店位置，最上面会出现「3.1234, 101.6789」，
+     前面是 lat、后面是 lng，例如 { ..., lat: 3.1234, lng: 101.6789 }。没填的分店就让客人自己选配送范围。 */
   outlets: [
     { region: "雪隆区", regionEn: "Klang Valley", name: "OKR", address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
     { region: "雪隆区", regionEn: "Klang Valley", name: "OKR (Scott Garden 对面)", nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
@@ -169,15 +171,19 @@ window.SITE = {
     /* 外卖：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
       enabled: true,
+      /* maxKm：直线距离 ≤ maxKm 就用这一档；最后一档不写 maxKm = 以上全部。
+         客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
       zones: [
-        { label: "3km 以内", labelEn: "Within 3km", fee: 5 },
-        { label: "3km 以外", labelEn: "Beyond 3km", fee: 10 },
+        { label: "0–3km", labelEn: "0–3km", fee: 5, maxKm: 3 },
+        { label: "3–5km", labelEn: "3–5km", fee: 10, maxKm: 5 },
+        { label: "5km 以上", labelEn: "Over 5km", fee: 15 },
       ],
+      autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 0,          // 外卖最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
-      note: "运费按分店到送餐地址的距离：3km 以内 RM5，3km 以外 RM10。店员会核对地址，超出范围会另外通知。",
-      noteEn: "Delivery fee by distance from the outlet: within 3km RM5, beyond 3km RM10. Our staff will verify the address.",
+      note: "运费按分店到送餐地址的直线距离：0–3km RM5、3–5km RM10、5km 以上 RM15。在送餐地址按「📍 用我现在的位置」可自动计算。",
+      noteEn: "Delivery fee by straight-line distance from the outlet: 0–3km RM5, 3–5km RM10, over 5km RM15. Tap “Use my current location” at the delivery address to calculate automatically.",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
     sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST

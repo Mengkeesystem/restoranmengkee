@@ -124,6 +124,7 @@ async function sha256(txt){ const buf=await crypto.subtle.digest("SHA-256",new T
 const vouchers = () => Array.isArray(S.vouchers)?S.vouchers:[];
 const sstRate = () => +(S.ordering&&S.ordering.sstRate)||0;
 const DEL = () => (S.ordering&&S.ordering.delivery&&S.ordering.delivery.enabled) ? S.ordering.delivery : null;
+const kmBetween = (a,b,c,d) => { const r=x=>x*Math.PI/180, h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2; return 12742*Math.asin(Math.sqrt(h)); };
 const num = s => s==null?null:parseFloat(String(s).replace(/,/g,""));
 const amtIn = s => { const m=String(s||"").match(/(?:RM|MYR)\s*([\d,]+(?:\.\d{1,2})?)/i); return m?num(m[1]):null; };
 const lbl = (line, ...keys) => { for(const k of keys){ const m=line.match(new RegExp("^"+k+"\\s*[:：]\\s*(.*)$","i")); if(m) return m[1].trim(); } return null; };
@@ -161,6 +162,7 @@ async function check(raw){
     else if((v=lbl(ln,"合计","Total"))!=null) R.claimed.total=amtIn(v);
     else if((v=lbl(ln,"姓名","Name"))!=null) R.name=v;
     else if((v=lbl(ln,"电话","Phone"))!=null) R.phone=v;
+    else if((v=lbl(ln,"送餐定位","Delivery location"))!=null){ const m=v.match(/q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/); if(m) R.geo={lat:+m[1],lng:+m[2],url:`https://www.google.com/maps?q=${m[1]},${m[2]}`}; }
     else if((v=lbl(ln,"送餐地址","Delivery address","地址","Address"))!=null) R.addr=v;
     else if((v=lbl(ln,"自取日期","送达日期","Pickup date","Delivery date"))!=null) R.date=(v.match(/\d{4}-\d{2}-\d{2}/)||[])[0];
     else if((v=lbl(ln,"付款方式","Payment"))!=null){ R.payText=v; R.claimed.paid=/已转账|transferred/i.test(v)?amtIn(v):null; R.ref=(v.match(/MK\d{4}-\d{4}/)||[])[0]||""; }
@@ -184,7 +186,19 @@ async function check(raw){
     const D=DEL(), zs=(D&&D.zones)||[], z=zs.find(z=>norm(z.label)===norm(R.zoneLabel)||norm(z.labelEn)===norm(R.zoneLabel));
     if(!D) R.issues.push("网站目前没有开外卖");
     else if(!z) R.issues.push(`读不到配送范围（讯息写：${R.zoneLabel||"没有"}）`);
-    else{ R.zone=z.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (z.fee||0); R.warns.push(`配送范围客人自己选「${z.label}」，请看地址核对距离`); }
+    else{
+      /* 讯息有「送餐定位」+ 分店有坐标 → 自己重算直线距离，用应有的那一档算运费 */
+      const os=Array.isArray(S.outlets)?S.outlets:[], o=os.length?os.find(o=>norm(o.name)===norm(R.outlet)||norm(o.nameEn)===norm(R.outlet)):S;
+      let zz=z;
+      if(R.geo&&o&&typeof o.lat==="number"&&typeof o.lng==="number"){
+        const km=kmBetween(R.geo.lat,R.geo.lng,o.lat,o.lng), zi=zs.findIndex(x=>typeof x.maxKm==="number"&&km<=x.maxKm), want=zs[zi<0?zs.length-1:zi];
+        R.km=km;
+        if(want!==z){ R.issues.push(`客人定位离分店直线约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
+        else R.warns.push(`定位核对 ✓ 离分店直线约 ${km.toFixed(1)} km（「${z.label}」）。定位是客人手机给的，请再看一眼地址是否在同一区`);
+      } else if(R.geo) R.warns.push(`客人有定位，但这间分店在 config.js 还没填坐标，无法自动核对距离；配送范围「${z.label}」请看地址核对`);
+      else R.warns.push(`配送范围客人自己选「${z.label}」，请看地址核对距离`);
+      R.zone=zz.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (zz.fee||0);
+    }
   }
   R.total=r2(sub-R.disc+R.sst+R.fee);
   const cmp=(k,mine,name)=>{ const c=R.claimed[k]; if(c==null) return; if(Math.abs(c-mine)>0.009) R.issues.push(`${name}：讯息写 ${money(c)}，应为 ${money(mine)}`); };
@@ -212,7 +226,7 @@ function renderResult(R){
       ${R.type==="delivery"?`<tr><td colspan="3">运费 ${esc(R.zone||"")}</td><td class="n">${money(R.fee)}</td></tr>`:""}
       <tr><th colspan="3" style="color:var(--tx);font-size:15px">合计（讯息写 ${R.claimed.total!=null?money(R.claimed.total):"-"}）</th><th class="n" style="color:var(--tx);font-size:15px">${money(R.total)}</th></tr>
     </table></div>
-    <p class="note" style="margin:10px 0 0">${R.type==="delivery"?"🛵 外卖":"🛍️ 自取"} · ${esc(R.outlet||"分店?")} · ${esc(R.date||"日期?")} · ${esc(R.name||"")} ${esc(R.phone||"")}</p></div>
+    <p class="note" style="margin:10px 0 0">${R.type==="delivery"?"🛵 外卖":"🛍️ 自取"}${R.geo?` · <a href="${esc(R.geo.url)}" target="_blank" rel="noopener">📍 客人定位</a>`:""} · ${esc(R.outlet||"分店?")} · ${esc(R.date||"日期?")} · ${esc(R.name||"")} ${esc(R.phone||"")}</p></div>
     <div class="card"><h3>📥 记录到每月总结</h3><p class="note" style="margin:0 0 10px">确认收到钱 / 已出餐后再按。记录只存在<b>这部手机 / 电脑</b>的浏览器里，客人看不到。</p>
       <button class="btn ${bad?"alt":"ok"}" id="save">${bad?"仍然记录（标示为有问题）":"✅ 记录这笔订单"}</button></div>`;
   $("save").onclick=()=>saveRecord(R);
