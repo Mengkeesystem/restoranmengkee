@@ -637,7 +637,7 @@ function renderOutlets(){
       ${o.hours?`<div class="ln">🕐 ${esc(o.hours)}</div>`:""}
       ${o.phone?`<div class="ln">📞 ${esc(o.phone)}</div>`:""}
       <div class="ad">📍 ${esc(o.address)}</div>
-      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">📍 Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze))}" target="_blank" rel="noopener">🚗 Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
+      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">📍 Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze||(hasLL(o)?`https://waze.com/ul?ll=${o.lat},${o.lng}&navigate=yes`:"")))}" target="_blank" rel="noopener">🚗 Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
     </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
   document.querySelectorAll("#outletList .omore").forEach(b=>b.addEventListener("click",()=>toggleOutlets(b)));
   revealOutlets();

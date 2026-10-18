@@ -49,20 +49,20 @@ window.SITE = {
    * 按 region 分组显示（顺序 = 第一次出现的顺序）。
    * 每间可选填：hours(营业时间文字)、phone(显示用电话)、whatsapp(该店号码，国家码开头)、map(Google Maps 链接)。
    * 没填 map 会自动用地址搜 Google Maps；没填 whatsapp 订位/点餐就发到上面的总号码。 */
-  /* 分店坐标 lat/lng（外卖自动算距离用）：在 Google Maps 长按分店位置，最上面会出现「3.1234, 101.6789」，
-     前面是 lat、后面是 lng，例如 { ..., lat: 3.1234, lng: 101.6789 }。没填的分店就让客人自己选配送范围。 */
+  /* 分店坐标 lat/lng（外卖自动算距离 + Waze 精准导航）：2026-10-18 业主提供（分店地址 docx）。
+     新分店：在 Google Maps 长按分店位置，最上面「3.1234, 101.6789」前面是 lat、后面是 lng。没填会改用地址自动查（geo.js）。 */
   outlets: [
-    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR", address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR (Scott Garden 对面)", nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Kelana Jaya (PJ)", address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
-    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", lat: 3.0423, lng: 101.5835, address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", lat: 3.0163, lng: 101.4332, address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", lat: 2.9972, lng: 101.5312, address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", lat: 3.1251, lng: 101.4646, address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
+    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", lat: 2.6953, lng: 101.9067, address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
   ],
 
   /* ---------- 品牌故事 ---------- */
