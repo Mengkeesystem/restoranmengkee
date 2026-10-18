@@ -166,7 +166,7 @@ window.SITE = {
     minDaysAhead: 0,                      // 0 = 可订当天
     maxDaysAhead: 30,
     slotMinutes: 30,                      // 时间选项间隔
-    leadHours: 12,                        // 最少提前几小时订位（2026-10-18 业主定 12 小时）
+    leadHours: 1,                         // 最少提前几小时订位（2026-10-18 业主定 1 小时）
   },
 
   /* ---------- 网上点餐(自取) ---------- */
@@ -191,6 +191,8 @@ window.SITE = {
       minOrder: 0,          // 外卖最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
+      timeNote: "⏱️ 准备时间约 15–20 分钟（视食物分量而定），配送时间会根据交通繁忙时段和距离调整。",
+      timeNoteEn: "⏱️ Preparation takes about 15–20 minutes (depending on order size); delivery time may vary with traffic and distance.",
       note: "运费按分店到送餐地址的估算路程（直线距离 × 1.3）：3km 内 RM2、3–5km RM5、5–10km RM8、10–12km RM11、12–15km RM15，最远送 15km。填好地址按「📍 确认地址」自动计算。",
       noteEn: "Delivery fee by estimated road distance from the outlet (straight line × 1.3): within 3km RM2, 3–5km RM5, 5–10km RM8, 10–12km RM11, 12–15km RM15, up to 15km. Enter your address and tap “Confirm address” to calculate.",
     },
@@ -198,7 +200,7 @@ window.SITE = {
     sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST
     menuPhotos: ["images/menu-1.jpg", "images/menu-2.jpg"],   // 纸本菜单原图，可点开放大
     enabled: true,
-    pickupLeadMinutes: 30,                // 最快几分钟后可自取
+    pickupLeadMinutes: 60,                // 最快几分钟后可自取（2026-10-18 业主定 1 小时）
     currency: "RM",
   },
 

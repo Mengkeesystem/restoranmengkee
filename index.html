@@ -1134,7 +1134,7 @@ function renderDrawer(){
         <div class="full"><label>${esc(t("delZone"))}</label><select id="od_zone" ${delAuto||(geoOn()&&!addrFail)?"disabled":""}><option value="">${esc(t("pickZone"))}</option>${(D.zones||[]).map((z,i)=>`<option value="${i}" ${String(i)===delZone?"selected":""}>${esc(L(z,"label"))} · ${z.perKm?(delAuto&&String(i)===delZone?money(zoneFee(z,delKm)):esc(t("perKmLbl").replace("{x}",money(z.fee+z.perKm)).replace("{p}",money(z.perKm)))):money(z.fee||0)}</option>`).join("")}</select></div>
         ${geoBoxHTML(prevOutlet)}`:""}
         <div><label>${esc(t(isDel()?"delDate":"pickupDate"))}</label><select id="od_date">${dates.join("")}</select></div>
-        <div><label>${esc(t(isDel()?"delTime":"pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,lead,15,prevTime)}</select></div>
+        <div><label>${esc(t(isDel()?"delTime":"pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,lead,15,prevTime)}</select>${isDel()&&L(D,"timeNote")?`<div class="note" style="margin-top:6px">${esc(L(D,"timeNote"))}</div>`:""}</div>
         <div class="full"><label>${esc(t("remark"))}</label><input id="od_note" value="${esc(prev.note)}"></div>
         <div class="full" id="payBox">${payBoxHTML(prevOutlet)}</div>
         <div class="full err" id="od_err"></div>
