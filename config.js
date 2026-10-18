@@ -174,19 +174,20 @@ window.SITE = {
       /* maxKm：直线距离 ≤ maxKm 就用这一档；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
       zones: [
-        { label: "0–3km", labelEn: "0–3km", fee: 5, maxKm: 3 },
-        { label: "3–5km", labelEn: "3–5km", fee: 10, maxKm: 5 },
-        { label: "5–10km", labelEn: "5–10km", fee: 15, maxKm: 10 },
-        /* 10km 以上：RM15 + 超过 10km 的部分每 km（不足 1km 算 1km）加 RM2；一定要定位/按地址算，不能自己选 */
-        { label: "10–20km", labelEn: "10–20km", fee: 15, maxKm: 20, perKmFrom: 10, perKm: 2 },
+        { label: "0–3km", labelEn: "0–3km", fee: 2, maxKm: 3 },
+        { label: "3–5km", labelEn: "3–5km", fee: 5, maxKm: 5 },
+        { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
+        { label: "10–12km", labelEn: "10–12km", fee: 11, maxKm: 12 },
+        { label: "12–15km", labelEn: "12–15km", fee: 15, maxKm: 15 },
+        /* 也支持按 km 加钱的档：{ label, fee, maxKm, perKmFrom: 10, perKm: 2 }（这种档一定要定位才能选） */
       ],
-      maxKm: 20,            // 超过这个直线距离不送
+      maxKm: 15,            // 超过这个直线距离不送
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 0,          // 外卖最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
-      note: "运费按分店到送餐地址的直线距离：0–3km RM5、3–5km RM10、5–10km RM15，10km 以上每 km 加 RM2，最远送 20km。按「📍 用我现在的位置」或「🏠 按我填的地址」自动计算。",
-      noteEn: "Delivery fee by straight-line distance from the outlet: 0–3km RM5, 3–5km RM10, 5–10km RM15, +RM2 per km beyond 10km, up to 20km. Use your current location or the address you typed to calculate automatically.",
+      note: "运费按分店到送餐地址的直线距离：3km 内 RM2、3–5km RM5、5–10km RM8、10–12km RM11、12–15km RM15，最远送 15km。按「📍 用我现在的位置」或「🏠 按我填的地址」自动计算。",
+      noteEn: "Delivery fee by straight-line distance from the outlet: within 3km RM2, 3–5km RM5, 5–10km RM8, 10–12km RM11, 12–15km RM15, up to 15km. Use your current location or the address you typed to calculate automatically.",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
     sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST
