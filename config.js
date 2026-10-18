@@ -168,8 +168,9 @@ window.SITE = {
     slotMinutes: 30,                      // 时间选项间隔
     leadHours: 1,                         // 最少提前几小时订位（2026-10-18 业主定 1 小时）
     noDays: [0, 6],                       // 不接受订位的日子（0=星期日、6=星期六）：2026-10-18 业主定周末不能订位
-    noDaysNote: "星期六、日不接受订位，欢迎直接到店。",
-    noDaysNoteEn: "No reservations on Saturdays and Sundays — walk-ins welcome.",
+    noDates: ["2026-12-25", "2027-01-01"],  // 公共假期也不能订位（YYYY-MM-DD）。⚠️ 只先填了圣诞、元旦，其余假期等业主给清单
+    noDaysNote: "星期六、日及公共假期是繁忙时段，暂不接受订位，欢迎直接到店。不便之处，敬请见谅 🙏",
+    noDaysNoteEn: "Saturdays, Sundays and public holidays are our busiest times, so we don't take reservations — walk-ins are always welcome. Sorry for any inconvenience 🙏",
   },
 
   /* ---------- 网上点餐(自取) ---------- */
