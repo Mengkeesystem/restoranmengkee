@@ -1006,11 +1006,11 @@ function renderMenu(){
     const el=$("cat-"+i); window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});
   });
 }
-function dateOptions(minAhead,maxAhead,sel,step,lead,gap){
+function dateOptions(minAhead,maxAhead,sel,step,lead,gap,skipDays){
   const out=[], now=new Date();
   for(let i=minAhead;i<=maxAhead;i++){
     const d=new Date(now); d.setDate(now.getDate()+i); const s=ymd(d);
-    if(!slotsFor(s,step,lead,gap).length) continue;
+    if((skipDays||[]).includes(d.getDay())||!slotsFor(s,step,lead,gap).length) continue;
     out.push(`<option value="${s}" ${s===sel?"selected":""}>${s} ${t("days")[d.getDay()]}</option>`);
   }
   return out;
@@ -1021,10 +1021,11 @@ function timeOptions(date,step,lead,gap,sel){
 }
 const BK = () => Object.assign({maxPax:20,minDaysAhead:0,maxDaysAhead:30,slotMinutes:30,leadHours:1},S.booking||{});
 const bkLead = b => Math.max(0,+b.leadHours||0)*60;
+const bkNoDays = b => (Array.isArray(b.noDays)?b.noDays:[]).map(Number);
 function renderBooking(){
   if(!(S.booking&&S.booking.enabled)){ $("booking").hidden=true; return; }
   const b=BK(), keep=store.get("site_guest",{});
-  const dates=dateOptions(b.minDaysAhead,b.maxDaysAhead,"",b.slotMinutes,bkLead(b),60);
+  const dates=dateOptions(b.minDaysAhead,b.maxDaysAhead,"",b.slotMinutes,bkLead(b),60,bkNoDays(b));
   const d0 = dates.length ? dates[0].match(/value="([^"]+)"/)[1] : "";
   let paxOpt=""; for(let i=1;i<=b.maxPax;i++) paxOpt+=`<option>${i}</option>`;
   $("bookForm").innerHTML = `
@@ -1032,7 +1033,7 @@ function renderBooking(){
     <div><label>${esc(t("phone"))}</label><input id="bk_phone" type="tel" autocomplete="tel" value="${esc(keep.phone||"")}"></div>
     ${outlets().length?`<div class="full"><label>${esc(t("outlet"))}</label><select id="bk_outlet">${outletOptions(keep.outlet)}</select></div>`:""}
     <div><label>${esc(t("date"))}</label><select id="bk_date">${dates.join("")}</select></div>
-    <div><label>${esc(t("time"))}</label><select id="bk_time">${timeOptions(d0,b.slotMinutes,bkLead(b),60)}</select>${b.leadHours>1?`<div class="note">${esc(t("bkLead").replace("{h}",b.leadHours))}</div>`:""}</div>
+    <div><label>${esc(t("time"))}</label><select id="bk_time">${timeOptions(d0,b.slotMinutes,bkLead(b),60)}</select>${b.leadHours>1?`<div class="note">${esc(t("bkLead").replace("{h}",b.leadHours))}</div>`:""}${L(b,"noDaysNote")?`<div class="note">${esc(L(b,"noDaysNote"))}</div>`:""}</div>
     <div><label>${esc(t("pax"))}</label><select id="bk_pax">${paxOpt}</select><div class="note">${esc(t("paxMore").replace("{n}",b.maxPax))}</div></div>
     <div><label>${esc(t("remark"))}</label><input id="bk_note" placeholder="${esc(t("remarkPh"))}"></div>
     <div class="full err" id="bk_err"></div>
@@ -1043,7 +1044,7 @@ function renderBooking(){
     const oi=$("bk_outlet")?$("bk_outlet").value:undefined;
     const err = (oi==="")?t("needOutlet"):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(!date||!time)?t("needTime"):"";
     $("bk_err").textContent=err; if(err) return;
-    if(!slotsFor(date,b.slotMinutes,bkLead(b),60).includes(time)){ /* 页面开太久，选的时间已经不够提前 */
+    if(bkNoDays(b).includes(parseYmd(date).getDay())||!slotsFor(date,b.slotMinutes,bkLead(b),60).includes(time)){ /* 页面开太久，选的时间已经不够提前 */
       $("bk_err").textContent=t("bkLate").replace("{h}",b.leadHours); $("bk_time").innerHTML=timeOptions(date,b.slotMinutes,bkLead(b),60); return; }
     store.set("site_guest",{name,phone,outlet:oi});
     const d=parseYmd(date);
