@@ -144,7 +144,10 @@ window.SITE = {
     bankName: "",           // TODO 例如 "Maybank"
     accountName: "",        // TODO 例如 "MENG KEE RESTAURANT SDN BHD"
     accountNo: "",          // TODO 户口号码
-    allowPayAtCounter: true,
+    /* 2026-10-18 业主规定：自取和外卖都一定要先付款（怕客人下单后不来拿，厨房白做）。
+       false = 不给「到店付款 / 货到付款」；requirePrepay = 没设定收款资料时网上点餐暂停（不能下单） */
+    allowPayAtCounter: false,
+    requirePrepay: true,
   },
 
   /* ---------- 付款确认小后台（Supabase，官网专用项目，跟 ERP 分开）----------

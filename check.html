@@ -208,6 +208,7 @@ async function check(raw){
   const cmp=(k,mine,name)=>{ const c=R.claimed[k]; if(c==null) return; if(Math.abs(c-mine)>0.009) R.issues.push(`${name}：讯息写 ${money(c)}，应为 ${money(mine)}`); };
   cmp("sub",sub,"小计"); if(R.vcode) cmp("disc",R.disc,"优惠"); cmp("sst",R.sst,"SST"); if(R.type==="delivery") cmp("fee",R.fee,"运费"); cmp("total",R.total,"合计");
   if(R.claimed.total==null) R.issues.push("讯息里没有「合计」");
+  if(S.payment&&S.payment.allowPayAtCounter===false&&R.claimed.paid==null) R.issues.push("这单没有「已转账」付款记录——网站规定自取/外卖一定要先付款，请先确认收到钱再出餐");
   if(R.claimed.paid!=null&&Math.abs(R.claimed.paid-R.total)>0.009) R.issues.push(`客人说已转账 ${money(R.claimed.paid)}，应付 ${money(R.total)}`);
   return R;
 }
