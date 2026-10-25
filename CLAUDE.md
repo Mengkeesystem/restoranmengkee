@@ -99,6 +99,21 @@
 
 **业主说「开始做付款网关」时要先问的**：选哪家网关（是否已申请好商家账号、拿到 API key / secret / collection code）、手续费由谁承担（加进客人合计或店家吸收）、还要不要保留「到店付款/货到付款」。
 
+## ⏳ 待办（第三步）：做到跟「客善 HakShan」一样的全自动外卖（2026-10-25 业主要求）
+参考：业主下单 order.hakshan.com 的截图——网上付款「已支付」、订单号 HS-xxxx、系统自动发确认到客人电话、付款后**自动叫 Lalamove 骑手**（share.lalamove.com 追踪链接）、订单状态页 3 步（已下单→寻找骑手→送达）+「查看骑手位置」+「在此设备接收订单通知」、预计送达 60–90 分钟、分享推荐赚 RM5。
+**前提**：先完成上面第一步（Supabase 后台）和第二步（后台算钱 + 付款网关）。没有付款网关不能做自动叫骑手（不然没付钱也会叫车）。
+**做法（顺序）**：
+1. **Lalamove API**（developers.lalamove.com，v3）：业主注册 API Partner（Partner Portal）→ 先用 Sandbox key 测 → 充值 credit 后拿 Production key。key/secret 只放 Supabase Edge Function（HMAC SHA256 签名），**绝不放网页/仓库**。Market 用马来西亚的代码（以官方文档为准）。
+2. **运费改用 Lalamove 报价**：结账前 Edge Function 调 quotation（分店坐标 → 客人地址），拿真实路程运费，取代现在的「直线×1.3 + 档位」（`delivery.zones` 可留作后备）。业主要决定：运费全收客人 / 店家补贴部分 / 满额免运。
+3. **付款成功（网关 webhook 验签后）→ 自动 place order 叫骑手**；把 Lalamove orderId、分享追踪链接存进 `web_orders`。
+4. **Lalamove webhook**（Developers → Webhook，选 v3）打到 Edge Function，更新订单状态（寻找骑手/已接单/取餐/送达/取消）。叫不到骑手/被取消 → admin.html 响铃提醒店员处理（重叫或改自取/退款）。
+5. **客人订单状态页**（如 `order.html?ref=…&token=…`，沿用 `web_order_status` 的 ref+token 防别人偷看）：步骤条、预计送达、Lalamove 追踪链接；可加浏览器推送通知（PWA Web Push）。
+6. **自动确认讯息**：先用状态页 + 浏览器通知（免费）；要自动发 WhatsApp 需申请 WhatsApp Business API（按讯息收费），业主决定再做。
+7. 推荐奖励（分享链接、朋友首单付款后送 RM5 券）——要后台记录推荐码，最后做。
+8. admin.html 加：每张外卖单的骑手状态、Lalamove 费用、手动重叫按钮；每月总结加运费成本。
+**业主要准备**：Lalamove 商家账号 + API Partner 申请（公司资料）、预充 credit；付款网关商家账号；决定运费收法与准备时间（客善写 60–90 分钟）。
+**安全**：Edge Function 验 Lalamove/网关 webhook 签名；叫骑手只在后台确认已付款后；CSP 加新的 connect/导向域名。
+
 ## ⏳ 上线前待补（2026-10-19 全面检查后记录，业主说先记着、暂时不动）
 全面检查结果：XSS 注入攻击（菜名/分店名/优惠/客人资料/localStorage/地图查询结果）三个页面都挡住；手机+电脑 44 项功能测试全过；9 种篡改订单 check.html 都判对。还缺：
 1. **正式收款 QR + 银行户口**（`config.js` → `payment`）——没填之前正式网址「网上点餐暂停」，**最优先**。
