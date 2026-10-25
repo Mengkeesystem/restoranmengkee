@@ -19,7 +19,7 @@
 <meta name="description" content="明记家乡小食店：家乡的味道，一锅一铲炒出来。网上点餐自取／外卖、订位、11 间分店地址。">
 <meta http-equiv="Cache-Control" content="no-cache">
 <!-- 安全：只允许载入本站脚本（+ 内联），禁止外站脚本/插件/表单外送；connect 只给 Supabase（付款后台） -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://*.googleapis.com https://*.google.com; frame-src https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; worker-src blob:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://*.googleapis.com https://*.google.com; frame-src https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- config.js（店名/号码/菜单/价钱）每分钟换一次网址参数，避免浏览器沿用旧的缓存内容 -->
 <script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script><script src="geo.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
@@ -829,7 +829,10 @@ function mountPin(){
   const slot=$("pinslot"); if(!slot||!pinWrap||!pinMap) return;
   slot.appendChild(pinWrap); slot.hidden=false;
   const ol=outletLL(curOi());
-  if(ol){ if(pinOutletMk) pinOutletMk.setLatLng([ol.lat,ol.lng]); else pinOutletMk=window.L.circleMarker([ol.lat,ol.lng],{radius:7,color:"#B4232A",fillColor:"#F2B417",fillOpacity:1,weight:3}).addTo(pinMap); }
+  if(ol){ if(pinOutletMk) pinOutletMk.setLatLng([ol.lat,ol.lng]);
+    else if(pinMap.g){ const gm=google.maps, mk=new gm.Marker({map:pinMap.g,position:{lat:ol.lat,lng:ol.lng},clickable:false,icon:{path:gm.SymbolPath.CIRCLE,scale:7,fillColor:"#F2B417",fillOpacity:1,strokeColor:"#B4232A",strokeWeight:3}});
+      pinOutletMk={setLatLng:x=>mk.setPosition({lat:x[0],lng:x[1]})}; }
+    else pinOutletMk=window.L.circleMarker([ol.lat,ol.lng],{radius:7,color:"#B4232A",fillColor:"#F2B417",fillOpacity:1,weight:3}).addTo(pinMap); }
   setTimeout(()=>{ if(pinMap) pinMap.invalidateSize(); },40); updPinInfo();
 }
 function pinPlaced(){
@@ -863,7 +866,7 @@ async function gGeocode(addr){
   if(gPick&&gPick.addr===addr) return gPick;          /* 客人刚从建议里选的 */
   const gm=await loadGoogle(); if(!gm||!gm.Geocoder) return null;
   try{
-    const r=await new gm.Geocoder().geocode({address:addr,region:"MY",componentRestrictions:{country:"MY"}});
+    const A=svcArea(), r=await new gm.Geocoder().geocode(Object.assign({address:addr,region:"MY",componentRestrictions:{country:"MY"}},A?{bounds:{north:A.n,south:A.s,east:A.e,west:A.w}}:{}));
     const x=r&&r.results&&r.results[0]; if(!x) return null;
     const lt=x.geometry.location_type, lvl=lt==="ROOFTOP"?"exact":lt==="APPROXIMATE"?"postcode":"street";
     return {lat:x.geometry.location.lat(),lng:x.geometry.location.lng(),lvl,name:x.formatted_address||""};
@@ -882,7 +885,8 @@ function wireAddrSug(ta){
       if(!gTok) gTok=new lib.AutocompleteSessionToken();
       const o=outletLL(curOi());
       const req={input:q,sessionToken:gTok,includedRegionCodes:["my"],language:"en"};
-      if(o) req.locationBias={center:{lat:o.lat,lng:o.lng},radius:20000};
+      const A=svcArea(); if(A) req.locationRestriction={north:A.n,south:A.s,east:A.e,west:A.w};   /* 只找送餐范围（雪隆+芙蓉）里的地址，别州同名地点不会出现 */
+      else if(o) req.locationBias={center:{lat:o.lat,lng:o.lng},radius:20000};
       let sug=[]; try{ sug=(await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions(req)).suggestions||[]; }catch(e){ return; }
       if(seq!==gSugSeq||document.activeElement!==ta) return;
       const preds=sug.map(x=>x.placePrediction).filter(Boolean).slice(0,5);
@@ -908,12 +912,40 @@ function wireAddrSug(ta){
     },300);
   });
 }
+/* 送餐服务范围（config.js 的 delivery.area）：查到范围外的位置当作「找不到」，让客人自己把图钉拖到家门口 */
+function svcArea(){ const a=DEL()&&DEL().area; return a&&[a.n,a.s,a.e,a.w].every(x=>typeof x==="number")?a:null; }
+const inArea = (lat,lng) => { const A=svcArea(); return !A || (lat<=A.n&&lat>=A.s&&lng<=A.e&&lng>=A.w); };
+/* Google 地图版的图钉（照 Leaflet 的用法包一层：getLatLng/setLatLng/panTo/setView/invalidateSize），下面的程序两种地图通用 */
+function gPinMap(gm,el,start,zoom){
+  const toG=x=>Array.isArray(x)?{lat:x[0],lng:x[1]}:{lat:x.lat,lng:x.lng};
+  const m=new gm.Map(el,{center:toG(start),zoom,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,clickableIcons:false,gestureHandling:"greedy"});
+  const pinSvg='<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 41 15 41s14-15.7 14-26.1C29 7.2 22.7 1 15 1z" fill="#B4232A" stroke="#7A1218" stroke-width="2"/><circle cx="15" cy="15" r="5.5" fill="#F2B417"/></svg>';
+  const mk=new gm.Marker({position:toG(start),map:m,draggable:true,icon:{url:"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(pinSvg),scaledSize:new gm.Size(30,42),anchor:new gm.Point(15,41)}});   /* 图钉用自带的红色图，不靠 Google 下载 */
+  const map={g:m,setView:(ll,z)=>{m.setCenter(toG(ll)); if(z) m.setZoom(z); return map;},panTo:ll=>m.panTo(toG(ll)),invalidateSize:()=>{}};
+  const pin={getLatLng:()=>{const p=mk.getPosition();return {lat:p.lat(),lng:p.lng()};},setLatLng:ll=>mk.setPosition(toG(ll))};
+  mk.addListener("drag",updPinInfo); mk.addListener("dragend",pinPlaced);
+  m.addListener("click",e=>{ mk.setPosition(e.latLng); pinPlaced(); });
+  return {map,pin,toG};
+}
 async function locateAddr(){
   const oi=curOi(), addr=$("od_addr")?$("od_addr").value.trim():"";
   const say=m=>{ geoMsg=m; if($("od_geomsg")) $("od_geomsg").textContent=m; };
   if(addr.length<8){ say(t("needAddr")); return; }
   if(pinBusy) return; pinBusy=true; pinAuto=addr; say(t("geoCalc"));
-  const g=(await gGeocode(addr)) || (window.MKGEO ? await MKGEO.geocode(addr) : null);   /* 先 Google（有 key 时），不行再用免费的 OpenStreetMap */
+  let g=(await gGeocode(addr)) || (window.MKGEO ? await MKGEO.geocode(addr) : null);   /* 先 Google（有 key 时），不行再用免费的 OpenStreetMap */
+  if(g&&!inArea(g.lat,g.lng)) g=null;   /* 查到别州去了（例如同名路）：当作找不到，图钉放分店让客人自己拖 */
+  const gm=await loadGoogle();          /* 有 Google 就用 Google 地图，没有才用 OpenStreetMap */
+  if(gm&&gm.Map&&(!pinMap||pinMap.g)){
+    const o=outletLL(oi), start=g?[g.lat,g.lng]:(o?[o.lat,o.lng]:[3.1,101.65]);
+    if(!pinWrap){ pinWrap=document.createElement("div"); pinWrap.className="pinwrap"; pinWrap.innerHTML='<div id="pinmap"></div><div class="pininfo" id="pininfo"></div>'; }
+    const slot=$("pinslot"); if(slot){ slot.appendChild(pinWrap); slot.hidden=false; }
+    if(!pinMap){ const x=gPinMap(gm,pinWrap.querySelector("#pinmap"),start,g?17:14); pinMap=x.map; pinMk=x.pin; }
+    else { pinMk.setLatLng(start); pinMap.setView(start,g?17:14); }
+    pinFor=addr; pinBusy=false; mountPin();
+    if(g){ delGeo={lat:g.lat,lng:g.lng,acc:0,src:"addr",lvl:g.lvl,addr}; addrFail=false; geoMsg=""; applyGeoZone(oi); refreshCart(); farCheck(oi); }
+    else { delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg=t("pinNotFound"); refreshCart(); }
+    return;
+  }
   await ensureOutletLL(oi);
   try{ await loadLeaflet(); }
   catch(e){   /* 地图载不到：用查到的位置；查不到就让客人自己选 */

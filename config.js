@@ -391,6 +391,7 @@ window.SITE = {
       minOrder: 0,          // 外卖最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
+      area: { n: 3.45, s: 2.45, e: 102.15, w: 101.25 },   // 送餐服务范围（雪隆 + 芙蓉的大方框）：地址建议/定位只认这里面的位置
       timeNote: "⏱️ 准备时间约 15–20 分钟（视食物分量而定），配送时间会根据交通繁忙时段和距离调整。",
       timeNoteEn: "⏱️ Preparation takes about 15–20 minutes (depending on order size); delivery time may vary with traffic and distance.",
       note: "运费按分店到送餐地址的估算路程（直线距离 × 1.3）：3km 内 RM2、3–5km RM5、5–10km RM8、10–12km RM11、12–15km RM15，最远送 15km。填好地址按「📍 确认地址」自动计算。",
