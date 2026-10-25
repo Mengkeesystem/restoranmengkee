@@ -381,10 +381,10 @@ window.SITE = {
       zones: [
         { label: "0–5km", labelEn: "0–5km", fee: 4, maxKm: 5 },
         { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
-        { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },   // 现在最远只送 10km，这档暂时用不到（以后放宽距离再用）
+        { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },
       ],
       lastOrder: { weekday: ["14:30", "21:30"], weekend: ["14:00", "21:30"] },   // 2026-10-26 业主：外送最后接单（对应 hours 的午市/晚市）；之后到打烊不接外送
-      maxKm: 10,            // 2026-10-26 业主：Google 路线路程 10km 内才送
+      maxKm: 15,            // 2026-10-26 业主：Google 路线（驾驶）路程 15km 内才送（10–15km 运费 RM12）
       travelMode: "TWO_WHEELER",   // 2026-10-26 业主：距离全部用 Google 路线（Routes API）真实路程；摩托（TWO_WHEELER），算不到才用驾车
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 30,          // 外送最低消费，0 = 不限
