@@ -431,6 +431,7 @@ footer a{color:#fff}
 .cl{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .cl .nm{flex:1}
 .tot{display:flex;justify-content:space-between;font-weight:800;font-size:18px;margin:14px 0}
+.sumbox{border-top:1px dashed var(--line);margin-top:4px}
 .fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .fab.show{display:inline-flex}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--dk);color:#fff;padding:10px 18px;border-radius:var(--rs);z-index:120;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -1344,14 +1345,7 @@ function renderDrawer(){
     ${ids.length? ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl"><div class="nm">${it.code?`<span class="note">${esc(it.code)}</span> `:""}${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(priceFor(it,si)*cart[k])}</b></div>`;}).join("")
-      + (vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
-      + (voucher||isDel()||sstRate()||boxTotal()?`<div class="tot sub"><span>${esc(t("subtotal"))}${isDel()&&hasDelMarkup()?` <small class="note">(${esc(t("delPriceTag"))})</small>`:""}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
-      + (boxTotal()>0?`<div class="tot sub"><span>🥡 ${esc(L(PK(),"label"))}</span><span>${money(boxTotal())}</span></div>`:"")
-      + (sstRate()?`<div class="tot sub"><span>${esc(sstLabel())}</span><span>${money(sstAmt())}</span></div>`:"")
-      + (isDel()?`<div class="tot sub"><span>🛵 ${esc(t("delFee"))}${delZoneObj()?` <small class="note">(${esc(L(delZoneObj(),"label"))})</small>`:""}</span><span>${delZoneObj()?(delFee()===0?esc(t("free")):money(delFee())):`<small class="note">${esc(t("pickZone"))}</small>`}</span></div>${D.freeAbove&&delZoneObj()&&delFee()>0?`<p class="note" style="margin:-4px 0 6px;text-align:right">${esc(t("freeAbove").replace("{x}",money(D.freeAbove)))}</p>`:""}`:"")
-      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(finalTotal())}</span></div>`
-      + `${sstRate()?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(t("inclSst").replace("{x}",sstLabel()))}</p>`:""}
-      <div class="form">
+      + `<div class="form">
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
         <div><label>${esc(t("phone"))}</label><input id="od_phone" type="tel" autocomplete="tel" value="${esc(prev.phone)}"></div>
         ${outlets().length?`<div class="full"><label>${esc(t("outlet"))}</label><select id="od_outlet">${outletOptions(prevOutlet,isDel())}</select></div>`:""}
@@ -1362,6 +1356,13 @@ function renderDrawer(){
         <div><label>${esc(t(isDel()?"delDate":"pickupDate"))}</label><select id="od_date">${dates.join("")}</select></div>
         <div><label>${esc(t(isDel()?"delTime":"pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,lead,15,prevTime)}</select>${isDel()&&L(D,"timeNote")?`<div class="note" style="margin-top:6px">${esc(L(D,"timeNote"))}</div>`:""}</div>
         <div class="full"><label>${esc(t("remark"))}</label><input id="od_note" value="${esc(prev.note)}"></div>
+        <div class="full sumbox">${(vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
+      + (voucher||isDel()||sstRate()||boxTotal()?`<div class="tot sub"><span>${esc(t("subtotal"))}${isDel()&&hasDelMarkup()?` <small class="note">(${esc(t("delPriceTag"))})</small>`:""}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
+      + (boxTotal()>0?`<div class="tot sub"><span>🥡 ${esc(L(PK(),"label"))}</span><span>${money(boxTotal())}</span></div>`:"")
+      + (sstRate()?`<div class="tot sub"><span>${esc(sstLabel())}</span><span>${money(sstAmt())}</span></div>`:"")
+      + (isDel()?`<div class="tot sub"><span>🛵 ${esc(t("delFee"))}${delZoneObj()?` <small class="note">(${esc(L(delZoneObj(),"label"))})</small>`:""}</span><span>${delZoneObj()?(delFee()===0?esc(t("free")):money(delFee())):`<small class="note">${esc(t("pickZone"))}</small>`}</span></div>${D.freeAbove&&delZoneObj()&&delFee()>0?`<p class="note" style="margin:-4px 0 6px;text-align:right">${esc(t("freeAbove").replace("{x}",money(D.freeAbove)))}</p>`:""}`:"")
+      + `<div class="tot"><span>${esc(t("total"))}</span><span>${money(finalTotal())}</span></div>`
+      + `${sstRate()?`<p class="note" style="margin:-8px 0 12px;text-align:right">* ${esc(t("inclSst").replace("{x}",sstLabel()))}</p>`:""}`}</div>
         <div class="full" id="payBox">${payBoxHTML(prevOutlet)}</div>
         <div class="full err" id="od_err"></div>
         <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn wa" id="od_send" style="flex:1">${sendLabel(prevOutlet)}</button><button class="btn alt" id="od_clear">${esc(t("clear"))}</button></div>
