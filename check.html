@@ -190,6 +190,7 @@ async function check(raw){
       /* 讯息有「送餐定位」+ 分店有坐标 → 自己重算路程（直线 × roadFactor），用应有的那一档算运费 */
       const os=Array.isArray(S.outlets)?S.outlets:[], o=os.length?os.find(o=>norm(o.name)===norm(R.outlet)||norm(o.nameEn)===norm(R.outlet)):S;
       let zz=z;
+      if(os.some(x=>x.delivery===true)&&o&&o!==S&&o.delivery!==true) R.issues.push(`这间分店（${o.name}）目前只限自取，不做外卖`);
       let oll=o&&typeof o.lat==="number"&&typeof o.lng==="number"?{lat:o.lat,lng:o.lng}:null;
       if(R.geo&&o&&!oll&&o.address&&window.MKGEO){ const g=await MKGEO.geocode(o.address); if(g){ oll=g; R.outletMap=`https://www.google.com/maps?q=${g.lat},${g.lng}`; if(g.lvl!=="exact") R.warns.push("分店位置是按分店地址估算的（地图上没找到完整门牌），距离可能差几百米"); } }
       if(R.geo&&oll){
