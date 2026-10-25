@@ -63,14 +63,16 @@ nav.links a:hover{background:#F6EADB}
 /* hero */
 .hero{background:linear-gradient(135deg,var(--p),#7A1218);color:#fff;padding:72px 0 64px;position:relative;overflow:hidden}
 .hero.img{background-size:cover;background-position:center}
-.hero.img::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(30,8,6,.86) 0%,rgba(30,8,6,.66) 50%,rgba(30,8,6,.5) 100%);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
-@media(max-width:760px){.hero.img::before{background:rgba(30,8,6,.68)}}
+/* 2026-10-26 业主：招牌已高清化，不再模糊；左边字的区域暗一点、右边让招牌看得清楚 */
+.hero.img::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(30,8,6,.82) 0%,rgba(30,8,6,.55) 45%,rgba(30,8,6,.22) 100%)}
+@media(max-width:760px){.hero.img::before{background:linear-gradient(180deg,rgba(30,8,6,.35) 0%,rgba(30,8,6,.72) 45%,rgba(30,8,6,.8) 100%)}}
 .hero .wrap{position:relative}
 .hero h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.15;padding:0}
 .hero h1::after{display:none}
 .hero p{font-size:18px;opacity:.92;margin:0 0 22px}
 .status{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:6px 14px;font-weight:700;margin-top:20px}
 .status.delst{display:flex;width:fit-content;margin-top:8px;font-size:14px;font-weight:600;padding:5px 12px 5px 6px;gap:8px}
+@media(max-width:420px){.status.delst{font-size:12.5px;gap:6px}}
 .status.delst .rider{width:36px;height:24px;flex:none;background:#fff;border-radius:var(--rs);padding:1px}
 .dot{width:10px;height:10px;border-radius:50%;background:#bbb}
 .dot.on{background:#4ADE80}.dot.off{background:#F87171}
