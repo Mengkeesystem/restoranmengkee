@@ -62,7 +62,11 @@ nav.links a:hover{background:#F6EADB}
 
 /* hero */
 .hero{background:linear-gradient(135deg,var(--p),#7A1218);color:#fff;padding:72px 0 64px;position:relative;overflow:hidden}
-.hero.img{background-size:cover;background-position:center}
+.hero.img{isolation:isolate}
+.hero .hbg{position:absolute;inset:0;z-index:-1;background-size:cover;background-position:center;opacity:0}
+.hero .hbg.in{animation:hbgIn 2.5s ease-in-out forwards}
+@keyframes hbgIn{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
+@media (prefers-reduced-motion:reduce){.hero .hbg.in{animation:none;opacity:1}}
 /* 2026-10-26 业主：招牌已高清化，不再模糊；左边字的区域暗一点、右边让招牌看得清楚 */
 .hero.img::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(30,8,6,.82) 0%,rgba(30,8,6,.55) 45%,rgba(30,8,6,.22) 100%)}
 @media(max-width:760px){.hero.img::before{background:linear-gradient(180deg,rgba(30,8,6,.35) 0%,rgba(30,8,6,.72) 45%,rgba(30,8,6,.8) 100%)}}
@@ -780,10 +784,13 @@ function renderHero(){
   const st=openState();
   const stTxt = st.open ? `${t("open")} · ${t("opensAt")} ${st.until}` : (st.next?`${t("closed")} · ${t("nextOpen")} ${esc(st.next)}`:t("closed"));
   if(S.heroImage){ const h=$("hero"), small=S.heroImageMobile&&matchMedia("(max-width:760px)").matches;
-    h.classList.add("img"); h.style.backgroundImage=`url("${encodeURI(small?S.heroImageMobile:S.heroImage)}")`; const pos=(matchMedia("(max-width:760px)").matches&&S.heroPosMobile)||S.heroPos; if(pos) h.style.backgroundPosition=String(pos).replace(/[^a-z0-9% .-]/gi,"");
-    const sz=matchMedia("(max-width:760px)").matches?(S.heroSizeMobile||S.heroSize):S.heroSize; if(sz) h.style.backgroundSize=String(sz).replace(/[^a-z0-9% .-]/gi,"");
-    if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.backgroundColor=S.heroColor;
-    h.style.backgroundRepeat="no-repeat";
+    h.classList.add("img");
+    /* 背景图放在自己的一层 .hbg，开页时 2.5 秒从底色慢慢浮现（2026-10-26 业主）；切换语言重绘不重播 */
+    let bg=h.querySelector(".hbg"); if(!bg){ bg=document.createElement("div"); bg.className="hbg"; h.prepend(bg); const pre=new Image(); pre.onload=pre.onerror=()=>bg.classList.add("in"); pre.src=small?S.heroImageMobile:S.heroImage; }
+    bg.style.backgroundImage=`url("${encodeURI(small?S.heroImageMobile:S.heroImage)}")`; const pos=(matchMedia("(max-width:760px)").matches&&S.heroPosMobile)||S.heroPos; if(pos) bg.style.backgroundPosition=String(pos).replace(/[^a-z0-9% .-]/gi,"");
+    const sz=matchMedia("(max-width:760px)").matches?(S.heroSizeMobile||S.heroSize):S.heroSize; if(sz) bg.style.backgroundSize=String(sz).replace(/[^a-z0-9% .-]/gi,"");
+    if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
+    bg.style.backgroundRepeat="no-repeat";
     /* 手机版招牌横条在最上面（heroPushMobile）：把店名/按钮往下推，不要盖住招牌 */
     if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth; $("heroIn").style.marginTop=Math.max(0,Math.round(band-40))+"px"; }; im.src=S.heroImageMobile||S.heroImage; } }
   $("heroIn").innerHTML = `

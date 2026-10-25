@@ -68,6 +68,7 @@
   - 没有 Google（没 key / 载不到）时地图会退回 Leaflet+OSM，但**外送算不到路程、不能下单**（自取不受影响）。
 - **最远外送改回 15km（2026-10-26 业主）**：`maxKm:15`（Google 驾驶/摩托路线路程），三档运费：0–5km RM4、5–10km RM8、10–15km RM12。
 - **首页背景整个换成招牌设计图（2026-10-26 业主：「整个换掉背景，不是换背景的招牌」）**：`heroImage:"images/hero-sign.png"`（业主给的红底黄字招牌图，去掉顶上 1px 浅色线），`heroSize:"100% auto"` 横着摆满、上下用招牌底色 `heroColor:"#800000"` 补；手机 `heroSizeMobile:"100% auto"` + `heroPosMobile:"center 4%"` + `heroPushMobile:true`（按图片比例把店名/按钮往下推，招牌横条露在最上面）。店面照 hero.jpg/hero-m.jpg（含先前透视贴招牌的版本）还留在 images/，要换回改 config 即可。
+- **首页背景慢慢浮现（2026-10-26 业主：约 2.5 秒从空白浮现）**：背景图移到自己的一层 `.hbg`（`.hero.img{isolation:isolate}`、`.hbg{z-index:-1}`，遮罩 ::before 照样盖在上面），图片载完才加 `.in` 播 `hbgIn`（2.5s ease-in-out，opacity 0→1 + blur 8px→0），开始前看到的是招牌底色 `heroColor`（`h.style.background` 盖掉 .hero 默认红色渐层）。只播一次（`.hbg` 已存在就不重建，切换语言不重播）；减少动态效果的设定下直接显示。
 - **已打烊视窗（2026-10-26 业主照客善截图）**：打烊时（`openState()` 不在营业时间）按「+」、打开有东西的购物车、按下单，都跳 `showClosedPop()`（🌙「XX 已打烊」「此门店目前暂不接受新订单。今天 17:00 恢复营业。」+「仍然浏览菜单」），**打烊时自取也不接（不再能预约之后的自取时间）**。「选择其他门店」按钮只在别的分店还营业时显示——目前全部分店同一营业时间，所以不会出现（`otherOpen=false`，以后分店有各自营业时间再接）。
 - **出餐分店放在送餐地址上面（2026-10-26）**：外送「送餐地址」卡片第一栏就是出餐分店下拉，下面才是地图/地址。
 - **外送最后接单 + 首页显示（2026-10-26 业主）**：首页状态改「门店营业中」，下面两行「🛵 外送时间 Last order 2:30pm 和 9:30pm（平日）」「…2pm 和 9:30pm（周末）」，读 `delivery.lastOrder:{weekday:[午,晚],weekend:[午,晚]}`（对应 hours 每一段）。`delOpenState()`：只有在某段营业开始到该段 last order 之间才能下外送单，过了显示「外送已过最后接单时间（Last order X）。下次外送：Y」并挡下单（`delClosedMsg`）。自取不受影响。
