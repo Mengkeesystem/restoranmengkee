@@ -140,7 +140,7 @@ async function check(raw){
   const lines=String(raw||"").split(/\r?\n/).map(norm).filter(Boolean);
   const R={lines:[],issues:[],warns:[],claimed:{}, type:"pickup"};
   if(!lines.length){ R.issues.push("没有内容"); return R; }
-  if(/外卖|delivery/i.test(lines[0])||lines.some(l=>lbl(l,"运费","Delivery fee")!=null)) R.type="delivery";   /* 先判断类型：外卖用外卖价核对 */
+  if(/外卖|外送|delivery/i.test(lines[0])||lines.some(l=>lbl(l,"运费","Delivery fee")!=null)) R.type="delivery";   /* 先判断类型：外卖用外卖价核对 */
   for(const ln of lines){
     let v;
     const im=ln.match(/^[•·*\-]\s*(.+?)\s+[x×]\s*(\d+)\s*=\s*(.+)$/i);
@@ -206,7 +206,8 @@ async function check(raw){
       if(R.geo&&oll){
         const rf=(+D.roadFactor>=1&&+D.roadFactor<=3)?+D.roadFactor:1, km=kmBetween(R.geo.lat,R.geo.lng,oll.lat,oll.lng)*rf, zi=zs.findIndex(x=>typeof x.maxKm==="number"&&km<=x.maxKm), want=zs[zi<0?zs.length-1:zi];
         R.km=km;
-        if(typeof D.maxKm==="number"&&km>D.maxKm) R.issues.push(`客人离分店路程约 ${km.toFixed(1)} km，超过最远送餐距离 ${D.maxKm} km`);
+        if(typeof D.radiusKm==="number"&&km/rf>D.radiusKm) R.issues.push(`客人离分店直线约 ${(km/rf).toFixed(1)} km，超过外送半径 ${D.radiusKm} km`);
+        else if(typeof D.maxKm==="number"&&km>D.maxKm) R.issues.push(`客人离分店路程约 ${km.toFixed(1)} km，超过最远送餐距离 ${D.maxKm} km`);
         else if(want!==z){ R.issues.push(`客人定位离分店路程约 ${km.toFixed(1)} km，应是「${want.label}」运费 ${money(want.fee||0)}，讯息选的是「${z.label}」`); zz=want; }
         else R.warns.push(`定位核对 ✓ 离分店路程约 ${km.toFixed(1)} km（「${z.label}」）（路程=直线×1.3 估算）。位置是客人在地图上确认/按地址查的，请再看一眼地址是否在同一区`);
       } else if(R.geo) R.warns.push(`客人有定位，但找不到这间分店的地图位置，无法自动核对距离；配送范围「${z.label}」请看地址核对`);
@@ -237,14 +238,14 @@ function renderResult(R){
     <div class="card"><h3>重算明细</h3><div class="scroll"><table>
       <tr><th>菜品</th><th class="n">数量</th><th class="n">讯息写</th><th class="n">应为</th></tr>
       ${R.lines.map(l=>`<tr class="${l.err?"bad":l.warn?"warn":""}"><td>${esc(l.text)}${l.err?'<span class="tag bad">✗</span>':l.warn?'<span class="tag warn">!</span>':'<span class="tag ok">✓</span>'}</td><td class="n">${esc(l.q||"")}</td><td class="n">${l.claimedAmt!=null?money(l.claimedAmt):"-"}</td><td class="n">${l.amt!=null?money(l.amt):"-"}</td></tr>`).join("")}
-      <tr><td colspan="3">小计${R.type==="delivery"&&DEL()&&hasDelMarkup()?"（外卖价）":""}</td><td class="n">${money(R.sub)}</td></tr>
+      <tr><td colspan="3">小计${R.type==="delivery"&&DEL()&&hasDelMarkup()?"（外送价）":""}</td><td class="n">${money(R.sub)}</td></tr>
       ${R.vcode?`<tr><td colspan="3">优惠码 ${esc(R.vcode)} ${esc(R.vTitle||"")}</td><td class="n">− ${money(R.disc)}</td></tr>`:""}
       ${R.box?`<tr><td colspan="3">打包盒</td><td class="n">${money(R.box)}</td></tr>`:""}
       ${sstRate()?`<tr><td colspan="3">SST ${Math.round(sstRate()*1000)/10}%</td><td class="n">${money(R.sst)}</td></tr>`:""}
       ${R.type==="delivery"?`<tr><td colspan="3">运费 ${esc(R.zone||"")}</td><td class="n">${money(R.fee)}</td></tr>`:""}
       <tr><th colspan="3" style="color:var(--tx);font-size:15px">合计（讯息写 ${R.claimed.total!=null?money(R.claimed.total):"-"}）</th><th class="n" style="color:var(--tx);font-size:15px">${money(R.total)}</th></tr>
     </table></div>
-    <p class="note" style="margin:10px 0 0">${R.type==="delivery"?"🛵 外卖":"🛍️ 自取"}${R.geo?` · <a href="${esc(R.geo.url)}" target="_blank" rel="noopener">📍 客人定位</a>`:""}${R.outletMap?` · <a href="${esc(R.outletMap)}" target="_blank" rel="noopener">🏪 分店估算位置</a>`:""} · ${esc(R.outlet||"分店?")} · ${esc(R.date||"日期?")} · ${esc(R.name||"")} ${esc(R.phone||"")}</p></div>
+    <p class="note" style="margin:10px 0 0">${R.type==="delivery"?"🛵 外送":"🛍️ 自取"}${R.geo?` · <a href="${esc(R.geo.url)}" target="_blank" rel="noopener">📍 客人定位</a>`:""}${R.outletMap?` · <a href="${esc(R.outletMap)}" target="_blank" rel="noopener">🏪 分店估算位置</a>`:""} · ${esc(R.outlet||"分店?")} · ${esc(R.date||"日期?")} · ${esc(R.name||"")} ${esc(R.phone||"")}</p></div>
     <div class="card"><h3>📥 记录到每月总结</h3><p class="note" style="margin:0 0 10px">确认收到钱 / 已出餐后再按。记录只存在<b>这部手机 / 电脑</b>的浏览器里，客人看不到。</p>
       <button class="btn ${bad?"alt":"ok"}" id="save">${bad?"仍然记录（标示为有问题）":"✅ 记录这笔订单"}</button></div>`;
   $("save").onclick=()=>saveRecord(R);
@@ -290,7 +291,7 @@ function renderSum(){
       <div class="stat"><span>优惠折扣</span><b>${money(sum("disc"))}</b></div>
       <div class="stat"><span>SST</span><b>${money(sum("sst"))}</b></div>
       <div class="stat"><span>运费</span><b>${money(sum("fee"))}</b></div>
-      <div class="stat"><span>自取 / 外卖</span><b>${recs.filter(r=>r.type!=="delivery").length} / ${recs.filter(r=>r.type==="delivery").length}</b></div>
+      <div class="stat"><span>自取 / 外送</span><b>${recs.filter(r=>r.type!=="delivery").length} / ${recs.filter(r=>r.type==="delivery").length}</b></div>
     </div>
     ${recs.some(r=>!r.ok)?`<div class="verdict bad" style="font-size:15px">⚠️ 这个月有 ${recs.filter(r=>!r.ok).length} 笔记录时金额对不上</div>`:""}
     <div class="card"><h3>按分店</h3><div class="scroll"><table><tr><th>分店</th><th class="n">订单</th><th class="n">营业额</th></tr>
@@ -310,7 +311,7 @@ function renderSum(){
   $("csv").onclick=()=>{
     const q=v=>{ let s=String(v==null?"":v); if(/^[=+\-@\t\r]/.test(s)) s="'"+s; return '"'+s.replace(/"/g,'""')+'"'; };   /* 防 Excel 公式注入 */
     const head=["日期","参考号","分店","类型","客人","电话","菜品","小计","优惠码","优惠","SST","运费","合计","讯息写的合计","金额正确"];
-    const rows=recs.map(r=>[r.date,r.ref,r.outlet,r.type==="delivery"?"外卖":"自取",r.name,r.phone,r.items.map(x=>`${x.code} ${x.name}${x.label} x${x.q}`).join("; "),r.sub,r.vcode,r.disc,r.sst,r.fee,r.total,r.claimed,r.ok?"是":"否"]);
+    const rows=recs.map(r=>[r.date,r.ref,r.outlet,r.type==="delivery"?"外送":"自取",r.name,r.phone,r.items.map(x=>`${x.code} ${x.name}${x.label} x${x.q}`).join("; "),r.sub,r.vcode,r.disc,r.sst,r.fee,r.total,r.claimed,r.ok?"是":"否"]);
     download(`orders-${sumMonth}${sumOutlet?"-"+sumOutlet:""}.csv`,"﻿"+[head,...rows].map(a=>a.map(q).join(",")).join("\r\n"),"text/csv");
   };
   $("bak").onclick=()=>download(`orders-backup-${ymd(new Date())}.json`,JSON.stringify(loadRecs()),"application/json");

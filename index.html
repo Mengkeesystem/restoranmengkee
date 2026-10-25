@@ -8,7 +8,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="明记家乡小食店 Meng Kee Restaurant">
 <meta property="og:title" content="明记家乡小食店 Meng Kee Restaurant">
-<meta property="og:description" content="家乡的味道，一锅一铲炒出来。网上点餐自取／外卖、订位、11 间分店地址。">
+<meta property="og:description" content="家乡的味道，一锅一铲炒出来。网上点餐自取／外送、订位、11 间分店地址。">
 <meta property="og:url" content="https://mengkeesystem.github.io/restoranmengkee/">
 <meta property="og:image" content="https://mengkeesystem.github.io/restoranmengkee/images/logo.png">
 <meta property="og:image:width" content="512"><meta property="og:image:height" content="512">
@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
-<meta name="description" content="明记家乡小食店：家乡的味道，一锅一铲炒出来。网上点餐自取／外卖、订位、11 间分店地址。">
+<meta name="description" content="明记家乡小食店：家乡的味道，一锅一铲炒出来。网上点餐自取／外送、订位、11 间分店地址。">
 <meta http-equiv="Cache-Control" content="no-cache">
 <!-- 安全：只允许载入本站脚本（+ 内联），禁止外站脚本/插件/表单外送；connect 只给 Supabase（付款后台） -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; worker-src blob:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://*.googleapis.com https://*.google.com; frame-src https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; form-action 'none'">
@@ -254,11 +254,20 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .opbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:1px solid var(--line);border-left:4px solid var(--a);border-radius:var(--rs);padding:10px 12px;cursor:pointer;font:inherit;color:var(--tx)}
 .opbtn b{color:var(--p);font-size:15px}.opbtn small{color:var(--mut);font-size:12.5px;line-height:1.35}
 .opbtn:hover,.opbtn.on{background:#FFF6E0;border-color:var(--a)}
-#pinmap{height:240px;border:1px solid var(--line);border-radius:var(--rs);touch-action:none}
-.pininfo{font-weight:700;color:var(--p);font-size:14px;min-height:18px;margin-top:6px}
-.geobox .geobtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.geobox .btn{width:100%;font-size:14px;padding:9px 8px}
-.geobox .note{margin-top:6px}
+/* 外送地址地图：中间固定图钉，移动地图对准门口（2026-10-26） */
+.pinwrap{position:relative;border:1px solid var(--line);border-radius:var(--rs);overflow:hidden;margin-bottom:8px}
+#pinmap{height:300px;touch-action:none;background:#EDE6DC}
+.pinwrap .msearch{position:absolute;top:10px;left:10px;right:10px;z-index:500}
+.pinwrap .msearch input{width:100%;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.pinwrap .msearch .addrsug{margin-top:0}
+.pinwrap .cpin{position:absolute;left:50%;top:50%;z-index:400;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.pinwrap .cpin svg{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.pinwrap .cptip{position:absolute;bottom:52px;white-space:nowrap;background:rgba(30,20,16,.88);color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:var(--r)}
+.pinwrap .mloc{position:absolute;right:10px;bottom:24px;z-index:500;width:44px;height:44px;border:1px solid var(--line);border-radius:var(--r);background:#fff;color:#333;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer}
+.addrblk .usepin{width:100%;font-size:14px;padding:9px 8px;margin-bottom:8px}
+.addrblk .geomsg{font-weight:700;color:var(--p)}
+.addrblk .eta{background:#FFFBF0;border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;font-size:14px}
+.cart-drawer .form.addrblk,.form.addrblk{margin-bottom:10px}
 #od_zone:disabled{background:#F4EEE6;color:var(--tx);opacity:1}
 .promo.rv{opacity:0;transform:translateX(-48px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.75,.25,1);transition-delay:var(--d,0s)}
 .promo.rv:nth-child(even){transform:translateX(48px)}
@@ -488,14 +497,14 @@ const money = n => CUR+" "+(Math.round(n*100)/100).toFixed(2);
 
 /* ---------- 文字（中/英） ---------- */
 const T = {
-  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外卖",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点 Google Maps 或 Waze 直接导航",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
+  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外送",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点 Google Maps 或 Waze 直接导航",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
       navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"故事",navContact:"联系",
       open:"营业中",closed:"已打烊",closedToday:"今天休息",opensAt:"营业至",nextOpen:"下次营业",orderNow:"网上点餐",bookNow:"订位",
       days:["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],rest:"休息",
       name:"姓名",phone:"电话",date:"日期",time:"时间",pax:"人数",remark:"备注 (选填)",remarkPh:"例如：要婴儿椅、有长辈",
       sendWa:"通过 WhatsApp 发送",noSlot:"这天没有可选时间",
       cart:"我的订单",empty:"购物车是空的，去菜单挑几样吧！",total:"合计",pickupDate:"自取日期",pickupTime:"自取时间",
-      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",payAutoWa:"已转账 {x}（店家已在系统确认收款）",psCreating:"正在建立订单…",psWaitT:"等待店家确认收款…",psWaitB:"付款后请留在此页面（可以先切去 TNG / 银行 App 付款再回来），店家确认收到款项后，会自动打开 WhatsApp 发送订单。",psRejT:"店家未能确认这笔付款",psTimeoutT:"还没收到店家确认",psContact:"请 WhatsApp 联系我们，并附上付款截图和参考号。",psContactBtn:"WhatsApp 联系店家",psHelpMsg:"你好，我刚网上下单并已付款 {x}，参考号 {r}，还没收到确认，麻烦帮忙查看。",psPaidT:"已确认收款！",psPaidB:"正在打开 WhatsApp 发送订单… 如果没有自动打开，请按下面的按钮。",psOpenWa:"打开 WhatsApp 发送订单",psLeaveWarn:"关闭后就不会自动跳到 WhatsApp。如果已经付款，请留在此页面等店家确认。确定要关闭吗？",checkoutPay:"下单并付款",payNextHint:"按「下单并付款」后会显示 QR 码和户口，付款后再发送订单。",psTitle:"付款",psStep1:"确认订单",psStep2:"扫码付款",psStep3:"发送订单",psRef:"参考号",psRefHint:"转账时请把参考号填在备注 / Reference，方便店员核对。",psSaveQr:"保存 QR 图片",psPaid:"我已完成付款 {x}",psSend:"付款完成，发送订单到 WhatsApp",psAfter:"发送后请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。",psSentT:"订单已发送到 WhatsApp",psSentB:"请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。如果 WhatsApp 没有打开，按下面的按钮再试一次。",psReopen:"重新打开 WhatsApp",psFinish:"完成",psThanks:"谢谢！订单已送出",exSst:"(不含SST)",inclSst:"合计已含 {x}",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外卖",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",opickT:"请选择分店",opickPickT:"请选择自取的分店",payNotReady:"网上点餐暂停：店家还在设定收款方式，请先打电话或 WhatsApp 下单。",prepayRule:"为了避免食物浪费，自取和外卖都需要先付款，付款后订单才会送出。",farT:"距离太远，这间分店送不到",farB:"你的送餐地址离「{o}」路程约 {km} km，超过最远送餐距离 {max} km。",farSuggest:"离你比较近、可以外送的分店（点一下改用）",farKm:"约 {km} km",farNone:"抱歉，你的地址离所有分店都超过 {max} km，暂时不能外卖。",farPickup:"改成到店自取",opickLast:"上次选的",perKmLbl:"{x} 起（每 km +{p}，要定位）",geoTooFar:"离所选分店路程约 {km} km，超过最远送餐距离 {max} km，这间分店不能外卖。",geoNearest:"离你最近的是「{o}」（约 {km} km），可以在上面改选分店。",needGeoKm:"这一档按距离计费，请按「📍 定位」或「🏠 按地址」算运费，不能自己选",opickS:"自取或外卖都由这间分店出餐，之后在购物车里也可以更换。",opickDone:"已选择分店：{o}",geoBtn:"📍 用我现在的位置算运费",geoAgain:"📍 重新定位",geoWait:"定位中…",geoHint:"填好送餐地址，地图会把图钉放在你的地址上；位置不准就把图钉拖到你家门口。运费按距离自动计算。",geoOk:"已定位：离{o}路程约 {km} km → {z}",geoNoOutlet:"已定位，请先选分店",geoNoCoord:"找不到这间分店的地图位置，请自己选配送范围（店员会核对地址）",geoCalc:"正在计算距离…",geoAddrBtn:"📍 在地图上找地址",pinT:"确认送餐位置",pinFound:"图钉放在你填的地址附近。请把图钉拖到（或直接点）你家门口的正确位置，再按确认。",pinNotFound:"地图上找不到你填的地址，图钉先放在分店。请把地图移到你家附近，点一下或把图钉拖到你家门口。",pinOk:"确认这个位置",pinDist:"离{o}路程约 {km} km → {z}",delGeoLblPin:"送餐定位（客人在地图确认）",needConfirmAddr:"请先在地图上确认送餐位置（图钉）再下单",geoAddrOk:"✅ 离{o}路程约 {km} km → {z}（图钉不准可以拖动调整）",geoAddrFail:"地图上找不到这个地址。请写清楚路名+邮区再按「确认地址」，或在上面自己选配送范围（店员会核对）",geoAddrChanged:"地址改了，请再按一次「确认地址」",geoPostcode:"（只找到邮区，距离是大概的，店员会核对）",delGeoLblAddr:"送餐定位（按地址估算）",geoDenied:"没有定位权限，请自己选配送范围",geoFail:"定位失败，请再试一次或自己选配送范围",geoLowAcc:"（定位精度约 ±{m} 米，可能不准）",geoManual:"不在送餐地址？改成自己选",delGeoLbl:"送餐定位",delGeoKm:"离分店路程约 {km} km，直线×1.3估算",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",custOpts:"口味要求（可多选）",custOther:"其他要求",custOtherPh:"例如：鱼头要大一点、酱汁另外装",custPer:"份",custAdd:"加入购物车",custInclBox:"已含打包盒费用",delPriceTag:"外卖价",delPriceShort:"外卖",pickupOnly:"只限自取",delOnlyAt:"外卖目前只限：{o}",opickDelT:"请选择外卖分店",delNotHere:"这间分店暂时只限自取。外卖请选：{o}",svcDel:"外卖 + 自取",gSugHint:"选了建议地址后，请补上门牌 / 单位号",gSugNone:"找不到？直接写完整地址也可以",delMin:"外卖最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外卖】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
+      checkout:"WhatsApp 下单",clear:"清空",viewCart:"查看订单",soldOut:"售完",added:"已加入",season:"时价",payAutoWa:"已转账 {x}（店家已在系统确认收款）",psCreating:"正在建立订单…",psWaitT:"等待店家确认收款…",psWaitB:"付款后请留在此页面（可以先切去 TNG / 银行 App 付款再回来），店家确认收到款项后，会自动打开 WhatsApp 发送订单。",psRejT:"店家未能确认这笔付款",psTimeoutT:"还没收到店家确认",psContact:"请 WhatsApp 联系我们，并附上付款截图和参考号。",psContactBtn:"WhatsApp 联系店家",psHelpMsg:"你好，我刚网上下单并已付款 {x}，参考号 {r}，还没收到确认，麻烦帮忙查看。",psPaidT:"已确认收款！",psPaidB:"正在打开 WhatsApp 发送订单… 如果没有自动打开，请按下面的按钮。",psOpenWa:"打开 WhatsApp 发送订单",psLeaveWarn:"关闭后就不会自动跳到 WhatsApp。如果已经付款，请留在此页面等店家确认。确定要关闭吗？",checkoutPay:"下单并付款",payNextHint:"按「下单并付款」后会显示 QR 码和户口，付款后再发送订单。",psTitle:"付款",psStep1:"确认订单",psStep2:"扫码付款",psStep3:"发送订单",psRef:"参考号",psRefHint:"转账时请把参考号填在备注 / Reference，方便店员核对。",psSaveQr:"保存 QR 图片",psPaid:"我已完成付款 {x}",psSend:"付款完成，发送订单到 WhatsApp",psAfter:"发送后请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。",psSentT:"订单已发送到 WhatsApp",psSentB:"请在 WhatsApp 对话里附上付款截图，店员核对后会回复确认。如果 WhatsApp 没有打开，按下面的按钮再试一次。",psReopen:"重新打开 WhatsApp",psFinish:"完成",psThanks:"谢谢！订单已送出",exSst:"(不含SST)",inclSst:"合计已含 {x}",tapZoom:"点击放大",lbHint:"左右滑动换页 · 点图片放大/缩小",dishes:"道",inCart:"已点",otPickup:"自取",otDelivery:"外送",delFee:"运费",free:"免运费",pickZone:"请选择配送范围",opickT:"请选择分店",opickPickT:"请选择自取的分店",payNotReady:"网上点餐暂停：店家还在设定收款方式，请先打电话或 WhatsApp 下单。",prepayRule:"为了避免食物浪费，自取和外送都需要先付款，付款后订单才会送出。",farT:"距离太远，这间分店送不到",farB:"你的送餐位置离「{o}」约 {km} km，超过外送半径 {max} km。",farSuggest:"离你比较近、可以外送的分店（点一下改用）",farKm:"约 {km} km",farNone:"抱歉，你的位置离所有外送分店都超过 {max} km，暂时不能外送。可以改成到店自取。",farPickup:"改成到店自取",opickLast:"上次选的",perKmLbl:"{x} 起（每 km +{p}，要定位）",geoTooFar:"离所选分店约 {km} km，超过外送半径 {max} km，请换一间分店。",geoNearest:"离你最近的是「{o}」（约 {km} km），可以在上面改选分店。",needGeoKm:"这一档按距离计费，请按「📍 定位」或「🏠 按地址」算运费，不能自己选",opickS:"自取或外送都由这间分店出餐，之后在购物车里也可以更换。",opickDone:"已选择分店：{o}",geoBtn:"📍 用我现在的位置算运费",geoAgain:"📍 重新定位",geoWait:"定位中…",geoHint:"填好送餐地址，地图会把图钉放在你的地址上；位置不准就把图钉拖到你家门口。运费按距离自动计算。",geoOk:"已定位：离{o}路程约 {km} km → {z}",geoNoOutlet:"已定位，请先选分店",geoNoCoord:"找不到这间分店的地图位置，请自己选配送范围（店员会核对地址）",geoCalc:"正在计算距离…",geoAddrBtn:"📍 在地图上找地址",pinT:"确认送餐位置",pinFound:"图钉放在你填的地址附近。请把图钉拖到（或直接点）你家门口的正确位置，再按确认。",pinNotFound:"地图上找不到你填的地址，图钉先放在分店。请把地图移到你家附近，点一下或把图钉拖到你家门口。",pinOk:"确认这个位置",pinDist:"📍 离「{o}」路程约 {km} km → 运费 {z}",delGeoLblPin:"送餐定位（客人在地图确认）",needConfirmAddr:"请先在地图上定好送餐位置（搜索地址、按 ◎ 定位或移动地图）",geoAddrOk:"✅ 离{o}路程约 {km} km → {z}（图钉不准可以拖动调整）",geoAddrFail:"地图上找不到这个地址。请写清楚路名+邮区再按「确认地址」，或在上面自己选配送范围（店员会核对）",geoAddrChanged:"地址改了，请再按一次「确认地址」",geoPostcode:"（只找到邮区，距离是大概的，店员会核对）",delGeoLblAddr:"送餐定位（按地址估算）",geoDenied:"没有定位权限，请自己选配送范围",geoFail:"定位失败，请再试一次或自己选配送范围",geoLowAcc:"（定位精度约 ±{m} 米，可能不准）",geoManual:"不在送餐地址？改成自己选",delGeoLbl:"送餐定位",delGeoKm:"离分店路程约 {km} km，直线×1.3估算",freeAbove:"满 {x} 免运费",delAddr:"送餐地址",delAddrPh:"门牌号码、路名、花园/住宅区、邮区",delZone:"配送范围（离所选分店）",delDate:"送达日期",delTime:"送达时间",needAddr:"请填写完整送餐地址",mapSearchPh:"🔍 搜索地址（大楼、花园、路名）",mapTip:"移动地图到您的门口",mapLoc:"显示我目前的位置",useCenter:"📍 使用定位点处的地址",unitLbl:"单元 / 门牌号",unitPh:"例如 A-12-3、No. 25、几楼（方便外送员找）",mapHint:"搜索地址、按地图右下角 ◎ 用目前位置，或移动地图把红色图钉对准您的门口。",outArea:"这个位置不在外送范围内（只送雪隆区和芙蓉区）。",outRange:"超出外送范围",revFail:"找不到这个位置的地址，请在下面自己填写。",addrFilled:"已填入地址，请补上单元/门牌号 ✓",etaNeed:"在地图上定好送餐位置后，会显示预计送达时间。",etaLine:"预计准备 {p1}–{p2} 分钟 + 配送约 {r1}–{r2} 分钟，大约 {a}–{b} 送达（预计时间，以实际为准）",etaLbl:"预计送达",etaShort:"准备 {p1}–{p2} 分钟 + 配送约 {r1}–{r2} 分钟",delClosed:"外送只在营业时间接单，现在没有营业。下次营业：{n}",custOpts:"口味要求（可多选）",custOther:"其他要求",custOtherPh:"例如：鱼头要大一点、酱汁另外装",custPer:"份",custAdd:"加入购物车",custInclBox:"已含打包盒费用",delPriceTag:"外送价",delPriceShort:"外送",pickupOnly:"只限自取",delOnlyAt:"外送目前只限：{o}",opickDelT:"请选择外送分店",delNotHere:"这间分店暂时只限自取。外送请选：{o}",svcDel:"外送 + 自取",gSugHint:"选了建议地址后，请补上门牌 / 单位号",gSugNone:"找不到？直接写完整地址也可以",delMin:"外送最低消费 {x}",payCod:"货到付款",payCodHint:"送到时付款给送餐员。",waOrderDel:"【网上点餐 - 外送】",payTitle:"付款方式",payNow:"现在转账付款",payCounter:"到店取餐时付款",payAmount:"应付金额",payQrHint:"用任何银行 App / TNG / GrabPay 扫码付款",payBank:"银行",payAccName:"户口名",payAccNo:"户口号码",copy:"复制",copied:"已复制",payAfter:"付款后，请在 WhatsApp 把付款收据截图一起发给我们，店员核对后确认订单。",payCounterHint:"取餐时在柜台付款。",payMethod:"付款方式",payNowWa:"已转账 {x}（收据截图随后附上）",vTitle:"兑换优惠码",vSub:"输入店家给你的优惠码，网上点餐时自动扣除",vPh:"输入优惠码",vRedeem:"兑换",vApplied:"优惠码已套用",vInvalid:"优惠码无效，请检查是否输入正确",vExpired:"此优惠码已过期或尚未开始",vError:"此浏览器无法验证优惠码，请换浏览器或告诉店员",vMin:"满",vNeed:"再加 {x} 就能使用此优惠",vHow:"已套用，网上点餐结账时会自动扣除；店员会在 WhatsApp 核对优惠码。",subtotal:"小计",vCodeLbl:"优惠码",vNotMet:"未达最低消费",askPrice:"请向店员询价",prep:"做法",menuPhoto:"纸本菜单",
       needName:"请填写姓名",needPhone:"请填写有效电话号码",needTime:"请选择时间",needItems:"购物车是空的",
       paxMore:"超过 {n} 位请直接打电话订位",bkLead:"最少提前 {h} 小时订位",bkLate:"这个时间已经不能订了（要提前 {h} 小时），请重新选择",
       waNote:"送出后店员会在 WhatsApp 回复确认，确认后才算成功。",
@@ -510,7 +519,7 @@ const T = {
       name:"Name",phone:"Phone",date:"Date",time:"Time",pax:"Guests",remark:"Remarks (optional)",remarkPh:"e.g. baby chair needed",
       sendWa:"Send via WhatsApp",noSlot:"No available time on this day",
       cart:"My Order",empty:"Your cart is empty — pick something from the menu!",total:"Total",pickupDate:"Pickup date",pickupTime:"Pickup time",
-      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",payAutoWa:"Transferred {x} (payment confirmed by store)",psCreating:"Creating your order…",psWaitT:"Waiting for the store to confirm your payment…",psWaitB:"After paying, stay on this page (you can switch to your TNG / banking app and come back). Once we confirm the payment, WhatsApp opens automatically with your order.",psRejT:"We could not confirm this payment",psTimeoutT:"No confirmation yet",psContact:"Please WhatsApp us with your payment screenshot and reference.",psContactBtn:"WhatsApp the store",psHelpMsg:"Hi, I ordered online and paid {x}, reference {r}, but have not received confirmation. Could you please check?",psPaidT:"Payment confirmed!",psPaidB:"Opening WhatsApp to send your order… If it does not open, tap the button below.",psOpenWa:"Open WhatsApp to send order",psLeaveWarn:"If you close this, WhatsApp will not open automatically. If you have paid, please stay and wait for confirmation. Close anyway?",checkoutPay:"Order & pay",payNextHint:"Tap “Order & pay” to see the QR code and bank details, then send your order after paying.",psTitle:"Payment",psStep1:"Confirm order",psStep2:"Scan & pay",psStep3:"Send order",psRef:"Reference",psRefHint:"Please put this reference in your transfer note so we can match your payment.",psSaveQr:"Save QR image",psPaid:"I have paid {x}",psSend:"Paid — send order via WhatsApp",psAfter:"After sending, attach your payment screenshot in WhatsApp; we will confirm after checking.",psSentT:"Order sent to WhatsApp",psSentB:"Please attach your payment screenshot in the WhatsApp chat — we will confirm after checking. If WhatsApp did not open, tap below to try again.",psReopen:"Open WhatsApp again",psFinish:"Done",psThanks:"Thank you! Order sent",exSst:"(excl. SST)",inclSst:"Total includes {x}",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",opickT:"Choose an outlet",opickPickT:"Choose your pickup outlet",payNotReady:"Online ordering is paused while we set up payment. Please call or WhatsApp us to order.",prepayRule:"To avoid food waste, all pickup and delivery orders must be paid first. Your order is sent after payment.",farT:"Too far for this outlet",farB:"Your delivery address is about {km} km from {o}, beyond our {max} km delivery limit.",farSuggest:"Nearer outlets that can deliver (tap to switch)",farKm:"about {km} km",farNone:"Sorry, your address is more than {max} km from all our outlets, so delivery is not available.",farPickup:"Switch to pickup",opickLast:"Last used",perKmLbl:"from {x} (+{p}/km, needs location)",geoTooFar:"About {km} km from this outlet — beyond our {max} km delivery limit.",geoNearest:"Nearest outlet: {o} (about {km} km) — you can switch above.",needGeoKm:"This range is priced by distance — please use your location or the address button",opickS:"Your pickup / delivery order will be prepared by this outlet. You can change it later in the cart.",opickDone:"Outlet selected: {o}",geoBtn:"📍 Use my current location",geoAgain:"📍 Locate again",geoWait:"Locating…",geoHint:"Type your delivery address and the pin will drop on it. If it\u2019s off, drag the pin to your door. The fee is calculated from the distance.",geoOk:"Located: about {km} km from {o} → {z}",geoNoOutlet:"Located — please choose an outlet",geoNoCoord:"Couldn\'t find this outlet on the map — please choose the range (our staff will verify)",geoCalc:"Calculating distance…",geoAddrBtn:"📍 Find address on map",pinT:"Confirm delivery location",pinFound:"The pin is near the address you typed. Drag it (or tap the map) to your exact door, then confirm.",pinNotFound:"We couldn\u2019t find your address, so the pin starts at the outlet. Move the map to your area and tap or drag the pin to your door.",pinOk:"Confirm this location",pinDist:"About {km} km by road from {o} → {z}",delGeoLblPin:"Delivery location (pinned on map)",needConfirmAddr:"Please confirm your delivery location on the map first",geoAddrOk:"✅ Address confirmed: about {km} km by road from {o} → {z}",geoAddrFail:"Couldn\'t find this address on the map. Add the street name + postcode and confirm again, or choose the range above (our staff will verify)",geoAddrChanged:"Address changed — tap “Confirm address” again",geoPostcode:"(only the postcode was found, distance is approximate — our staff will verify)",delGeoLblAddr:"Delivery location (from address)",geoDenied:"Location permission denied — please choose the range yourself",geoFail:"Couldn't get your location — try again or choose the range yourself",geoLowAcc:"(accuracy about ±{m} m, may be off)",geoManual:"Not at the delivery address? Choose manually",delGeoLbl:"Delivery location",delGeoKm:"approx. {km} km by road from outlet, estimated",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",custOpts:"Preferences (choose any)",custOther:"Other requests",custOtherPh:"e.g. sauce on the side",custPer:"portion",custAdd:"Add to cart",custInclBox:"Takeaway box included",delPriceTag:"delivery price",delPriceShort:"Delivery",pickupOnly:"Pickup only",delOnlyAt:"Delivery currently available from: {o}",opickDelT:"Choose a delivery outlet",delNotHere:"This outlet is pickup only for now. For delivery, choose: {o}",svcDel:"Delivery + pickup",gSugHint:"After picking a suggestion, please add your unit / house number",gSugNone:"Not listed? Just type your full address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
+      checkout:"Order via WhatsApp",clear:"Clear",viewCart:"View order",soldOut:"Sold out",added:"Added",season:"Market price",payAutoWa:"Transferred {x} (payment confirmed by store)",psCreating:"Creating your order…",psWaitT:"Waiting for the store to confirm your payment…",psWaitB:"After paying, stay on this page (you can switch to your TNG / banking app and come back). Once we confirm the payment, WhatsApp opens automatically with your order.",psRejT:"We could not confirm this payment",psTimeoutT:"No confirmation yet",psContact:"Please WhatsApp us with your payment screenshot and reference.",psContactBtn:"WhatsApp the store",psHelpMsg:"Hi, I ordered online and paid {x}, reference {r}, but have not received confirmation. Could you please check?",psPaidT:"Payment confirmed!",psPaidB:"Opening WhatsApp to send your order… If it does not open, tap the button below.",psOpenWa:"Open WhatsApp to send order",psLeaveWarn:"If you close this, WhatsApp will not open automatically. If you have paid, please stay and wait for confirmation. Close anyway?",checkoutPay:"Order & pay",payNextHint:"Tap “Order & pay” to see the QR code and bank details, then send your order after paying.",psTitle:"Payment",psStep1:"Confirm order",psStep2:"Scan & pay",psStep3:"Send order",psRef:"Reference",psRefHint:"Please put this reference in your transfer note so we can match your payment.",psSaveQr:"Save QR image",psPaid:"I have paid {x}",psSend:"Paid — send order via WhatsApp",psAfter:"After sending, attach your payment screenshot in WhatsApp; we will confirm after checking.",psSentT:"Order sent to WhatsApp",psSentB:"Please attach your payment screenshot in the WhatsApp chat — we will confirm after checking. If WhatsApp did not open, tap below to try again.",psReopen:"Open WhatsApp again",psFinish:"Done",psThanks:"Thank you! Order sent",exSst:"(excl. SST)",inclSst:"Total includes {x}",tapZoom:"tap to enlarge",lbHint:"Swipe for next page · tap image to zoom",dishes:"dishes",inCart:"In cart",otPickup:"Pickup",otDelivery:"Delivery",delFee:"Delivery fee",free:"Free",pickZone:"Choose delivery range",opickT:"Choose an outlet",opickPickT:"Choose your pickup outlet",payNotReady:"Online ordering is paused while we set up payment. Please call or WhatsApp us to order.",prepayRule:"To avoid food waste, all pickup and delivery orders must be paid first. Your order is sent after payment.",farT:"Too far for this outlet",farB:"Your delivery location is about {km} km from {o}, beyond our {max} km delivery radius.",farSuggest:"Nearer outlets that can deliver (tap to switch)",farKm:"about {km} km",farNone:"Sorry, your location is more than {max} km from all our delivery outlets. You can choose pickup instead.",farPickup:"Switch to pickup",opickLast:"Last used",perKmLbl:"from {x} (+{p}/km, needs location)",geoTooFar:"About {km} km from this outlet — beyond our {max} km delivery radius. Please choose another outlet.",geoNearest:"Nearest outlet: {o} (about {km} km) — you can switch above.",needGeoKm:"This range is priced by distance — please use your location or the address button",opickS:"Your pickup / delivery order will be prepared by this outlet. You can change it later in the cart.",opickDone:"Outlet selected: {o}",geoBtn:"📍 Use my current location",geoAgain:"📍 Locate again",geoWait:"Locating…",geoHint:"Type your delivery address and the pin will drop on it. If it\u2019s off, drag the pin to your door. The fee is calculated from the distance.",geoOk:"Located: about {km} km from {o} → {z}",geoNoOutlet:"Located — please choose an outlet",geoNoCoord:"Couldn\'t find this outlet on the map — please choose the range (our staff will verify)",geoCalc:"Calculating distance…",geoAddrBtn:"📍 Find address on map",pinT:"Confirm delivery location",pinFound:"The pin is near the address you typed. Drag it (or tap the map) to your exact door, then confirm.",pinNotFound:"We couldn\u2019t find your address, so the pin starts at the outlet. Move the map to your area and tap or drag the pin to your door.",pinOk:"Confirm this location",pinDist:"📍 About {km} km by road from {o} → delivery fee {z}",delGeoLblPin:"Delivery location (pinned on map)",needConfirmAddr:"Please set your delivery location on the map first",geoAddrOk:"✅ Address confirmed: about {km} km by road from {o} → {z}",geoAddrFail:"Couldn\'t find this address on the map. Add the street name + postcode and confirm again, or choose the range above (our staff will verify)",geoAddrChanged:"Address changed — tap “Confirm address” again",geoPostcode:"(only the postcode was found, distance is approximate — our staff will verify)",delGeoLblAddr:"Delivery location (from address)",geoDenied:"Location permission denied — please choose the range yourself",geoFail:"Couldn't get your location — try again or choose the range yourself",geoLowAcc:"(accuracy about ±{m} m, may be off)",geoManual:"Not at the delivery address? Choose manually",delGeoLbl:"Delivery location",delGeoKm:"approx. {km} km by road from outlet, estimated",freeAbove:"Free delivery above {x}",delAddr:"Delivery address",delAddrPh:"Unit no., street, area, postcode",delZone:"Delivery range (from chosen outlet)",delDate:"Delivery date",delTime:"Delivery time",needAddr:"Please enter your full delivery address",mapSearchPh:"🔍 Search address (building, area, street)",mapTip:"Move the map to your door",mapLoc:"Show my current location",useCenter:"📍 Use address at pin",unitLbl:"Unit / house no.",unitPh:"e.g. A-12-3, No. 25, floor (helps the rider)",mapHint:"Search your address, tap ◎ at the bottom right to use your location, or move the map until the red pin is on your door.",outArea:"This location is outside our delivery area (Klang Valley and Seremban only).",outRange:"out of range",revFail:"Couldn't find an address here, please type it below.",addrFilled:"Address filled in — please add your unit / house no. ✓",etaNeed:"Set your delivery location on the map to see the estimated arrival time.",etaLine:"Preparation {p1}–{p2} min + delivery about {r1}–{r2} min, arriving around {a}–{b} (estimate only)",etaLbl:"Estimated arrival",etaShort:"prep {p1}–{p2} min + delivery about {r1}–{r2} min",delClosed:"Delivery is only available during opening hours. We are closed now. Next opening: {n}",custOpts:"Preferences (choose any)",custOther:"Other requests",custOtherPh:"e.g. sauce on the side",custPer:"portion",custAdd:"Add to cart",custInclBox:"Takeaway box included",delPriceTag:"delivery price",delPriceShort:"Delivery",pickupOnly:"Pickup only",delOnlyAt:"Delivery currently available from: {o}",opickDelT:"Choose a delivery outlet",delNotHere:"This outlet is pickup only for now. For delivery, choose: {o}",svcDel:"Delivery + pickup",gSugHint:"After picking a suggestion, please add your unit / house number",gSugNone:"Not listed? Just type your full address",delMin:"Minimum order for delivery is {x}",payCod:"Cash on delivery",payCodHint:"Pay the rider on delivery.",waOrderDel:"[Online Order - Delivery]",payTitle:"Payment",payNow:"Pay now (transfer)",payCounter:"Pay at pickup",payAmount:"Amount to pay",payQrHint:"Scan with any banking app / TNG / GrabPay",payBank:"Bank",payAccName:"Account name",payAccNo:"Account no.",copy:"Copy",copied:"Copied",payAfter:"After paying, please send your receipt screenshot on WhatsApp — we confirm the order after checking it.",payCounterHint:"Pay at the counter when you pick up.",payMethod:"Payment",payNowWa:"Transferred {x} (receipt screenshot to follow)",vTitle:"Redeem a voucher",vSub:"Enter your voucher code — it is applied automatically to your online order",vPh:"Voucher code",vRedeem:"Redeem",vApplied:"Voucher applied",vInvalid:"Invalid code, please check and try again",vExpired:"This voucher has expired or is not active yet",vError:"This browser cannot verify vouchers — please try another browser or tell our staff",vMin:"min. spend",vNeed:"Add {x} more to use this voucher",vHow:"Applied — the discount is deducted at checkout; our staff will verify the code on WhatsApp.",subtotal:"Subtotal",vCodeLbl:"Voucher",vNotMet:"minimum spend not met",askPrice:"Ask staff for price",prep:"Preparation",menuPhoto:"Printed menu",
       needName:"Please enter your name",needPhone:"Please enter a valid phone number",needTime:"Please choose a time",needItems:"Your cart is empty",
       paxMore:"For more than {n} guests, please call us",bkLead:"Please book at least {h} hours ahead",bkLate:"This time is no longer available (book {h} hours ahead), please choose again",
       waNote:"We'll reply on WhatsApp to confirm — it's only confirmed after our reply.",
@@ -698,7 +707,7 @@ window.__site = {
   cat:(i)=>{ if(openCats.has(i)) openCats.delete(i); else { openCats.add(i); justOpened=i; } renderMenu(); if(openCats.has(i)){ const el=$("cat-"+i); const top=el.getBoundingClientRect().top; if(top<110||top>window.innerHeight-80) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"}); } },
   otype:(v)=>{ const was=orderType; orderType=(v==="delivery"&&DEL())?"delivery":"pickup"; store.set("site_otype",orderType); refreshCart();
     if(orderType==="pickup"&&was!=="pickup"&&outlets().length) openOutletPick(null,"opickPickT");
-    else if(orderType==="delivery"&&was!=="delivery"&&outlets().length&&!delOK(curOutlet)) openOutletPick(null,"opickDelT"); },   /* 切到外卖：所选分店不送外卖就请客人改选 */   /* 切到自取：先选取餐分店 */
+    else if(orderType==="delivery"&&was!=="delivery"&&delGeo) setGeo(delGeo.lat,delGeo.lng); },   /* 切到自取：先选取餐分店；切到外送：按送餐位置自动选最近的外送分店（没位置就等客人在地图定位） */
   pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); if($("od_send")) $("od_send").innerHTML=sendLabel(oi); },
   psClose:()=>closePayStep(), psCheck:(v)=>{ $("psSend").disabled=!v; }, psSend:()=>payStepSend(), psDone:()=>payStepDone(), psResend:()=>{ if(payPending) openWa(payPending.msg,payPending.oi); },
   copy:(txt)=>{ const done=()=>toast(t("copied")+" ✓"); try{ navigator.clipboard.writeText(txt.replace(/\s|-/g,"")).then(done,()=>prompt(t("copy"),txt)); }catch(e){ prompt(t("copy"),txt); } },
@@ -748,7 +757,8 @@ const wazeLink = (addr, custom) => custom || ("https://waze.com/ul?q="+encodeURI
 const outletMap = o => o.map || ("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((S.nameEn||S.name||"")+" "+o.address));
 const outletLabel = o => (lang==="en"&&o.nameEn)?o.nameEn:o.name;
 function outletOptions(sel,forDel){
-  return `<option value="">${esc(t("chooseOutlet"))}</option>`+outlets().map((o,i)=>{ const no=forDel&&!delOK(i); return `<option value="${i}" ${String(i)===String(sel)&&!no?"selected":""}${no?" disabled":""}>${esc(L(o,"region")?L(o,"region")+" · ":"")}${esc(outletLabel(o))}${no?` (${esc(t("pickupOnly"))})`:""}</option>`; }).join("");
+  return `<option value="">${esc(t("chooseOutlet"))}</option>`+outlets().map((o,i)=>{ const no=forDel&&!delOK(i), ll=forDel&&!no&&delGeo?outletLL(i):null, far=!!ll&&roadKm(delGeo.lat,delGeo.lng,ll.lat,ll.lng)>delMaxKm(), off=no||far;   /* 外送：超出半径的分店也不能选 */
+    return `<option value="${i}" ${String(i)===String(sel)&&!off?"selected":""}${off?" disabled":""}>${esc(L(o,"region")?L(o,"region")+" · ":"")}${esc(outletLabel(o))}${no?` (${esc(t("pickupOnly"))})`:far?` (${esc(t("outRange"))})`:ll?` · ${roadKm(delGeo.lat,delGeo.lng,ll.lat,ll.lng).toFixed(1)} km`:""}</option>`; }).join("");
 }
 function renderOutlets(){
   const os=outlets(); $("outlets").hidden=!os.length; if(!os.length) return;
@@ -821,7 +831,9 @@ const roadF = () => { const f=DEL()&&+DEL().roadFactor; return f>=1&&f<=3?f:1; }
 const roadKm = (a,b,c,d) => kmBetween(a,b,c,d)*roadF();
 const geoKm = oi => { const o=outletLL(oi); return delGeo&&o ? roadKm(delGeo.lat,delGeo.lng,o.lat,o.lng) : null; };
 /* 距离 → 第几档；超过 delivery.maxKm 回传 -1（不送） */
-const delMaxKm = () => { const d=DEL(); return d&&typeof d.maxKm==="number"?d.maxKm:Infinity; };
+const delMaxKm = () => { const d=DEL(); return !d?Infinity:typeof d.radiusKm==="number"?d.radiusKm*roadF():typeof d.maxKm==="number"?d.maxKm:Infinity; };
+/* 外送半径（直线 km，2026-10-26 业主：半径 10km 才送）；运费档仍按估算路程（直线×roadFactor） */
+const delRadius = () => { const d=DEL(); return d&&typeof d.radiusKm==="number"?d.radiusKm:Math.round(delMaxKm()/roadF()*10)/10; };
 function zoneForKm(km){ if(km>delMaxKm()) return -1; const zs=(DEL()&&DEL().zones)||[]; const i=zs.findIndex(z=>typeof z.maxKm==="number"&&km<=z.maxKm); return i<0?zs.length-1:i; }
 /* 某档的运费：有 perKm 的档（10km 以上）= 底价 + 超出 perKmFrom 的每 km（不足 1km 算 1km）× perKm */
 const zoneFee = (z,km) => !z ? 0 : (z.fee||0) + (z.perKm&&km!=null ? Math.max(0,Math.ceil(Math.round((km-(z.perKmFrom||0))*100)/100))*z.perKm : 0);
@@ -840,9 +852,9 @@ function farCheck(oi){
   const cur=outlets().length?outlets()[+oi]:null, ok=outletsByDist().filter(x=>x.km<=delMaxKm()).slice(0,3);
   $("opick").innerHTML=`<div class="psbox opbox" role="dialog" aria-modal="true">
     <div class="pshead"><b>🛵 ${esc(t("farT"))}</b><button type="button" class="lbx dark" id="opx" aria-label="close">✕</button></div>
-    <p style="margin:0">${esc(t("farB").replace("{o}",cur?outletLabel(cur):"").replace("{km}",delFar.toFixed(1)).replace("{max}",delMaxKm()))}</p>
-    ${ok.length?`<div class="opreg">📍 ${esc(t("farSuggest"))}</div><div class="oplist">${ok.map(x=>{ const z=(DEL().zones||[])[zoneForKm(x.km)]; return `<button type="button" class="opbtn" data-i="${x.i}"><b>${esc(outletLabel(x.o))} · ${esc(t("farKm").replace("{km}",x.km.toFixed(1)))}${z?` · ${esc(t("delFee"))} ${money(zoneFee(z,x.km))}`:""}</b><small>${esc(x.o.address||"")}</small></button>`; }).join("")}</div>`
-      :`<p class="note" style="margin:10px 0 0">${esc(t("farNone").replace("{max}",delMaxKm()))}</p>`}
+    <p style="margin:0">${esc(t("farB").replace("{o}",cur?outletLabel(cur):"").replace("{km}",(delFar/roadF()).toFixed(1)).replace("{max}",delRadius()))}</p>
+    ${ok.length?`<div class="opreg">📍 ${esc(t("farSuggest"))}</div><div class="oplist">${ok.map(x=>{ const z=(DEL().zones||[])[zoneForKm(x.km)]; return `<button type="button" class="opbtn" data-i="${x.i}"><b>${esc(outletLabel(x.o))} · ${esc(t("farKm").replace("{km}",(x.km/roadF()).toFixed(1)))}${z?` · ${esc(t("delFee"))} ${money(zoneFee(z,x.km))}`:""}</b><small>${esc(x.o.address||"")}</small></button>`; }).join("")}</div>`
+      :`<p class="note" style="margin:10px 0 0">${esc(t("farNone").replace("{max}",delRadius()))}</p>`}
     <button type="button" class="btn alt" id="farPickup" style="margin-top:12px;width:100%">🛍️ ${esc(t("farPickup"))}</button>
   </div>`;
   $("opick").classList.add("show"); document.body.style.overflow="hidden";
@@ -853,40 +865,6 @@ function farCheck(oi){
     ensureOutletLL(v).then(()=>{ applyGeoZone(v); refreshCart(); toast(t("opickDone").replace("{o}",outletLabel(outlets()[+v]))); }); });
 }
 function nearestOutlet(){ if(!delGeo) return null; let best=null; outlets().forEach((o,i)=>{ const ll=hasLL(o)?o:o._ll; if(!ll||!delOK(i)) return; const k=roadKm(delGeo.lat,delGeo.lng,ll.lat,ll.lng); if(!best||k<best.km) best={o,i,km:k}; }); return best; }
-/* 2026-10-18 业主：不用手机定位，只按客人填的地址算（「📍 确认地址」）。查不到地址才让客人自己选范围 */
-const geoOn = () => !!(DEL()&&DEL().autoDistance);
-let addrFail = false;
-function geoBoxHTML(oi){
-  if(!geoOn()) return "";
-  const km=geoKm(oi), z=delZoneObj(), o=outlets().length?outlets()[+oi]:null;
-  let m=geoMsg;
-  if(delGeo){
-    if(outlets().length&&(oi===""||oi===undefined)) m=t("geoNoOutlet");
-    else if(km==null) m=t("geoNoCoord");
-    else if(delFar!=null){ const n=nearestOutlet(); m=t("geoTooFar").replace("{km}",km.toFixed(1)).replace("{max}",delMaxKm()); if(n&&n.km<=delMaxKm()&&String(n.i)!==String(oi)) m+=" "+t("geoNearest").replace("{o}",outletLabel(n.o)).replace("{km}",n.km.toFixed(1)); }
-    else m=t("geoOk").replace("{o}",o?outletLabel(o):L(S,"name")).replace("{km}",km.toFixed(1)).replace("{z}",z?`${L(z,"label")} · ${money(zoneFee(z,km))}`:"");
-    if(delGeo.src!=="gps"&&km!=null&&delFar==null) m=t("geoAddrOk").replace("{km}",km.toFixed(1)).replace("{z}",z?`${L(z,"label")} · ${money(zoneFee(z,km))}`:"").replace("{o}",o?outletLabel(o):L(S,"name"));
-    if(delGeo.lvl==="postcode") m+=" "+t("geoPostcode");
-    else if(delGeo.acc>300) m+=" "+t("geoLowAcc").replace("{m}",Math.round(delGeo.acc));
-  }
-  return `<div class="full geobox"><button type="button" class="btn" id="od_geoaddr">${esc(t("geoAddrBtn"))}</button>
-    <div class="note" id="od_geomsg">${esc(m||t(addrFail?"geoAddrFail":"geoHint"))}</div></div>`;
-}
-function locateMe(){
-  const oi=$("od_outlet")?$("od_outlet").value:undefined;
-  geoMsg=t("geoWait"); if($("od_geomsg")) $("od_geomsg").textContent=geoMsg; if($("od_geo")) $("od_geo").disabled=true;
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    delGeo={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy||0,src:"gps"}; geoMsg="";
-    if($("od_geomsg")) $("od_geomsg").textContent=t("geoCalc");
-    await ensureOutletLL(oi); applyGeoZone(oi); refreshCart(); farCheck(oi);
-  },err=>{
-    geoMsg=t(err&&err.code===1?"geoDenied":"geoFail");
-    if($("od_geomsg")) $("od_geomsg").textContent=geoMsg; if($("od_geo")) $("od_geo").disabled=false;
-  },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
-}
-/* 按客人填的送餐地址算（不在送餐地址、或不想开定位时用）。地址查不到就请客人自己选 */
-/* 「确认地址」：先用地址查大概位置 → 跳出地图，客人把图钉拖到自己门口再确认（最准，免费）。
-   地图载不到（离线/被挡）才退回「用地址查到的位置」；地址也查不到就让客人自己选范围。 */
 let leafletP=null;
 function loadLeaflet(){
   if(window.L&&window.L.map) return Promise.resolve();   /* Leaflet 的全局 L 跟本页的 L()（中英文字）同名，所以一律用 window.L */
@@ -896,33 +874,6 @@ function loadLeaflet(){
     const sc=document.createElement("script"); sc.src="vendor/leaflet/leaflet.js"; sc.onload=()=>res(); sc.onerror=()=>{ leafletP=null; rej(new Error("leaflet")); }; document.head.appendChild(sc);
   });
   return leafletP;
-}
-/* 购物车里直接显示地图（不跳视窗）：客人填好地址 → 自动查位置 → 图钉放在地址上；
-   图钉不准就拖到自家门口（或点地图），放开那一下就算确认，运费立刻重算。
-   地图元素放在购物车外面一直保留（pinWrap），购物车每次重绘后再搬回 #pinslot，图钉位置不会跑掉。 */
-let pinWrap=null, pinMap=null, pinMk=null, pinOutletMk=null, pinFor="", pinBusy=false, pinAuto="";
-const curOi = () => $("od_outlet")?$("od_outlet").value:undefined;
-function updPinInfo(){
-  if(!pinMk||!$("pininfo")) return;
-  const p=pinMk.getLatLng(), oi=curOi(), ol=outletLL(oi), o=outlets().length?outlets()[+oi]:null;
-  if(!ol){ $("pininfo").textContent=""; return; }
-  const km=roadKm(p.lat,p.lng,ol.lat,ol.lng), zi=zoneForKm(km), z=zi>=0?(DEL().zones||[])[zi]:null;
-  $("pininfo").textContent = z ? t("pinDist").replace("{o}",o?outletLabel(o):"").replace("{km}",km.toFixed(1)).replace("{z}",`${L(z,"label")} · ${money(zoneFee(z,km))}`) : t("geoTooFar").replace("{km}",km.toFixed(1)).replace("{max}",delMaxKm());
-}
-function mountPin(){
-  const slot=$("pinslot"); if(!slot||!pinWrap||!pinMap) return;
-  slot.appendChild(pinWrap); slot.hidden=false;
-  const ol=outletLL(curOi());
-  if(ol){ if(pinOutletMk) pinOutletMk.setLatLng([ol.lat,ol.lng]);
-    else if(pinMap.g){ const gm=google.maps, mk=new gm.Marker({map:pinMap.g,position:{lat:ol.lat,lng:ol.lng},clickable:false,icon:{path:gm.SymbolPath.CIRCLE,scale:7,fillColor:"#F2B417",fillOpacity:1,strokeColor:"#B4232A",strokeWeight:3}});
-      pinOutletMk={setLatLng:x=>mk.setPosition({lat:x[0],lng:x[1]})}; }
-    else pinOutletMk=window.L.circleMarker([ol.lat,ol.lng],{radius:7,color:"#B4232A",fillColor:"#F2B417",fillOpacity:1,weight:3}).addTo(pinMap); }
-  setTimeout(()=>{ if(pinMap) pinMap.invalidateSize(); },40); updPinInfo();
-}
-function pinPlaced(){
-  if(!pinMk) return; const p=pinMk.getLatLng(), oi=curOi(); if(pinMap) pinMap.panTo(p);
-  delGeo={lat:p.lat,lng:p.lng,acc:0,src:"pin",addr:pinFor}; addrFail=false; geoMsg="";
-  applyGeoZone(oi); refreshCart(); farCheck(oi);
 }
 /* ---------- Google 地址建议 + 地址转坐标（2026-10-26）----------
  * config.js 的 googleMaps.apiKey 有填才启用；没填或载不到，就照旧用免费的 OpenStreetMap（geo.js）。
@@ -956,103 +907,169 @@ async function gGeocode(addr){
     return {lat:x.geometry.location.lat(),lng:x.geometry.location.lng(),lvl,name:x.formatted_address||""};
   }catch(e){ return null; }
 }
-function wireAddrSug(ta){
-  const box=$("addrSug"); if(!box||ta._gSug) return; ta._gSug=true;
+/* 送餐服务范围（config.js 的 delivery.area）：查到范围外的位置当作「找不到」，让客人自己把图钉拖到家门口 */
+function svcArea(){ const a=DEL()&&DEL().area; return a&&[a.n,a.s,a.e,a.w].every(x=>typeof x==="number")?a:null; }
+const inArea = (lat,lng) => { const A=svcArea(); return !A || (lat<=A.n&&lat>=A.s&&lng<=A.e&&lng>=A.w); };
+/* ---------- 外送地址地图（2026-10-26 业主：照 Grab 那种「移动地图到您的门口」）----------
+ * 地图中间固定一个图钉：客人搜索地址 / 按右下角 ◎ 定位 / 拖动地图，图钉对准的位置就是送餐位置；
+ * 按「使用定位点处的地址」把那个位置的地址填进地址栏。位置一确定，就自动改用最近、在外送半径内的分店。
+ * 地图元素 pinWrap 放在购物车外面一直保留，购物车每次重绘后再搬回 #pinslot。 */
+const geoOn = () => !!(DEL()&&DEL().autoDistance);
+let addrFail = false;
+let pinWrap=null, pinMap=null, pinSet=false, mapFail=false, mapBusy=false, autoLocTried=false;
+const curOi = () => $("od_outlet")?$("od_outlet").value:curOutlet;
+const PIN_SVG='<svg width="34" height="46" viewBox="0 0 30 42" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 41 15 41s14-15.7 14-26.1C29 7.2 22.7 1 15 1z" fill="#B4232A" stroke="#7A1218" stroke-width="2"/><circle cx="15" cy="15" r="5.5" fill="#fff"/></svg>';
+function setGeoMsg(m){ geoMsg=m; if($("od_geomsg")) $("od_geomsg").textContent=m||pinInfoText(); }
+function pinInfoText(){
+  if(!delGeo) return t(mapFail?"geoAddrFail":"mapHint");
+  const n=nearestOutlet();
+  if(!n||n.km>delMaxKm()) return t("farNone").replace("{max}",delRadius());
+  const oi=curOi(), km=geoKm(oi), o=outlets().length?outlets()[+oi]:null, z=delZoneObj();
+  if(km==null) return t("geoNoOutlet");
+  if(delFar!=null) return t("geoTooFar").replace("{km}",(km/roadF()).toFixed(1)).replace("{max}",delRadius());
+  return t("pinDist").replace("{o}",o?outletLabel(o):L(S,"name")).replace("{km}",km.toFixed(1)).replace("{z}",z?money(zoneFee(z,km)):"");
+}
+/* 送餐位置定了：存草稿、自动选最近的外送分店、算运费 */
+function setGeo(lat,lng){
+  delGeo={lat,lng,acc:0,src:"pin"}; geoMsg="";
+  const n=nearestOutlet(); if(n&&n.km<=delMaxKm()&&String(n.i)!==curOutlet){ setOutlet(n.i); if($("od_outlet")) $("od_outlet").value=curOutlet; }
+  applyGeoZone(curOutlet); saveOdDraft(); refreshCart(); if(delFar!=null) farCheck(curOutlet);
+}
+function mountPin(){
+  const slot=$("pinslot"); if(!slot||!pinWrap) return;
+  if(pinWrap.parentNode!==slot) slot.appendChild(pinWrap);
+  $("mapq").placeholder=t("mapSearchPh"); $("cptip").textContent=t("mapTip"); $("mloc").title=t("mapLoc"); $("mloc").setAttribute("aria-label",t("mapLoc"));
+  if(pinMap) setTimeout(()=>{ if(pinMap) pinMap.resize(); },40);
+}
+async function ensureMap(){
+  if(!isDel()||!$("pinslot")) return;
+  if(!pinWrap){
+    pinWrap=document.createElement("div"); pinWrap.className="pinwrap";
+    pinWrap.innerHTML=`<div id="pinmap"></div><div class="msearch"><input id="mapq" type="search" autocomplete="off" enterkeyhint="search"><div class="addrsug" id="addrSug" hidden></div></div><div class="cpin"><span class="cptip" id="cptip"></span>${PIN_SVG}</div><button type="button" class="mloc" id="mloc"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="2"/></svg></button>`;
+    $("drawer").appendChild(pinWrap); wireMapUI();
+  }
+  mountPin();
+  if(pinMap||mapBusy||mapFail) return;
+  mapBusy=true;
+  const ol=outletLL(curOi()), start=delGeo?[delGeo.lat,delGeo.lng]:(ol?[ol.lat,ol.lng]:[3.1,101.65]), zm=delGeo?18:13, el=pinWrap.querySelector("#pinmap");
+  const gm=await loadGoogle();
+  if(gm&&gm.Map){
+    const m=new gm.Map(el,{center:{lat:start[0],lng:start[1]},zoom:zm,disableDefaultUI:true,zoomControl:true,zoomControlOptions:{position:gm.ControlPosition.RIGHT_CENTER},clickableIcons:false,gestureHandling:"greedy"});
+    pinMap={g:m,center:()=>{ const c=m.getCenter(); return {lat:c.lat(),lng:c.lng()}; },setView:(ll,z)=>{ m.setCenter({lat:ll[0],lng:ll[1]}); if(z) m.setZoom(z); },resize:()=>{}};
+    m.addListener("dragstart",()=>{ pinSet=true; }); m.addListener("idle",onMapIdle);
+  } else {
+    try{ await loadLeaflet(); }catch(e){ mapFail=true; mapBusy=false; refreshCart(); return; }
+    const LF=window.L, m=LF.map(el,{zoomControl:false}).setView(start,zm);
+    LF.control.zoom({position:"bottomleft"}).addTo(m);
+    LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(m);
+    pinMap={center:()=>{ const c=m.getCenter(); return {lat:c.lat,lng:c.lng}; },setView:(ll,z)=>m.setView(ll,z||m.getZoom()),resize:()=>m.invalidateSize()};
+    m.on("dragstart",()=>{ pinSet=true; }); m.on("moveend",onMapIdle);
+  }
+  mapBusy=false; mountPin();
+  if(!delGeo&&!autoLocTried){ autoLocTried=true; locateMe(true); }   /* 第一次切到外送：自动问客人能不能用定位 */
+}
+function onMapIdle(){
+  if(!pinSet||!pinMap) return;
+  const c=pinMap.center();
+  if(delGeo&&Math.abs(c.lat-delGeo.lat)<1e-6&&Math.abs(c.lng-delGeo.lng)<1e-6) return;
+  if(!inArea(c.lat,c.lng)){ delGeo=null; delKm=null; delFar=null; delZone=""; saveOdDraft(); refreshCart(); setGeoMsg(t("outArea")); return; }
+  setGeo(c.lat,c.lng);
+}
+function locateMe(auto){
+  if(!navigator.geolocation){ if(!auto) setGeoMsg(t("geoFail")); return; }
+  setGeoMsg(t("geoWait"));
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const la=pos.coords.latitude, ln=pos.coords.longitude;
+    if(!inArea(la,ln)){ setGeoMsg(t("outArea")); return; }
+    pinSet=true; if(pinMap) pinMap.setView([la,ln],18);
+    setGeo(la,ln); fillAddrFromPin(true);
+  },err=>{ setGeoMsg(auto&&err&&err.code===1?"":t(err&&err.code===1?"geoDenied":"geoFail")); },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+/* 图钉位置 → 地址（Google Geocoder；没有 Google 就用 OpenStreetMap） */
+async function revGeocode(lat,lng){
+  const gm=await loadGoogle();
+  if(gm&&gm.Geocoder){ try{ const r=await new gm.Geocoder().geocode({location:{lat,lng}}); const x=r&&r.results&&r.results.find(y=>!(y.types||[]).includes("plus_code"))||(r&&r.results||[])[0]; if(x&&x.formatted_address) return x.formatted_address; }catch(e){} }
+  try{ const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&accept-language=en&lat=${lat}&lon=${lng}`); const j=await r.json(); if(j&&j.display_name) return String(j.display_name); }catch(e){}
+  return "";
+}
+async function fillAddrFromPin(quiet){
+  if(!delGeo){ setGeoMsg(t("mapHint")); return; }
+  const g=delGeo, a=await revGeocode(g.lat,g.lng);
+  if(delGeo!==g&&(!delGeo||delGeo.lat!==g.lat||delGeo.lng!==g.lng)) return;   /* 查的时候客人又移动了地图 */
+  if(!a){ if(!quiet) setGeoMsg(t("revFail")); return; }
+  if($("od_addr")){ $("od_addr").value=a.slice(0,300); saveOdDraft(); }
+  toast(t("addrFilled"));
+  if($("od_unit")&&!$("od_unit").value&&!quiet) $("od_unit").focus();
+}
+/* 地图上方的搜索框：有 Google 就用 Google 地址建议；没有就按 Enter 用 OpenStreetMap 查 */
+function wireMapUI(){
+  const q=$("mapq"), box=$("addrSug");
+  $("mloc").onclick=()=>locateMe(false);
   const hide=()=>{ box.hidden=true; box.innerHTML=""; };
-  ta.addEventListener("blur",()=>setTimeout(hide,150));
-  ta.addEventListener("input",()=>{
-    clearTimeout(gSugT); const q=ta.value.trim();
-    if(q.length<3){ hide(); return; }
+  const goTo=(lat,lng,addr)=>{ hide(); q.blur(); pinSet=true; if(pinMap) pinMap.setView([lat,lng],18); if(addr&&$("od_addr")) $("od_addr").value=addr.slice(0,300); setGeo(lat,lng); if($("od_unit")) $("od_unit").focus(); };
+  q.addEventListener("blur",()=>setTimeout(hide,150));
+  q.addEventListener("keydown",async e=>{
+    if(e.key!=="Enter") return; e.preventDefault(); const s=q.value.trim(); if(s.length<3) return;
+    let g=(await gGeocode(s)) || (window.MKGEO ? await MKGEO.geocode(s) : null);
+    if(g&&!inArea(g.lat,g.lng)) g=null;
+    if(g) goTo(g.lat,g.lng,g.name||s); else setGeoMsg(t("geoAddrFail"));
+  });
+  q.addEventListener("input",()=>{
+    clearTimeout(gSugT); const s=q.value.trim();
+    if(s.length<3||!gOn()){ hide(); return; }
     gSugT=setTimeout(async()=>{
       const seq=++gSugSeq, gm=await loadGoogle(); if(!gm) return;
       let lib; try{ lib=await gm.importLibrary("places"); }catch(e){ return; }
       if(!gTok) gTok=new lib.AutocompleteSessionToken();
-      const o=outletLL(curOi());
-      const req={input:q,sessionToken:gTok,includedRegionCodes:["my"],language:"en"};
-      const A=svcArea(); if(A) req.locationRestriction={north:A.n,south:A.s,east:A.e,west:A.w};   /* 只找送餐范围（雪隆+芙蓉）里的地址，别州同名地点不会出现 */
-      else if(o) req.locationBias={center:{lat:o.lat,lng:o.lng},radius:20000};
+      const req={input:s,sessionToken:gTok,includedRegionCodes:["my"],language:"en"};
+      const A=svcArea(); if(A) req.locationRestriction={north:A.n,south:A.s,east:A.e,west:A.w};   /* 只找送餐范围（雪隆+芙蓉）里的地址 */
       let sug=[]; try{ sug=(await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions(req)).suggestions||[]; }catch(e){ return; }
-      if(seq!==gSugSeq||document.activeElement!==ta) return;
+      if(seq!==gSugSeq||document.activeElement!==q) return;
       const preds=sug.map(x=>x.placePrediction).filter(Boolean).slice(0,5);
       if(!preds.length){ box.innerHTML=`<div class="sgn">${esc(t("gSugNone"))}</div>`; box.hidden=false; return; }
       box.innerHTML=preds.map((p,i)=>{ const main=p.mainText?String(p.mainText):String(p.text), sec=p.secondaryText?String(p.secondaryText):"";
-        return `<button type="button" class="sgi" data-i="${i}"><b>${esc(main)}</b>${sec?`<small>${esc(sec)}</small>`:""}</button>`; }).join("")+`<div class="sgn">${esc(t("gSugHint"))}</div>`;
+        return `<button type="button" class="sgi" data-i="${i}"><b>${esc(main)}</b>${sec?`<small>${esc(sec)}</small>`:""}</button>`; }).join("");
       box.hidden=false;
       box.querySelectorAll(".sgi").forEach(b=>b.addEventListener("pointerdown",async e=>{
-        e.preventDefault();                       /* 不让地址框失焦（失焦会触发 change 用半截地址去查） */
-        const p=preds[+b.dataset.i]; hide();
+        e.preventDefault(); const p=preds[+b.dataset.i]; hide();
         try{
           const pl=p.toPlace(); await pl.fetchFields({fields:["location","formattedAddress"]}); gTok=null;
           let addr=(pl.formattedAddress||String(p.text)).trim();
           const nm=p.mainText?String(p.mainText).trim():"";   /* Google 的正式地址常把大楼/公寓名去掉，骑手需要它，补回前面 */
           if(nm&&!addr.toLowerCase().includes(nm.toLowerCase())) addr=nm+", "+addr;
-          ta.value=addr; gPick={addr,lat:pl.location.lat(),lng:pl.location.lng(),lvl:"exact",name:addr};
-          delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg="";
-          setTimeout(locateAddr,0);
-          ta.focus(); try{ ta.setSelectionRange(0,0); }catch(_){}   /* 光标放最前面，方便补门牌号 */
-          if($("od_geomsg")) $("od_geomsg").textContent=t("gSugHint");
+          q.value=nm||addr; goTo(pl.location.lat(),pl.location.lng(),addr);
         }catch(err){}
       }));
     },300);
   });
 }
-/* 送餐服务范围（config.js 的 delivery.area）：查到范围外的位置当作「找不到」，让客人自己把图钉拖到家门口 */
-function svcArea(){ const a=DEL()&&DEL().area; return a&&[a.n,a.s,a.e,a.w].every(x=>typeof x==="number")?a:null; }
-const inArea = (lat,lng) => { const A=svcArea(); return !A || (lat<=A.n&&lat>=A.s&&lng<=A.e&&lng>=A.w); };
-/* Google 地图版的图钉（照 Leaflet 的用法包一层：getLatLng/setLatLng/panTo/setView/invalidateSize），下面的程序两种地图通用 */
-function gPinMap(gm,el,start,zoom){
-  const toG=x=>Array.isArray(x)?{lat:x[0],lng:x[1]}:{lat:x.lat,lng:x.lng};
-  const m=new gm.Map(el,{center:toG(start),zoom,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,clickableIcons:false,gestureHandling:"greedy"});
-  const pinSvg='<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 41 15 41s14-15.7 14-26.1C29 7.2 22.7 1 15 1z" fill="#B4232A" stroke="#7A1218" stroke-width="2"/><circle cx="15" cy="15" r="5.5" fill="#F2B417"/></svg>';
-  const mk=new gm.Marker({position:toG(start),map:m,draggable:true,icon:{url:"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(pinSvg),scaledSize:new gm.Size(30,42),anchor:new gm.Point(15,41)}});   /* 图钉用自带的红色图，不靠 Google 下载 */
-  const map={g:m,setView:(ll,z)=>{m.setCenter(toG(ll)); if(z) m.setZoom(z); return map;},panTo:ll=>m.panTo(toG(ll)),invalidateSize:()=>{}};
-  const pin={getLatLng:()=>{const p=mk.getPosition();return {lat:p.lat(),lng:p.lng()};},setLatLng:ll=>mk.setPosition(toG(ll))};
-  mk.addListener("drag",updPinInfo); mk.addListener("dragend",pinPlaced);
-  m.addListener("click",e=>{ mk.setPosition(e.latLng); pinPlaced(); });
-  return {map,pin,toG};
+/* ---------- 外送预计时间（2026-10-26 业主）：准备时间按份数（12–2 点繁忙时段一套）+ 配送按路程估算 ---------- */
+function prepRange(){
+  const P=DEL()&&DEL().prep; if(!P) return null;
+  const n=cartCount(), now=new Date(), m=now.getHours()*60+now.getMinutes();
+  const peak=(P.peak||[]).some(([a,b])=>m>=toMin(a)&&m<toMin(b));
+  const tiers=(peak?P.peakTiers:P.tiers)||P.peakTiers||[];
+  const tr=tiers.find(x=>typeof x.maxQty!=="number"||n<=x.maxQty)||tiers[tiers.length-1];
+  return tr?[tr.min,tr.max]:null;
 }
-async function locateAddr(){
-  const oi=curOi(), addr=$("od_addr")?$("od_addr").value.trim():"";
-  const say=m=>{ geoMsg=m; if($("od_geomsg")) $("od_geomsg").textContent=m; };
-  if(addr.length<8){ say(t("needAddr")); return; }
-  if(pinBusy) return; pinBusy=true; pinAuto=addr; say(t("geoCalc"));
-  let g=(await gGeocode(addr)) || (window.MKGEO ? await MKGEO.geocode(addr) : null);   /* 先 Google（有 key 时），不行再用免费的 OpenStreetMap */
-  if(g&&!inArea(g.lat,g.lng)) g=null;   /* 查到别州去了（例如同名路）：当作找不到，图钉放分店让客人自己拖 */
-  const gm=await loadGoogle();          /* 有 Google 就用 Google 地图，没有才用 OpenStreetMap */
-  if(gm&&gm.Map&&(!pinMap||pinMap.g)){
-    const o=outletLL(oi), start=g?[g.lat,g.lng]:(o?[o.lat,o.lng]:[3.1,101.65]);
-    if(!pinWrap){ pinWrap=document.createElement("div"); pinWrap.className="pinwrap"; pinWrap.innerHTML='<div id="pinmap"></div><div class="pininfo" id="pininfo"></div>'; }
-    const slot=$("pinslot"); if(slot){ slot.appendChild(pinWrap); slot.hidden=false; }
-    if(!pinMap){ const x=gPinMap(gm,pinWrap.querySelector("#pinmap"),start,g?17:14); pinMap=x.map; pinMk=x.pin; }
-    else { pinMk.setLatLng(start); pinMap.setView(start,g?17:14); }
-    pinFor=addr; pinBusy=false; mountPin();
-    if(g){ delGeo={lat:g.lat,lng:g.lng,acc:0,src:"addr",lvl:g.lvl,addr}; addrFail=false; geoMsg=""; applyGeoZone(oi); refreshCart(); farCheck(oi); }
-    else { delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg=t("pinNotFound"); refreshCart(); }
-    return;
-  }
-  await ensureOutletLL(oi);
-  try{ await loadLeaflet(); }
-  catch(e){   /* 地图载不到：用查到的位置；查不到就让客人自己选 */
-    pinBusy=false;
-    if(!g){ delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=true; geoMsg=t("geoAddrFail"); refreshCart(); return; }
-    delGeo={lat:g.lat,lng:g.lng,acc:g.lvl==="exact"?50:g.lvl==="street"?300:3000,src:"addr",lvl:g.lvl,addr}; geoMsg=""; addrFail=false;
-    applyGeoZone(oi); refreshCart(); farCheck(oi); return;
-  }
-  const LF=window.L, o=outletLL(oi), start=g?[g.lat,g.lng]:(o?[o.lat,o.lng]:[3.1,101.65]);
-  if(!pinWrap){ pinWrap=document.createElement("div"); pinWrap.className="pinwrap"; pinWrap.innerHTML='<div id="pinmap"></div><div class="pininfo" id="pininfo"></div>'; }
-  const slot=$("pinslot"); if(slot){ slot.appendChild(pinWrap); slot.hidden=false; }
-  if(!pinMap){
-    pinMap=LF.map(pinWrap.querySelector("#pinmap"),{zoomControl:true}).setView(start,g?17:14);
-    LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(pinMap);
-    const icon=LF.icon({iconUrl:"vendor/leaflet/images/marker-icon.png",iconRetinaUrl:"vendor/leaflet/images/marker-icon-2x.png",shadowUrl:"vendor/leaflet/images/marker-shadow.png",iconSize:[25,41],iconAnchor:[12,41],shadowSize:[41,41]});
-    pinMk=LF.marker(start,{draggable:true,icon}).addTo(pinMap);
-    pinMk.on("drag",updPinInfo); pinMk.on("dragend",pinPlaced);
-    pinMap.on("click",e=>{ pinMk.setLatLng(e.latlng); pinPlaced(); });
-  } else { pinMk.setLatLng(start); pinMap.setView(start,g?17:14); }
-  pinFor=addr; pinBusy=false;
-  if(g){ delGeo={lat:g.lat,lng:g.lng,acc:0,src:"addr",lvl:g.lvl,addr}; addrFail=false; geoMsg=""; applyGeoZone(oi); refreshCart(); farCheck(oi); }
-  else { delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg=t("pinNotFound"); refreshCart(); }
+const rideRange = km => { const R=(DEL()&&DEL().ride)||{}, b=R.base||[5,10], k=R.perKm||[2,3]; return [Math.round(b[0]+km*k[0]), Math.round(b[1]+km*k[1])]; };
+const hhmmAt = ms => { const d=new Date(ms); return pad(d.getHours())+":"+pad(d.getMinutes()); };
+function etaInfo(oi){
+  const p=prepRange(), km=geoKm(oi); if(!p||km==null||delFar!=null) return null;
+  const r=rideRange(km), now=Date.now();
+  return {p,r,from:hhmmAt(now+(p[0]+r[0])*60000),to:hhmmAt(now+(p[1]+r[1])*60000)};
 }
+const etaText = e => t("etaLine").replace("{p1}",e.p[0]).replace("{p2}",e.p[1]).replace("{r1}",e.r[0]).replace("{r2}",e.r[1]).replace("{a}",e.from).replace("{b}",e.to);
+/* ---------- 购物车表单草稿（2026-10-26 业主）：填过的都存着，刷新后还在；客人自己删掉的就保持空 ---------- */
+const odDraft = () => { const v=store.get("site_od_draft",null); return v&&typeof v==="object"&&!Array.isArray(v)?v:{}; };
+function saveOdDraft(){
+  const d=odDraft();
+  ["name","phone","addr","unit","note","date","time"].forEach(k=>{ const e=$("od_"+k); if(e) d[k]=String(e.value).slice(0,300); });
+  d.geo=delGeo?{lat:Math.round(delGeo.lat*1e6)/1e6,lng:Math.round(delGeo.lng*1e6)/1e6}:null;
+  store.set("site_od_draft",d);
+}
+/* 刷新后还原上次在地图对准的送餐位置 */
+(()=>{ const g=odDraft().geo; if(g&&typeof g.lat==="number"&&typeof g.lng==="number"&&isFinite(g.lat)&&isFinite(g.lng)&&inArea(g.lat,g.lng)){ delGeo={lat:g.lat,lng:g.lng,acc:0,src:"pin"}; pinSet=true; applyGeoZone(curOutlet); } })();
 const isDel = () => orderType==="delivery" && !!DEL();
 const delZoneObj = () => { const d=DEL(); return d&&delZone!==""?(d.zones||[])[+delZone]:null; };
 function delFee(){
@@ -1345,14 +1362,25 @@ function refreshCart(){
 }
 function renderDrawer(){
   const o=OD(), ids=Object.keys(cart), keep=store.get("site_guest",{});
-  const prevDate=$("od_date")?$("od_date").value:"", prevTime=$("od_time")?$("od_time").value:"";
-  const prevOutlet=$("od_outlet")?$("od_outlet").value:(curOutlet!==""?curOutlet:(keep.outlet!==undefined?String(keep.outlet):""));
-  const prev={name:$("od_name")?$("od_name").value:keep.name||"",phone:$("od_phone")?$("od_phone").value:keep.phone||"",note:$("od_note")?$("od_note").value:"",addr:$("od_addr")?$("od_addr").value:keep.addr||""};
+  /* 草稿优先：画面上有就用画面上的；没有就用草稿（客人删掉的栏是空字串，不会再用旧资料补回） */
+  const dr=odDraft(), dv=(k,fb)=>typeof dr[k]==="string"?dr[k]:fb, ev=(id,fb)=>$(id)?$(id).value:fb;
+  const prevDate=ev("od_date",dv("date","")), prevTime=ev("od_time",dv("time",""));
+  const prevOutlet=isDel()?curOutlet:($("od_outlet")?$("od_outlet").value:(curOutlet!==""?curOutlet:(keep.outlet!==undefined?String(keep.outlet):"")));
+  const prev={name:ev("od_name",dv("name",keep.name||"")),phone:ev("od_phone",dv("phone",keep.phone||"")),note:ev("od_note",dv("note","")),addr:ev("od_addr",dv("addr",keep.addr||"")),unit:ev("od_unit",dv("unit",""))};
   const D=DEL(), lead = isDel() ? (D.leadMinutes||45) : o.pickupLeadMinutes;
   const dates=dateOptions(0,2,prevDate,15,lead,15);
+  const eta=isDel()?etaInfo(prevOutlet):null, ost=openState();
   const d0 = prevDate || (dates.length?dates[0].match(/value="([^"]+)"/)[1]:"");
   $("drawer").innerHTML = `<h3>${esc(t("cart"))}<button class="x" id="dx" aria-label="close">✕</button></h3>
     ${D?`<div class="otype"><button class="${!isDel()?"on":""}" onclick="__site.otype('pickup')">🛍️ ${esc(t("otPickup"))}</button><button class="${isDel()?"on":""}" onclick="__site.otype('delivery')">🛵 ${esc(t("otDelivery"))}</button></div>${isDel()&&delOutletsOn()?`<p class="note" style="margin:-4px 0 6px"><b>🛵 ${esc(t("delOnlyAt").replace("{o}",delOutletNames()))}</b></p>`:""}${isDel()&&L(D,"note")?`<p class="note" style="margin:-4px 0 10px">${esc(L(D,"note"))}</p>`:""}`:""}
+    ${ids.length&&isDel()?`<div class="form addrblk">
+        <div class="full"><label>📍 ${esc(t("delAddr"))}</label>${mapFail?"":`<div id="pinslot"></div><button type="button" class="btn alt usepin" id="od_usepin">${esc(t("useCenter"))}</button>`}
+          <textarea id="od_addr" autocomplete="street-address" placeholder="${esc(t("delAddrPh"))}">${esc(prev.addr)}</textarea></div>
+        <div class="full"><label>${esc(t("unitLbl"))}</label><input id="od_unit" autocomplete="address-line2" placeholder="${esc(t("unitPh"))}" value="${esc(prev.unit)}"></div>
+        <div class="full note geomsg" id="od_geomsg">${esc(geoMsg||pinInfoText())}</div>
+        ${mapFail?`<div class="full"><label>${esc(t("delZone"))}</label><select id="od_zone"><option value="">${esc(t("pickZone"))}</option>${(D.zones||[]).map((z,i)=>`<option value="${i}" ${String(i)===delZone?"selected":""}>${esc(L(z,"label"))} · ${money(z.fee||0)}</option>`).join("")}</select></div>`:""}
+        <div class="full eta">${!ost.open?`⏰ ${esc(t("delClosed").replace("{n}",ost.next||""))}`:eta?`⏱️ ${esc(etaText(eta))}`:`⏱️ ${esc(t("etaNeed"))}`}</div>
+      </div>`:""}
     ${ids.length? ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl"><div class="nm">${it.code?`<span class="note">${esc(it.code)}</span> `:""}${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(priceFor(it,si)*cart[k])}</b></div>`;}).join("")
@@ -1360,12 +1388,8 @@ function renderDrawer(){
         <div><label>${esc(t("name"))}</label><input id="od_name" autocomplete="name" value="${esc(prev.name)}"></div>
         <div><label>${esc(t("phone"))}</label><input id="od_phone" type="tel" autocomplete="tel" value="${esc(prev.phone)}"></div>
         ${outlets().length?`<div class="full"><label>${esc(t("outlet"))}</label><select id="od_outlet">${outletOptions(prevOutlet,isDel())}</select></div>`:""}
-        ${isDel()?`<div class="full"><label>${esc(t("delAddr"))}</label><textarea id="od_addr" autocomplete="${gOn()?"off":"street-address"}" placeholder="${esc(t("delAddrPh"))}">${esc(prev.addr)}</textarea><div class="addrsug" id="addrSug" hidden></div></div>
-        <div class="full" id="pinslot" hidden></div>
-        <div class="full"><label>${esc(t("delZone"))}</label><select id="od_zone" ${delAuto||(geoOn()&&!addrFail)?"disabled":""}><option value="">${esc(t("pickZone"))}</option>${(D.zones||[]).map((z,i)=>`<option value="${i}" ${String(i)===delZone?"selected":""}>${esc(L(z,"label"))} · ${z.perKm?(delAuto&&String(i)===delZone?money(zoneFee(z,delKm)):esc(t("perKmLbl").replace("{x}",money(z.fee+z.perKm)).replace("{p}",money(z.perKm)))):money(z.fee||0)}</option>`).join("")}</select></div>
-        ${geoBoxHTML(prevOutlet)}`:""}
-        <div><label>${esc(t(isDel()?"delDate":"pickupDate"))}</label><select id="od_date">${dates.join("")}</select></div>
-        <div><label>${esc(t(isDel()?"delTime":"pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,lead,15,prevTime)}</select>${isDel()&&L(D,"timeNote")?`<div class="note" style="margin-top:6px">${esc(L(D,"timeNote"))}</div>`:""}</div>
+        ${isDel()?"":`<div><label>${esc(t("pickupDate"))}</label><select id="od_date">${dates.join("")}</select></div>
+        <div><label>${esc(t("pickupTime"))}</label><select id="od_time">${timeOptions(d0,15,lead,15,prevTime)}</select></div>`}
         <div class="full"><label>${esc(t("remark"))}</label><input id="od_note" value="${esc(prev.note)}"></div>
         <div class="full sumbox">${(vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
       + (voucher||isDel()||sstRate()||boxTotal()?`<div class="tot sub"><span>${esc(t("subtotal"))}${isDel()&&hasDelMarkup()?` <small class="note">(${esc(t("delPriceTag"))})</small>`:""}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
@@ -1384,29 +1408,30 @@ function renderDrawer(){
   $("dx").onclick=closeDrawer;
   if($("vBtn2")){ $("vBtn2").onclick=()=>applyVoucher($("vInput2").value); $("vInput2").onkeydown=e=>{ if(e.key==="Enter") applyVoucher($("vInput2").value); }; }
   if(!ids.length) return;
-  $("od_date").onchange=e=>{$("od_time").innerHTML=timeOptions(e.target.value,15,lead,15);};
+  if($("od_date")) $("od_date").onchange=e=>{$("od_time").innerHTML=timeOptions(e.target.value,15,lead,15); saveOdDraft();};
+  $("drawer").oninput=e=>{ if(e.target&&e.target.id!=="mapq") saveOdDraft(); }; $("drawer").onchange=$("drawer").oninput;
   if($("od_zone")) $("od_zone").onchange=e=>{ delZone=e.target.value; store.set("site_zone",delZone); refreshCart(); };
-  if($("od_outlet")) $("od_outlet").addEventListener("change",e=>{ $("payBox").innerHTML=payBoxHTML(e.target.value); setOutlet(e.target.value); if(isDel()&&delGeo){ const v=e.target.value; ensureOutletLL(v).then(()=>{ applyGeoZone(v); refreshCart(); farCheck(v); }); } });
-  if($("od_geo")) $("od_geo").onclick=locateMe;
-  if($("od_geoaddr")) $("od_geoaddr").onclick=locateAddr;
-  if(isDel()&&geoOn()){ if(pinMap) mountPin(); const a0=$("od_addr")?$("od_addr").value.trim():""; if(!delGeo&&!pinBusy&&a0.length>=8&&a0!==pinAuto) setTimeout(locateAddr,0); }
-  /* 改了地址：之前按地址算的距离作废，要重新按 */
-  /* 改了地址：旧的距离作废，自动重新确认（不用客人再按） */
-  if($("od_addr")) $("od_addr").addEventListener("change",()=>{ const a=$("od_addr").value.trim(); if(delGeo&&delGeo.addr===a) return; delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg=""; geoMsg=""; if(a.length>=8) setTimeout(locateAddr,0); else if($("od_geomsg")) $("od_geomsg").textContent=t("geoHint"); });   /* 不同步重绘购物车（会吃掉客人紧接着的点击）；查完地址才重绘 */   /* 不重绘购物车：重绘会吃掉客人紧接着按「确认地址」的那一下 */
-  if($("od_addr")&&gOn()) wireAddrSug($("od_addr"));
-  if($("od_geooff")) $("od_geooff").onclick=e=>{ e.preventDefault(); delGeo=null; delAuto=false; delKm=null; delFar=null; geoMsg=""; refreshCart(); };
+  if($("od_outlet")) $("od_outlet").addEventListener("change",e=>{ $("payBox").innerHTML=payBoxHTML(e.target.value); setOutlet(e.target.value); if(isDel()&&delGeo){ const v=e.target.value; ensureOutletLL(v).then(()=>{ applyGeoZone(v); refreshCart(); }); } });
+  if($("od_usepin")) $("od_usepin").onclick=()=>fillAddrFromPin(false);
+  /* 客人没用地图、直接在地址栏打地址：还没定位就按地址查一次，把地图移过去（异步，查完才重绘，不吃掉客人接着的点击） */
+  if($("od_addr")) $("od_addr").addEventListener("change",async()=>{ const a=$("od_addr").value.trim(); if(delGeo||a.length<8) return;
+    let g=(await gGeocode(a)) || (window.MKGEO ? await MKGEO.geocode(a) : null); if(!g||!inArea(g.lat,g.lng)||delGeo) return;
+    pinSet=true; if(pinMap) pinMap.setView([g.lat,g.lng],18); setGeo(g.lat,g.lng); });
+  if(isDel()) ensureMap();
   $("od_clear").onclick=()=>{cart={};saveCart();refreshCart();};
   $("od_send").onclick=()=>{
-    const name=$("od_name").value.trim(), phone=$("od_phone").value.trim(), date=$("od_date").value, time=$("od_time").value;
+    const name=$("od_name").value.trim(), phone=$("od_phone").value.trim(), date=isDel()?ymd(new Date()):$("od_date").value, time=isDel()?"":$("od_time").value;
     const oi=$("od_outlet")?$("od_outlet").value:undefined;
+    const unit=$("od_unit")?$("od_unit").value.trim():"", eta=isDel()?etaInfo(oi):null;
     const addr=$("od_addr")?$("od_addr").value.trim():"", net=cartTotal()-vDiscount(cartTotal());
-    const err = !Object.keys(cart).length?t("needItems"):(oi==="")?t("needOutlet"):(isDel()&&outlets().length&&!delOK(oi))?t("delNotHere").replace("{o}",delOutletNames()):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(isDel()&&addr.length<8)?t("needAddr"):(isDel()&&delFar!=null)?t("geoTooFar").replace("{km}",delFar.toFixed(1)).replace("{max}",delMaxKm()):(isDel()&&geoOn()&&!delAuto&&!addrFail)?t("needConfirmAddr"):(isDel()&&!delZoneObj())?t("pickZone"):(isDel()&&delZoneObj().perKm&&!delAuto)?t("needGeoKm"):(isDel()&&D.minOrder&&net<D.minOrder)?t("delMin").replace("{x}",money(D.minOrder)):(!date||!time)?t("needTime"):"";
+    const nn=isDel()&&delGeo?nearestOutlet():null, allFar=isDel()&&delGeo&&!(nn&&nn.km<=delMaxKm());
+    const err = !Object.keys(cart).length?t("needItems"):allFar?t("farNone").replace("{max}",delRadius()):(oi==="")?t("needOutlet"):(isDel()&&outlets().length&&!delOK(oi))?t("delNotHere").replace("{o}",delOutletNames()):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(isDel()&&!openState().open)?t("delClosed").replace("{n}",openState().next||""):(isDel()&&!mapFail&&!delGeo)?t("needConfirmAddr"):(isDel()&&addr.length<8)?t("needAddr"):(isDel()&&delFar!=null)?t("geoTooFar").replace("{km}",(delFar/roadF()).toFixed(1)).replace("{max}",delRadius()):(isDel()&&!delZoneObj())?t("pickZone"):(isDel()&&delZoneObj().perKm&&!delAuto)?t("needGeoKm"):(isDel()&&D.minOrder&&net<D.minOrder)?t("delMin").replace("{x}",money(D.minOrder)):(!isDel()&&(!date||!time))?t("needTime"):"";
     $("od_err").textContent=err; if(err) return;
-    store.set("site_guest",{name,phone,outlet:oi,addr});
+    store.set("site_guest",{name,phone,outlet:oi,addr}); saveOdDraft();
     const pi=payInfo(oi);
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)}${custLabel(k,true)} x${q} = ${money(priceFor(it,si)*q)}`;});
     const note=$("od_note").value.trim();
-    const buildMsg = payLine => [t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),...(isDel()&&delGeo?[`${t(delGeo.src==="pin"?"delGeoLblPin":delGeo.src==="addr"?"delGeoLblAddr":"delGeoLbl")}: https://www.google.com/maps?q=${delGeo.lat.toFixed(6)},${delGeo.lng.toFixed(6)}${geoKm(oi)!=null?` (${t("delGeoKm").replace("{km}",geoKm(oi).toFixed(1))})`:""}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,`${t(isDel()?"delTime":"pickupTime")}: ${time}`,note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n");
+    const buildMsg = payLine => [t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),...(isDel()&&unit?[`${t("unitLbl")}: ${unit}`]:[]),...(isDel()&&delGeo?[`${t(delGeo.src==="pin"?"delGeoLblPin":delGeo.src==="addr"?"delGeoLblAddr":"delGeoLbl")}: https://www.google.com/maps?q=${delGeo.lat.toFixed(6)},${delGeo.lng.toFixed(6)}${geoKm(oi)!=null?` (${t("delGeoKm").replace("{km}",geoKm(oi).toFixed(1))})`:""}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,...(isDel()?(eta?[`${t("etaLbl")}: ${eta.from}–${eta.to} (${t("etaShort").replace("{p1}",eta.p[0]).replace("{p2}",eta.p[1]).replace("{r1}",eta.r[0]).replace("{r2}",eta.r[1])})`]:[]):[`${t("pickupTime")}: ${time}`]),note?`${t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n");
     if(prepayReq()&&!pi){ $("od_err").textContent=t("payNotReady"); return; }
     if(pi && pi.allowPayAtCounter===false) payMode="now";
     if(pi && payMode==="now"){ openPayStep(oi, buildMsg, {name, phone, type:isDel()?"delivery":"pickup", outlet: oi!==undefined&&oi!==""?outlets()[+oi].name:""}); return; }
@@ -1509,7 +1534,7 @@ function payStepSend(){
   P.msg=P.buildMsg(`${t("payMethod")}: ${t("payNowWa").replace("{x}",money(P.amount))} · ${t("psRef")} ${P.ref}`);
   openWa(P.msg, P.oi); P.sent=true; renderPayStep();
 }
-function payStepDone(){ cart={}; saveCart(); closePayStep(true); if(drawerOpen) closeDrawer(); refreshCart(); toast(t("psThanks")); }
+function payStepDone(){ cart={}; saveCart(); const dd=odDraft(); dd.note=""; store.set("site_od_draft",dd); closePayStep(true); if(drawerOpen) closeDrawer(); refreshCart(); toast(t("psThanks")); }
 const prepayReq = () => !!(S.payment&&S.payment.requirePrepay);
 function payBoxHTML(oi){
   const p=payInfo(oi); if(!p) return prepayReq()?`<div class="paybox"><div class="err" style="margin:0">⚠️ ${esc(t("payNotReady"))}</div></div>`:"";

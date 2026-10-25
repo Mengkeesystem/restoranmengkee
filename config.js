@@ -45,7 +45,7 @@ window.SITE = {
    *    ③ Billing → Budgets & alerts 设预算提醒 */
   googleMaps: { apiKey: "AIzaSyDT_OLyOxzx60ITUbkw-7O9sp_f3oIa_Y0" },   // 2026-10-26 业主提供；已限制 3 个网址 + 3 个 API
 
-  /* 社交平台 / 外卖平台链接，没有的留空 "" 就不会显示 */
+  /* 社交平台 / 外送平台链接，没有的留空 "" 就不会显示 */
   social: {
     facebook: "https://www.facebook.com/share/1GN91yegZu/?mibextid=wwXIfr",
     instagram: "https://www.instagram.com/restaurant_mengkee",
@@ -59,9 +59,9 @@ window.SITE = {
    * 按 region 分组显示（顺序 = 第一次出现的顺序）。
    * 每间可选填：hours(营业时间文字)、phone(显示用电话)、whatsapp(该店号码，国家码开头)、map(Google Maps 链接)。
    * 没填 map 会自动用地址搜 Google Maps；没填 whatsapp 订位/点餐就发到上面的总号码。 */
-  /* 分店坐标 lat/lng（外卖自动算距离 + Waze 精准导航）：2026-10-18 业主提供（分店地址 docx）。
+  /* 分店坐标 lat/lng（外送自动算距离 + Waze 精准导航）：2026-10-18 业主提供（分店地址 docx）。
      新分店：在 Google Maps 长按分店位置，最上面「3.1234, 101.6789」前面是 lat、后面是 lng。没填会改用地址自动查（geo.js）。 */
-  /* delivery: true = 这间分店有外卖（2026-10-26 业主：先开 OKR 两间 + Kelana Jaya 三间外卖，其他只开自取）。
+  /* delivery: true = 这间分店有外送（2026-10-26 业主：先开 OKR 两间 + Kelana Jaya 三间外送，其他只开自取）。
      全部分店都没写 delivery 时 = 每间都送。 */
   outlets: [
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
@@ -159,7 +159,7 @@ window.SITE = {
           "h": "适用范围",
           "hEn": "Scope",
           "p": [
-            "本政策适用于在本网站下单的自取及外卖订单。所有网上订单都须先付款，店家确认收款后才开始准备。"
+            "本政策适用于在本网站下单的自取及外送订单。所有网上订单都须先付款，店家确认收款后才开始准备。"
           ],
           "pEn": [
             "This policy applies to pickup and delivery orders placed on this website. All online orders must be paid in advance; we start preparing your food once payment is confirmed."
@@ -196,7 +196,7 @@ window.SITE = {
           "hEn": "When refunds do not apply",
           "p": [
             "自取订单在约定时间后没有取餐：食物会保留到当天打烊，逾期恕不退款。",
-            "外卖地址或电话填错、骑手无法联络到您而无法送达。",
+            "外送地址或电话填错、骑手无法联络到您而无法送达。",
             "因交通或天气造成的合理延误（我们会尽量准时送达）。",
             "个人口味喜好不同。"
           ],
@@ -318,7 +318,7 @@ window.SITE = {
     bankName: "",           // TODO 例如 "Maybank"
     accountName: "",        // TODO 例如 "MENG KEE RESTAURANT SDN BHD"
     accountNo: "",          // TODO 户口号码
-    /* 2026-10-18 业主规定：自取和外卖都一定要先付款（怕客人下单后不来拿，厨房白做）。
+    /* 2026-10-18 业主规定：自取和外送都一定要先付款（怕客人下单后不来拿，厨房白做）。
        false = 不给「到店付款 / 货到付款」；requirePrepay = 没设定收款资料时网上点餐暂停（不能下单） */
     allowPayAtCounter: false,
     requirePrepay: true,
@@ -372,35 +372,42 @@ window.SITE = {
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
     voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
-    /* 外卖：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
+    /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
       enabled: true,
       /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = 直线距离 × roadFactor）；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
-      /* 2026-10-26 业主改：外卖价 = 每份菜单价 +RM1（priceAdd），运费按距离分段收（原方案 A 是 +10% + 5km 内免运费，算下来每单亏 RM3–6） */
+      /* 2026-10-26 业主改：外送价 = 每份菜单价 +RM1（priceAdd），运费按距离分段收（原方案 A 是 +10% + 5km 内免运费，算下来每单亏 RM3–6） */
       zones: [
         { label: "0–5km", labelEn: "0–5km", fee: 4, maxKm: 5 },
         { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
         { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },
       ],
-      maxKm: 15,            // 超过这个估算路程不送
+      radiusKm: 10,         // 2026-10-26 业主：外送半径 10km（直线）才送；运费档仍按估算路程（直线 × roadFactor）
       roadFactor: 1.3,      // 直线距离 × 1.3 ≈ 实际开车路程（2026-10-18 业主选的；免费，不是精准导航）
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
-      minOrder: 30,          // 外卖最低消费，0 = 不限
+      minOrder: 30,          // 外送最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
       area: { n: 3.45, s: 2.45, e: 102.15, w: 101.25 },   // 送餐服务范围（雪隆 + 芙蓉的大方框）：地址建议/定位只认这里面的位置
-      priceAdd: 1,          // 外卖价 = 每份菜单价 + RM1（自取照原价）；填 0 才改用下面的 priceMarkup
-      priceMarkup: 0,       // 外卖价 = 菜单价 × (1+priceMarkup)，往上凑整到 markupStep（priceAdd 为 0 时才用）
+      priceAdd: 1,          // 外送价 = 每份菜单价 + RM1（自取照原价）；填 0 才改用下面的 priceMarkup
+      priceMarkup: 0,       // 外送价 = 菜单价 × (1+priceMarkup)，往上凑整到 markupStep（priceAdd 为 0 时才用）
       markupStep: 0.5,
-      timeNote: "⏱️ 准备时间约 15–20 分钟（视食物分量而定），配送时间会根据交通繁忙时段和距离调整。",
-      timeNoteEn: "⏱️ Preparation takes about 15–20 minutes (depending on order size); delivery time may vary with traffic and distance.",
+      /* 外送预计时间（2026-10-26 业主）：只接「现在送」，不选送达日期/时间；全部是预计。
+         准备时间按购物车总份数：12:00–14:00 用 peakTiers（业主给的）；其他时段用 tiers（业主没另外给，先跟繁忙时段一样）。
+         配送 = base + 路程km × perKm（分钟，[最快, 最慢]），以后接 Delyva 有真实时间就改用它。 */
+      prep: {
+        peak: [["12:00", "14:00"]],
+        peakTiers: [ { maxQty: 3, min: 10, max: 15 }, { maxQty: 7, min: 20, max: 25 }, { min: 40, max: 45 } ],
+        tiers:     [ { maxQty: 3, min: 10, max: 15 }, { maxQty: 7, min: 20, max: 25 }, { min: 40, max: 45 } ],
+      },
+      ride: { base: [5, 10], perKm: [2, 3] },
       /* 2026-10-26 业主：运费说明不用显示给客人看（运费照样在购物车合计里算）；要再显示就填回这两行 */
       note: "",
       noteEn: "",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
-    /* 打包盒（2026-10-26 业主）：自取、外卖每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
+    /* 打包盒（2026-10-26 业主）：自取、外送每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
     packaging: { fee: 1, label: "打包盒", labelEn: "Takeaway box" },
     /* 客人按「+」时跳出的客制化选项（2026-10-26 业主）；分类写 customize: false 就不跳（饮料） */
     customize: {
