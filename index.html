@@ -1088,6 +1088,13 @@ function socIconsHTML(withLabel){
   return ["instagram","facebook"].filter(k=>so[k]).map(k=>{ const lbl=so[k+"Name"]||SOC_NAME[k];
     return `<a class="si si-${k}" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${esc(SOC_NAME[k]+" "+lbl)}" title="${esc(SOC_NAME[k]+": "+lbl)}"><span class="sic">${SOC_ICON[k]}</span>${withLabel?`<span class="sit">${esc(lbl)}</span>`:""}</a>`; }).join("");
 }
+/* 退款政策 / 隐私说明链接（policy.html，内容在 config.js 的 policies）；新分页打开，购物车不会被关掉 */
+function policyLinks(where){
+  const P=S.policies; if(!P) return "";
+  const a=(h,o)=>`<a href="policy.html${lang==="en"?"?lang=en":""}#${h}" target="_blank" rel="noopener">${esc(L(o,"title"))}</a>`;
+  if(where==="foot") return `<br>${a("refund",P.refund)} · ${a("privacy",P.privacy)}`;
+  return `<div class="full note">${lang==="en"?"By placing an order you agree to our ":"下单即表示您同意本店的"}${a("refund",P.refund)}${lang==="en"?" and ":"及"}${a("privacy",P.privacy)}${lang==="en"?".":"。"}</div>`;
+}
 function renderContact(){
   $("socTop").innerHTML = socTopHTML();
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
@@ -1103,7 +1110,7 @@ function renderContact(){
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
     ${soc.length||socIconsHTML()?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3>${socIconsHTML()?`<div class="soc csoc">${socIconsHTML(true)}</div>`:""}${soc.length?`<div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`:""}`;
-  $("foot").innerHTML = `<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`;
+  $("foot").innerHTML = `<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`+policyLinks("foot");
 }
 
 /* ---------- 购物车抽屉 ---------- */
@@ -1151,6 +1158,7 @@ function renderDrawer(){
         <div class="full err" id="od_err"></div>
         <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn wa" id="od_send" style="flex:1">${sendLabel(prevOutlet)}</button><button class="btn alt" id="od_clear">${esc(t("clear"))}</button></div>
         <div class="full note">${esc(t("waNote"))}</div>
+        ${policyLinks("agree")}
       </div>`
     : `<p class="note" style="font-size:15px;padding:20px 0">${esc(t("empty"))}</p>`}`;
   $("dx").onclick=closeDrawer;

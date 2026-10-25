@@ -133,6 +133,166 @@ window.SITE = {
   ],
 
 
+  /* ---------- 退款政策 & 隐私说明（policy.html 显示；网站页脚、购物车有链接）----------
+   * 2026-10-26 为申请付款网关而写。legalName：填公司正式名称 + SSM 号（例如 "XXX Sdn Bhd (2020XXXXXXXX)"），付款网关审核常要看；留空就不显示。
+   * 改了退款规则（例如几小时内投诉、几天退款）记得同步改这里，并更新 updated 日期。 */
+  policies: {
+    "legalName": "",
+    "updated": "2026-10-26",
+    "refund": {
+      "title": "退款及取消政策",
+      "titleEn": "Refund & Cancellation Policy",
+      "sections": [
+        {
+          "h": "适用范围",
+          "hEn": "Scope",
+          "p": [
+            "本政策适用于在本网站下单的自取及外卖订单。所有网上订单都须先付款，店家确认收款后才开始准备。"
+          ],
+          "pEn": [
+            "This policy applies to pickup and delivery orders placed on this website. All online orders must be paid in advance; we start preparing your food once payment is confirmed."
+          ]
+        },
+        {
+          "h": "取消订单",
+          "hEn": "Cancelling an order",
+          "p": [
+            "厨房还没开始准备前，请尽快通过 WhatsApp 联系我们取消，可全额退款。",
+            "厨房已开始准备后，因食物已经烹煮，恕不接受取消或退款。"
+          ],
+          "pEn": [
+            "If the kitchen has not started preparing your order, contact us on WhatsApp as soon as possible to cancel for a full refund.",
+            "Once the kitchen has started cooking, we are unable to accept cancellations or give refunds."
+          ]
+        },
+        {
+          "h": "我们这边的问题",
+          "hEn": "Issues on our side",
+          "p": [
+            "如果收到的食物有错漏、少了菜，或品质有问题，请在收到后 2 小时内通过 WhatsApp 联系我们，并附上照片及订单参考号。核实后我们会补送、部分退款或全额退款。",
+            "如果因为售罄、分店临时休息或其他原因无法完成订单，我们会主动联系您，并全额退款或经您同意改换其他菜品。"
+          ],
+          "pEn": [
+            "If any item is wrong, missing or not up to standard, contact us on WhatsApp within 2 hours of receiving your order with photos and your order reference. After checking, we will replace the item or give a partial or full refund.",
+            "If we cannot fulfil your order (sold out, outlet closed or other reasons), we will contact you and give a full refund, or a replacement dish if you agree."
+          ]
+        },
+        {
+          "h": "不设退款的情况",
+          "hEn": "When refunds do not apply",
+          "p": [
+            "自取订单在约定时间后没有取餐：食物会保留到当天打烊，逾期恕不退款。",
+            "外卖地址或电话填错、骑手无法联络到您而无法送达。",
+            "因交通或天气造成的合理延误（我们会尽量准时送达）。",
+            "个人口味喜好不同。"
+          ],
+          "pEn": [
+            "Pickup orders not collected: we keep the food until closing time that day, after which no refund is given.",
+            "Delivery cannot be completed because the address or phone number given was wrong, or the rider could not reach you.",
+            "Reasonable delays caused by traffic or weather (we always try to deliver on time).",
+            "Differences in personal taste."
+          ]
+        },
+        {
+          "h": "退款方式及时间",
+          "hEn": "How refunds are paid",
+          "p": [
+            "退款会退回原付款方式或您的银行户口，一般在确认后 7 个工作天内处理完成；经付款平台处理的退款，到账时间以银行或平台为准。",
+            "优惠码及折扣不能兑换现金；部分退款按实际付款金额计算。"
+          ],
+          "pEn": [
+            "Refunds are made to your original payment method or bank account, normally within 7 working days after approval. For payments made through a payment provider, the time to reach your account depends on the bank or provider.",
+            "Vouchers and discounts cannot be exchanged for cash; partial refunds are based on the amount actually paid."
+          ]
+        },
+        {
+          "h": "订位",
+          "hEn": "Table bookings",
+          "p": [
+            "网上订位不收订金。如需更改或取消订位，请通过 WhatsApp 通知我们。"
+          ],
+          "pEn": [
+            "Online table bookings do not require a deposit. Please let us know on WhatsApp if you need to change or cancel."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "隐私说明",
+      "titleEn": "Privacy Notice",
+      "sections": [
+        {
+          "h": "我们收集什么资料",
+          "hEn": "What we collect",
+          "p": [
+            "您下单或订位时填写的姓名、电话、送餐地址及地图位置、订单内容、优惠码、付款参考号及付款金额。"
+          ],
+          "pEn": [
+            "The name, phone number, delivery address and map location, order details, voucher code, payment reference and amount you provide when ordering or booking."
+          ]
+        },
+        {
+          "h": "用途",
+          "hEn": "How we use it",
+          "p": [
+            "只用来处理您的订单及订位、安排送餐、联系您、处理退款，以及店内对账。",
+            "未经您同意，我们不会用您的资料发送推广讯息，也绝不会出售您的资料。"
+          ],
+          "pEn": [
+            "Only to process your orders and bookings, arrange delivery, contact you, handle refunds and keep our own accounts.",
+            "We will not send you promotions without your consent, and we never sell your data."
+          ]
+        },
+        {
+          "h": "与谁分享",
+          "hEn": "Who we share it with",
+          "p": [
+            "WhatsApp：订单及订位内容通过您自己的 WhatsApp 发送给我们。",
+            "送餐骑手或配送公司：只提供送餐所需的姓名、电话及地址。",
+            "付款平台：处理付款所需的资料（如使用网上付款）。",
+            "地图服务：查找送餐位置时，您填写的地址会发送给 OpenStreetMap 地图服务。"
+          ],
+          "pEn": [
+            "WhatsApp: your order or booking is sent to us through your own WhatsApp.",
+            "Delivery riders or courier companies: only the name, phone number and address needed for delivery.",
+            "Payment providers: the details needed to process your payment (if you pay online).",
+            "Map service: when locating your delivery address, the address you enter is sent to the OpenStreetMap map service."
+          ]
+        },
+        {
+          "h": "保存在您的手机",
+          "hEn": "Stored on your device",
+          "p": [
+            "为了方便下次下单，网站会把购物车、语言、姓名及电话保存在您自己的浏览器里，不会上传。清除浏览器资料即可删除。本网站不使用广告或追踪 Cookie。"
+          ],
+          "pEn": [
+            "To make your next order easier, the site keeps your cart, language, name and phone number in your own browser; this is not uploaded. Clearing your browser data removes it. This website does not use advertising or tracking cookies."
+          ]
+        },
+        {
+          "h": "保存多久",
+          "hEn": "How long we keep it",
+          "p": [
+            "订单资料只保存到处理订单、退款及会计记录所需的时间。"
+          ],
+          "pEn": [
+            "Order details are kept only as long as needed for orders, refunds and accounting records."
+          ]
+        },
+        {
+          "h": "您的权利",
+          "hEn": "Your rights",
+          "p": [
+            "根据马来西亚《2010 年个人资料保护法令》（PDPA），您可以要求查阅、更正或删除您的个人资料，请通过下方 WhatsApp 联系我们。"
+          ],
+          "pEn": [
+            "Under Malaysia's Personal Data Protection Act 2010 (PDPA), you may ask to access, correct or delete your personal data. Please contact us on WhatsApp below."
+          ]
+        }
+      ]
+    }
+  },
+
   /* ---------- 付款（结账时显示） ----------
    * qr: DuitNow QR 图片（放 images/ 里，例如 "images/duitnow-qr.png"）
    * bankName / accountName / accountNo: 银行转账资料（会显示「复制」按钮）
