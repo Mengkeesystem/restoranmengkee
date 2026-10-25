@@ -63,7 +63,8 @@ nav.links a:hover{background:#F6EADB}
 /* hero */
 .hero{background:linear-gradient(135deg,var(--p),#7A1218);color:#fff;padding:72px 0 64px;position:relative;overflow:hidden}
 .hero.img{background-size:cover;background-position:center}
-.hero.img::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.hero.img::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(30,8,6,.86) 0%,rgba(30,8,6,.66) 50%,rgba(30,8,6,.5) 100%);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+@media(max-width:760px){.hero.img::before{background:rgba(30,8,6,.68)}}
 .hero .wrap{position:relative}
 .hero h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.15;padding:0}
 .hero h1::after{display:none}
@@ -627,7 +628,8 @@ function renderHeader(){
 function renderHero(){
   const st=openState();
   const stTxt = st.open ? `${t("open")} · ${t("opensAt")} ${st.until}` : (st.next?`${t("closed")} · ${t("nextOpen")} ${esc(st.next)}`:t("closed"));
-  if(S.heroImage){ $("hero").classList.add("img"); $("hero").style.backgroundImage=`url("${encodeURI(S.heroImage)}")`; }
+  if(S.heroImage){ const h=$("hero"), small=S.heroImageMobile&&matchMedia("(max-width:760px)").matches;
+    h.classList.add("img"); h.style.backgroundImage=`url("${encodeURI(small?S.heroImageMobile:S.heroImage)}")`; if(S.heroPos) h.style.backgroundPosition=String(S.heroPos).replace(/[^a-z0-9% .-]/gi,""); }
   $("heroIn").innerHTML = `
     ${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}
     <h1>${esc(L(S,"name"))}</h1>

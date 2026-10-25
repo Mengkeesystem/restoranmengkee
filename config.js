@@ -14,7 +14,9 @@ window.SITE = {
   tagline: "家乡的味道，一锅一铲炒出来",
   taglineEn: "Hometown flavours, wok-fried to order",
   logo: "images/logo.png",               // 网站 logo（页头、首页、浏览器分页图标）
-  heroImage: "",                          // 首页大图，例如 "images/hero.jpg"；留空用纯色背景
+  heroImage: "images/hero.jpg",          // 首页大图（2026-10-26 Old Klang Road 店面照，已去掉旁边横幅）；留空用纯色背景
+  heroImageMobile: "images/hero-m.jpg",   // 手机版用的小一点的图（可留空）
+  heroPos: "center 36%",                  // 图片对准哪里（招牌在上 1/3）
 
   /* WhatsApp 号码：国家码开头、不要 + 和空格，例如 60123456789 */
   whatsapp: "60176952455",              // 订单/订位 WhatsApp（+60 17-695 2455，2026-10-25 业主改）
