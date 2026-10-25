@@ -394,12 +394,12 @@ window.SITE = {
       priceMarkup: 0,       // 外送价 = 菜单价 × (1+priceMarkup)，往上凑整到 markupStep（priceAdd 为 0 时才用）
       markupStep: 0.5,
       /* 外送预计时间（2026-10-26 业主）：只接「现在送」，不选送达日期/时间；全部是预计。
-         准备时间按购物车总份数：12:00–14:00 用 peakTiers（业主给的）；其他时段用 tiers（业主没另外给，先跟繁忙时段一样）。
+         准备时间按购物车总份数：繁忙时段（12:00–14:00、19:00–21:00）用 peakTiers；其他时段用 tiers（业主：快 5 分钟）。
          配送 = base + 路程km × perKm（分钟，[最快, 最慢]），以后接 Delyva 有真实时间就改用它。 */
       prep: {
-        peak: [["12:00", "14:00"]],
+        peak: [["12:00", "14:00"], ["19:00", "21:00"]],
         peakTiers: [ { maxQty: 3, min: 10, max: 15 }, { maxQty: 7, min: 20, max: 25 }, { min: 40, max: 45 } ],
-        tiers:     [ { maxQty: 3, min: 10, max: 15 }, { maxQty: 7, min: 20, max: 25 }, { min: 40, max: 45 } ],
+        tiers:     [ { maxQty: 3, min: 5, max: 10 }, { maxQty: 7, min: 15, max: 20 }, { min: 35, max: 40 } ],
       },
       ride: { base: [5, 10], perKm: [2, 3] },
       /* 2026-10-26 业主：运费说明不用显示给客人看（运费照样在购物车合计里算）；要再显示就填回这两行 */
