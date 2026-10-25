@@ -37,6 +37,14 @@ window.SITE = {
     6: [["11:00", "14:30"], ["16:30", "22:00"]],   // 星期六
   },
 
+  /* Google 地址建议（客人打几个字就跳出建议地址）+ 更准的地址定位。2026-10-26 加。
+   * apiKey 留空 = 不用 Google，照旧用免费的 OpenStreetMap。
+   * ⚠️ key 会出现在网页里，必须在 Google Cloud 后台限制：
+   *    ① Application restrictions → Websites → 只填 https://mengkeesystem.github.io/*
+   *    ② API restrictions → 只勾 Maps JavaScript API、Places API (New)、Geocoding API
+   *    ③ Billing → Budgets & alerts 设预算提醒 */
+  googleMaps: { apiKey: "" },
+
   /* 社交平台 / 外卖平台链接，没有的留空 "" 就不会显示 */
   social: {
     facebook: "https://www.facebook.com/share/1GN91yegZu/?mibextid=wwXIfr",
@@ -254,13 +262,13 @@ window.SITE = {
             "WhatsApp：订单及订位内容通过您自己的 WhatsApp 发送给我们。",
             "送餐骑手或配送公司：只提供送餐所需的姓名、电话及地址。",
             "付款平台：处理付款所需的资料（如使用网上付款）。",
-            "地图服务：查找送餐位置时，您填写的地址会发送给 OpenStreetMap 地图服务。"
+            "地图服务：查找送餐位置时，您填写的地址会发送给 Google 地图及 OpenStreetMap 地图服务。"
           ],
           "pEn": [
             "WhatsApp: your order or booking is sent to us through your own WhatsApp.",
             "Delivery riders or courier companies: only the name, phone number and address needed for delivery.",
             "Payment providers: the details needed to process your payment (if you pay online).",
-            "Map service: when locating your delivery address, the address you enter is sent to the OpenStreetMap map service."
+            "Map services: when locating your delivery address, the address you enter is sent to Google Maps and the OpenStreetMap map service."
           ]
         },
         {
