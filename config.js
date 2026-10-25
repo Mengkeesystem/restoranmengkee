@@ -381,9 +381,10 @@ window.SITE = {
       zones: [
         { label: "0–5km", labelEn: "0–5km", fee: 4, maxKm: 5 },
         { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
-        { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },
+        { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },   // 现在最远只送 10km，这档暂时用不到（以后放宽距离再用）
       ],
-      radiusKm: 10,         // 2026-10-26 业主：外送半径 10km（直线）才送；运费档仍按估算路程（直线 × roadFactor）
+      lastOrder: { weekday: ["14:30", "21:30"], weekend: ["14:00", "21:30"] },   // 2026-10-26 业主：外送最后接单（对应 hours 的午市/晚市）；之后到打烊不接外送
+      maxKm: 10,            // 2026-10-26 业主：开车路程 10km 内才送（路程 = 直线 × roadFactor 估算）。若改填 radiusKm 就按直线半径算
       roadFactor: 1.3,      // 直线距离 × 1.3 ≈ 实际开车路程（2026-10-18 业主选的；免费，不是精准导航）
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 30,          // 外送最低消费，0 = 不限
