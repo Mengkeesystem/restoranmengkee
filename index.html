@@ -563,9 +563,10 @@ const parseKey = k => { const [id,si,oi,m,n]=k.split("|"); return {it:allItems[i
 const keyOf = (id,si,oi,mods,nh) => { const m=(mods||[]).slice().sort((a,b)=>a-b).join("."); return id+"|"+(si||0)+"|"+(oi||0)+(m||nh?"|"+m+"|"+(nh||""):""); };
 const baseKey = k => k.split("|").slice(0,3).join("|");
 const noteHash = s => { let h=5381; for(const c of s) h=((h*33)^c.codePointAt(0))>>>0; return "n"+h.toString(36); };
-/* 外卖价：菜单价 × (1+priceMarkup)，往上凑整到 markupStep；自取照原价 */
+/* 外卖价：priceAdd 有填 = 每份菜单价 + 固定金额；否则菜单价 × (1+priceMarkup) 往上凑整到 markupStep；自取照原价 */
 const catOf = Object.create(null); (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{catOf[it.id]=c;}));
-const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, m=+d.priceMarkup||0, st=+d.markupStep||0.5; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
+const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, a=+d.priceAdd||0, m=+d.priceMarkup||0, st=+d.markupStep||0.5; if(a>0) return Math.round((p+a)*100)/100; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
+const hasDelMarkup = () => { const d=(S.ordering&&S.ordering.delivery)||{}; return +d.priceAdd>0||+d.priceMarkup>0; };
 const priceFor = (it,si) => { const p=unitPrice(it,si); return isDel()?delPrice(p):p; };
 /* 打包盒：每份都加；item.box > 分类 box > packaging.fee */
 const PK = () => (S.ordering&&S.ordering.packaging)||null;
@@ -664,7 +665,7 @@ function renderCust(){
   const lab=lineLabel(keyOf(it.id,c.si,c.oi));
   $("cust").innerHTML=`<div class="psbox custbox" role="dialog" aria-modal="true">
     <div class="pshead"><b>${esc(itemName(it))}${esc(lab)}</b><button type="button" class="lbx dark" onclick="__site.cust('close')" aria-label="close">✕</button></div>
-    <div class="note" style="margin-top:-6px">${money(up)}${isDel()&&+DEL().priceMarkup?` · ${esc(t("delPriceTag"))}`:""}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div>
+    <div class="note" style="margin-top:-6px">${money(up)}${isDel()&&hasDelMarkup()?` · ${esc(t("delPriceTag"))}`:""}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div>
     ${os.length?`<div><div class="custh">${esc(t("custOpts"))}</div><div class="cchips">${os.map((o,i)=>`<button type="button" class="${c.mods.has(i)?"on":""}" aria-pressed="${c.mods.has(i)}" onclick="__site.cust('mod',${i})">${c.mods.has(i)?"✓ ":""}${esc(lang==="en"?(o.en||o.zh):o.zh)}</button>`).join("")}</div></div>
     <div><div class="custh">${esc(t("custOther"))}</div><input id="custNote" maxlength="${+CUST().noteMax||30}" placeholder="${esc(t("custOtherPh"))}" value="${esc(c.note)}"></div>`:""}
     ${box?`<div class="custbx">🥡 ${esc(L(PK(),"label"))} <b>+${money(box)}</b> / ${esc(t("custPer"))}</div>`:""}
@@ -1065,7 +1066,7 @@ const sstLabel = () => `SST ${Math.round(sstRate()*1000)/10}%`;
 const finalTotal = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub)+boxTotal()+sstAmt()+delFee())*100)/100; };
 function waTotalLines(){
   const sub=cartTotal(), d=vDiscount(sub), out=[];
-  out.push(`${t("subtotal")}: ${money(sub)}${isDel()&&+DEL().priceMarkup?" ("+t("delPriceTag")+")":""}`);
+  out.push(`${t("subtotal")}: ${money(sub)}${isDel()&&hasDelMarkup()?" ("+t("delPriceTag")+")":""}`);
   if(voucher) out.push(`${t("vCodeLbl")}: ${voucher.code} (${vDesc(voucher.v)})${d>0?" −"+money(d):""}${voucher.v.type==="gift"&&voucher.v.gift?" · "+voucher.v.gift:""}${sub<(voucher.v.minSpend||0)?" ⚠️ "+t("vNotMet"):""}`);
   if(boxTotal()>0) out.push(`${L(PK(),"label")}: ${money(boxTotal())}`);
   if(sstRate()) out.push(`${sstLabel()}: ${money(sstAmt())}`);
@@ -1202,7 +1203,7 @@ function renderMenu(){
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
-        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&sstRate()?`<small class="nosst">${esc(t("exSst"))}</small>`:""}${!it.seasonal&&DEL()&&+DEL().priceMarkup?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si)))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
+        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&sstRate()?`<small class="nosst">${esc(t("exSst"))}</small>`:""}${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si)))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
   if(justOpened>=0) catSeen.add("cat-"+justOpened);   /* 客人自己点开的分类不再淡入，免得标题闪一下 */
   justOpened=-1;
@@ -1344,7 +1345,7 @@ function renderDrawer(){
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(priceFor(it,si)*cart[k])}</b></div>`;}).join("")
       + (vouchersOn()?`<div class="dv"><label class="dvl">🎟️ ${esc(t("vCodeLbl"))}</label>${voucher?vStatusHTML():`<div class="vrow"><input id="vInput2" placeholder="${esc(t("vPh"))}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="vBtn2">${esc(t("vRedeem"))}</button></div><div id="vMsg" class="vmsg"></div>`}</div>`:"")
-      + (voucher||isDel()||sstRate()||boxTotal()?`<div class="tot sub"><span>${esc(t("subtotal"))}${isDel()&&+DEL().priceMarkup?` <small class="note">(${esc(t("delPriceTag"))})</small>`:""}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
+      + (voucher||isDel()||sstRate()||boxTotal()?`<div class="tot sub"><span>${esc(t("subtotal"))}${isDel()&&hasDelMarkup()?` <small class="note">(${esc(t("delPriceTag"))})</small>`:""}</span><span>${money(cartTotal())}</span></div>${voucher&&vDiscount(cartTotal())>0?`<div class="tot sub disc"><span>🎟️ ${esc(voucher.code)}</span><span>− ${money(vDiscount(cartTotal()))}</span></div>`:""}`:"")
       + (boxTotal()>0?`<div class="tot sub"><span>🥡 ${esc(L(PK(),"label"))}</span><span>${money(boxTotal())}</span></div>`:"")
       + (sstRate()?`<div class="tot sub"><span>${esc(sstLabel())}</span><span>${money(sstAmt())}</span></div>`:"")
       + (isDel()?`<div class="tot sub"><span>🛵 ${esc(t("delFee"))}${delZoneObj()?` <small class="note">(${esc(L(delZoneObj(),"label"))})</small>`:""}</span><span>${delZoneObj()?(delFee()===0?esc(t("free")):money(delFee())):`<small class="note">${esc(t("pickZone"))}</small>`}</span></div>${D.freeAbove&&delZoneObj()&&delFee()>0?`<p class="note" style="margin:-4px 0 6px;text-align:right">${esc(t("freeAbove").replace("{x}",money(D.freeAbove)))}</p>`:""}`:"")

@@ -102,9 +102,10 @@ $("hTitle").textContent = (S.name||"") + " · 订单核对";
 const items=[]; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>items.push(it)));
 const sizeNamesZh = it => { const n=(it.prices||[]).length; return it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); };
 const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
-/* 跟 index.html 同一套：外卖价 = 菜单价 × (1+priceMarkup) 往上凑整；打包盒每份 item.box > 分类 box > packaging.fee */
+/* 跟 index.html 同一套：外卖价 = 菜单价 + priceAdd（或 × (1+priceMarkup) 往上凑整）；打包盒每份 item.box > 分类 box > packaging.fee */
 const catOf={}; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{catOf[it.id]=c;}));
-const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, m=+d.priceMarkup||0, st=+d.markupStep||0.5; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
+const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, a=+d.priceAdd||0, m=+d.priceMarkup||0, st=+d.markupStep||0.5; if(a>0) return Math.round((p+a)*100)/100; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
+const hasDelMarkup = () => { const d=(S.ordering&&S.ordering.delivery)||{}; return +d.priceAdd>0||+d.priceMarkup>0; };
 const PK = () => (S.ordering&&S.ordering.packaging)||null;
 const boxOf = it => { if(!PK()) return 0; const c=catOf[it.id]; return +(it.box!=null?it.box:(c&&c.box!=null?c.box:PK().fee))||0; };
 const norm = s => String(s||"").replace(/[ \s]+/g," ").trim();
@@ -236,7 +237,7 @@ function renderResult(R){
     <div class="card"><h3>重算明细</h3><div class="scroll"><table>
       <tr><th>菜品</th><th class="n">数量</th><th class="n">讯息写</th><th class="n">应为</th></tr>
       ${R.lines.map(l=>`<tr class="${l.err?"bad":l.warn?"warn":""}"><td>${esc(l.text)}${l.err?'<span class="tag bad">✗</span>':l.warn?'<span class="tag warn">!</span>':'<span class="tag ok">✓</span>'}</td><td class="n">${esc(l.q||"")}</td><td class="n">${l.claimedAmt!=null?money(l.claimedAmt):"-"}</td><td class="n">${l.amt!=null?money(l.amt):"-"}</td></tr>`).join("")}
-      <tr><td colspan="3">小计${R.type==="delivery"&&DEL()&&+DEL().priceMarkup?"（外卖价）":""}</td><td class="n">${money(R.sub)}</td></tr>
+      <tr><td colspan="3">小计${R.type==="delivery"&&DEL()&&hasDelMarkup()?"（外卖价）":""}</td><td class="n">${money(R.sub)}</td></tr>
       ${R.vcode?`<tr><td colspan="3">优惠码 ${esc(R.vcode)} ${esc(R.vTitle||"")}</td><td class="n">− ${money(R.disc)}</td></tr>`:""}
       ${R.box?`<tr><td colspan="3">打包盒</td><td class="n">${money(R.box)}</td></tr>`:""}
       ${sstRate()?`<tr><td colspan="3">SST ${Math.round(sstRate()*1000)/10}%</td><td class="n">${money(R.sst)}</td></tr>`:""}
