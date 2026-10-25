@@ -377,27 +377,42 @@ window.SITE = {
       enabled: true,
       /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = 直线距离 × roadFactor）；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
+      /* 2026-10-26 业主选方案 A：外卖价 = 菜单价 +10%（priceMarkup），5km 内免运费，远一点收少量运费 */
       zones: [
-        { label: "0–3km", labelEn: "0–3km", fee: 2, maxKm: 3 },
-        { label: "3–5km", labelEn: "3–5km", fee: 5, maxKm: 5 },
-        { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
-        { label: "10–12km", labelEn: "10–12km", fee: 11, maxKm: 12 },
-        { label: "12–15km", labelEn: "12–15km", fee: 15, maxKm: 15 },
-        /* 也支持按 km 加钱的档：{ label, fee, maxKm, perKmFrom: 10, perKm: 2 }（这种档一定要定位才能选） */
+        { label: "0–5km 免运费", labelEn: "0–5km free delivery", fee: 0, maxKm: 5 },
+        { label: "5–10km", labelEn: "5–10km", fee: 4, maxKm: 10 },
+        { label: "10–15km", labelEn: "10–15km", fee: 8, maxKm: 15 },
       ],
       maxKm: 15,            // 超过这个估算路程不送
       roadFactor: 1.3,      // 直线距离 × 1.3 ≈ 实际开车路程（2026-10-18 业主选的；免费，不是精准导航）
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
-      minOrder: 0,          // 外卖最低消费，0 = 不限
+      minOrder: 30,          // 外卖最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
       area: { n: 3.45, s: 2.45, e: 102.15, w: 101.25 },   // 送餐服务范围（雪隆 + 芙蓉的大方框）：地址建议/定位只认这里面的位置
+      priceMarkup: 0.10,    // 外卖价 = 菜单价 × 1.10，往上凑整到 markupStep（自取照原价）
+      markupStep: 0.5,
       timeNote: "⏱️ 准备时间约 15–20 分钟（视食物分量而定），配送时间会根据交通繁忙时段和距离调整。",
       timeNoteEn: "⏱️ Preparation takes about 15–20 minutes (depending on order size); delivery time may vary with traffic and distance.",
-      note: "运费按分店到送餐地址的估算路程（直线距离 × 1.3）：3km 内 RM2、3–5km RM5、5–10km RM8、10–12km RM11、12–15km RM15，最远送 15km。填好地址按「📍 确认地址」自动计算。",
-      noteEn: "Delivery fee by estimated road distance from the outlet (straight line × 1.3): within 3km RM2, 3–5km RM5, 5–10km RM8, 10–12km RM11, 12–15km RM15, up to 15km. Enter your address and tap “Confirm address” to calculate.",
+      note: "🛵 5 公里内免运费！5–10km 运费 RM4、10–15km RM8，最远送 15km（路程按直线距离 × 1.3 估算）。外卖价为菜单价 +10%（自取照原价），最低消费 RM30。",
+      noteEn: "🛵 Free delivery within 5km! 5–10km RM4, 10–15km RM8, up to 15km (distance estimated as straight line × 1.3). Delivery prices are menu price +10% (pickup at normal price). Minimum order RM30.",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
+    /* 打包盒（2026-10-26 业主）：自取、外卖每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
+    packaging: { fee: 1, label: "打包盒", labelEn: "Takeaway box" },
+    /* 客人按「+」时跳出的客制化选项（2026-10-26 业主）；分类写 customize: false 就不跳（饮料） */
+    customize: {
+      options: [
+        { zh: "不要葱", en: "No spring onion" },
+        { zh: "不要蒜米", en: "No garlic" },
+        { zh: "不要芫荽", en: "No coriander" },
+        { zh: "不要辣", en: "Not spicy" },
+        { zh: "少辣", en: "Less spicy" },
+        { zh: "少盐", en: "Less salt" },
+        { zh: "少油", en: "Less oil" },
+      ],
+      noteMax: 30,   // 「其他要求」最多几个字
+    },
     sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST
     menuPhotos: ["images/menu-1.jpg", "images/menu-2.jpg"],   // 纸本菜单原图，可点开放大
     enabled: true,
@@ -412,7 +427,7 @@ window.SITE = {
    * options: 做法选择（例如蔬菜的马来栈/清炒）；image: 菜品照片；tag: 角标（招牌）；soldOut: 售完 */
   menu: [
     {
-      "cat": "松鱼头",
+      "box": 3, "cat": "松鱼头",
       "catEn": "Bighead Carp",
       "items": [
         {
@@ -478,7 +493,7 @@ window.SITE = {
       ]
     },
     {
-      "cat": "金凤鱼",
+      "box": 3, "cat": "金凤鱼",
       "catEn": "Red Tilapia",
       "note": "价钱按鱼的大小（小/中/大）",
       "noteEn": "Priced by fish size (S/M/L)",
@@ -596,7 +611,7 @@ window.SITE = {
       ]
     },
     {
-      "cat": "鱼类",
+      "box": 3, "cat": "鱼类",
       "catEn": "Fish",
       "items": [
         {
@@ -1181,6 +1196,7 @@ window.SITE = {
         },
         {
           "id": "ADD1",
+          "box": 0,
           "tt": "咸鱼香脆 · 咸香下饭",
           "ttEn": "Crispy salted fish · Savoury, great with rice",
           "code": "",
@@ -1365,7 +1381,7 @@ window.SITE = {
       ]
     },
     {
-      "cat": "茶类",
+      "customize": false, "cat": "茶类",
       "catEn": "Tea",
       "note": "每位计，最少 2 位",
       "noteEn": "Per pax, min 2 pax",
@@ -1445,7 +1461,7 @@ window.SITE = {
       ]
     },
     {
-      "cat": "饮料",
+      "customize": false, "cat": "饮料",
       "catEn": "Drink",
       "items": [
         {

@@ -102,6 +102,11 @@ $("hTitle").textContent = (S.name||"") + " · 订单核对";
 const items=[]; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>items.push(it)));
 const sizeNamesZh = it => { const n=(it.prices||[]).length; return it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); };
 const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
+/* 跟 index.html 同一套：外卖价 = 菜单价 × (1+priceMarkup) 往上凑整；打包盒每份 item.box > 分类 box > packaging.fee */
+const catOf={}; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{catOf[it.id]=c;}));
+const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, m=+d.priceMarkup||0, st=+d.markupStep||0.5; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
+const PK = () => (S.ordering&&S.ordering.packaging)||null;
+const boxOf = it => { if(!PK()) return 0; const c=catOf[it.id]; return +(it.box!=null?it.box:(c&&c.box!=null?c.box:PK().fee))||0; };
 const norm = s => String(s||"").replace(/[ \s]+/g," ").trim();
 function variants(it){
   const out=[], sis=it.prices?it.prices.map((_,i)=>i):[0], ois=it.options?it.options.map((_,i)=>i):[0];
@@ -111,7 +116,7 @@ function variants(it){
 }
 /* 讯息里每行：• A001 招牌蒸松鱼头 (大, 清炒) x2 = RM 70.00 —— 用「编号+菜名+份量做法」整串精确比对 */
 function matchItem(txt){
-  txt=norm(txt); let best=null;
+  txt=norm(String(txt).replace(/\s*\[[^\]]*\]\s*$/,"")); let best=null;   /* 方括号里是客制化要求（不要葱等），不影响价钱 */
   for(const it of items){
     const pf=norm((it.code?it.code+" ":"")+it.name); if(!txt.startsWith(pf)) continue;
     const rest=norm(txt.slice(pf.length));
@@ -134,7 +139,7 @@ async function check(raw){
   const lines=String(raw||"").split(/\r?\n/).map(norm).filter(Boolean);
   const R={lines:[],issues:[],warns:[],claimed:{}, type:"pickup"};
   if(!lines.length){ R.issues.push("没有内容"); return R; }
-  if(/外卖|delivery/i.test(lines[0])) R.type="delivery";
+  if(/外卖|delivery/i.test(lines[0])||lines.some(l=>lbl(l,"运费","Delivery fee")!=null)) R.type="delivery";   /* 先判断类型：外卖用外卖价核对 */
   for(const ln of lines){
     let v;
     const im=ln.match(/^[•·*\-]\s*(.+?)\s+[x×]\s*(\d+)\s*=\s*(.+)$/i);
@@ -143,7 +148,9 @@ async function check(raw){
       const L={text:im[1], q, claimedAmt};
       if(!m){ L.err="菜单里找不到这道菜（菜名/份量被改过，或菜单已更新）"; }
       else{
-        L.it=m.it; L.label=m.label; L.unit=m.price; L.amt=r2(m.price*q);
+        const up=R.type==="delivery"?delPrice(m.price):m.price;
+        L.it=m.it; L.label=m.label; L.unit=up; L.amt=r2(up*q); L.box=r2(boxOf(m.it)*q);
+        const cm=im[1].match(/\[([^\]]*)\]\s*$/); if(cm) L.cust=cm[1];
         if(m.it.soldOut) L.warn="这道菜目前标示「售完」";
         if(m.it.seasonal) L.warn="这道是时价菜，网上不能下单";
         if(m.it.min&&q<m.it.min) L.warn=`最少要点 ${m.it.min}`;
@@ -158,6 +165,7 @@ async function check(raw){
     else if((v=lbl(ln,"小计","Subtotal"))!=null) R.claimed.sub=amtIn(v);
     else if((v=lbl(ln,"优惠码","Voucher"))!=null){ R.vcode=(v.match(/^([A-Za-z0-9_-]+)/)||[])[1]||""; R.claimed.disc=(()=>{const m=v.match(/[−-]\s*(?:RM|MYR)\s*([\d,.]+)/i);return m?num(m[1]):0;})(); }
     else if(/^SST\b/i.test(ln)) R.claimed.sst=amtIn(ln);
+    else if((v=lbl(ln,"打包盒","Takeaway box"))!=null) R.claimed.box=amtIn(v);
     else if((v=lbl(ln,"运费","Delivery fee"))!=null){ R.type="delivery"; R.claimed.fee=/免运费|free/i.test(v)?0:amtIn(v); const z=v.match(/\(([^()]+)\)\s*$/); R.zoneLabel=z?z[1].trim():""; }
     else if((v=lbl(ln,"合计","Total"))!=null) R.claimed.total=amtIn(v);
     else if((v=lbl(ln,"姓名","Name"))!=null) R.name=v;
@@ -171,6 +179,7 @@ async function check(raw){
   if(!R.lines.length) R.issues.push("读不到任何菜品（是不是没有整段复制？）");
   R.lines.forEach(l=>{ if(l.err) R.issues.push(`「${l.text}」：${l.err}`); else if(l.warn) R.warns.push(`「${l.text}」：${l.warn}`); });
   const sub=r2(okLines.reduce((s,l)=>s+l.amt,0)); R.sub=sub;
+  R.box=r2(okLines.reduce((s,l)=>s+(l.box||0),0));
   /* 优惠码：只认 config 里有的（比对哈希），用订单日期判断是否在有效期内 */
   R.disc=0;
   if(R.vcode){
@@ -180,7 +189,7 @@ async function check(raw){
     else if(sub<(v.minSpend||0)){ if(R.claimed.disc>0) R.issues.push(`优惠码「${R.vcode}」要满 ${money(v.minSpend)}，这单只有 ${money(sub)}，不能扣钱`); else R.warns.push(`客人输入了优惠码「${R.vcode}」但未满 ${money(v.minSpend)}，所以没有折扣（正确）`); }
     else{ let off=v.type==="percent"?sub*(v.value||0)/100:v.type==="amount"?(v.value||0):0; if(v.maxOff) off=Math.min(off,v.maxOff); R.disc=r2(Math.min(off,sub)); R.vTitle=v.title||""; if(v.type==="gift"&&v.gift) R.warns.push(`优惠码送：${v.gift}`); }
   }
-  R.sst=r2((sub-R.disc)*sstRate());
+  R.sst=r2((sub-R.disc+R.box)*sstRate());
   R.fee=0;
   if(R.type==="delivery"){
     const D=DEL(), zs=(D&&D.zones)||[], z=zs.find(z=>norm(z.label)===norm(R.zoneLabel)||norm(z.labelEn)===norm(R.zoneLabel));
@@ -205,9 +214,10 @@ async function check(raw){
       R.zone=zz.label; R.fee = D.freeAbove&&(sub-R.disc)>=D.freeAbove ? 0 : (zz.fee||0)+(zz.perKm&&R.km!=null?Math.max(0,Math.ceil(Math.round((R.km-(zz.perKmFrom||0))*100)/100))*zz.perKm:0);
     }
   }
-  R.total=r2(sub-R.disc+R.sst+R.fee);
+  R.total=r2(sub-R.disc+R.box+R.sst+R.fee);
+  if(R.type==="delivery"&&DEL()&&DEL().minOrder&&sub-R.disc<DEL().minOrder) R.issues.push(`外卖最低消费 ${money(DEL().minOrder)}，这单食物只有 ${money(sub-R.disc)}`);
   const cmp=(k,mine,name)=>{ const c=R.claimed[k]; if(c==null) return; if(Math.abs(c-mine)>0.009) R.issues.push(`${name}：讯息写 ${money(c)}，应为 ${money(mine)}`); };
-  cmp("sub",sub,"小计"); if(R.vcode) cmp("disc",R.disc,"优惠"); cmp("sst",R.sst,"SST"); if(R.type==="delivery") cmp("fee",R.fee,"运费"); cmp("total",R.total,"合计");
+  cmp("sub",sub,"小计"); if(R.vcode) cmp("disc",R.disc,"优惠"); cmp("box",R.box,"打包盒"); if(R.box>0&&R.claimed.box==null) R.issues.push(`讯息里没有打包盒费用（应为 ${money(R.box)}）`); cmp("sst",R.sst,"SST"); if(R.type==="delivery") cmp("fee",R.fee,"运费"); cmp("total",R.total,"合计");
   if(R.claimed.total==null) R.issues.push("讯息里没有「合计」");
   if(S.payment&&S.payment.allowPayAtCounter===false&&R.claimed.paid==null) R.issues.push("这单没有「已转账」付款记录——网站规定自取/外卖一定要先付款，请先确认收到钱再出餐");
   if(R.claimed.paid!=null&&Math.abs(R.claimed.paid-R.total)>0.009) R.issues.push(`客人说已转账 ${money(R.claimed.paid)}，应付 ${money(R.total)}`);
@@ -226,8 +236,9 @@ function renderResult(R){
     <div class="card"><h3>重算明细</h3><div class="scroll"><table>
       <tr><th>菜品</th><th class="n">数量</th><th class="n">讯息写</th><th class="n">应为</th></tr>
       ${R.lines.map(l=>`<tr class="${l.err?"bad":l.warn?"warn":""}"><td>${esc(l.text)}${l.err?'<span class="tag bad">✗</span>':l.warn?'<span class="tag warn">!</span>':'<span class="tag ok">✓</span>'}</td><td class="n">${esc(l.q||"")}</td><td class="n">${l.claimedAmt!=null?money(l.claimedAmt):"-"}</td><td class="n">${l.amt!=null?money(l.amt):"-"}</td></tr>`).join("")}
-      <tr><td colspan="3">小计</td><td class="n">${money(R.sub)}</td></tr>
+      <tr><td colspan="3">小计${R.type==="delivery"&&DEL()&&+DEL().priceMarkup?"（外卖价）":""}</td><td class="n">${money(R.sub)}</td></tr>
       ${R.vcode?`<tr><td colspan="3">优惠码 ${esc(R.vcode)} ${esc(R.vTitle||"")}</td><td class="n">− ${money(R.disc)}</td></tr>`:""}
+      ${R.box?`<tr><td colspan="3">打包盒</td><td class="n">${money(R.box)}</td></tr>`:""}
       ${sstRate()?`<tr><td colspan="3">SST ${Math.round(sstRate()*1000)/10}%</td><td class="n">${money(R.sst)}</td></tr>`:""}
       ${R.type==="delivery"?`<tr><td colspan="3">运费 ${esc(R.zone||"")}</td><td class="n">${money(R.fee)}</td></tr>`:""}
       <tr><th colspan="3" style="color:var(--tx);font-size:15px">合计（讯息写 ${R.claimed.total!=null?money(R.claimed.total):"-"}）</th><th class="n" style="color:var(--tx);font-size:15px">${money(R.total)}</th></tr>
