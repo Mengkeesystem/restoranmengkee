@@ -17,7 +17,7 @@ window.SITE = {
   heroImage: "",                          // 首页大图，例如 "images/hero.jpg"；留空用纯色背景
 
   /* WhatsApp 号码：国家码开头、不要 + 和空格，例如 60123456789 */
-  whatsapp: "6589107948",               // 订单/订位 WhatsApp（+65 8910 7948）
+  whatsapp: "60176952455",              // 订单/订位 WhatsApp（+60 17-695 2455，2026-10-25 业主改）
   phone: "",                              // 显示用电话（「打电话」按钮）；空着 = 不显示
   address: "",                            // 多间分店时留空，地址改看下面 outlets
   /* Google Maps：在 Google Maps 搜到店 →「分享」→「嵌入地图」，复制 iframe 里 src="..." 的网址贴这里 */
