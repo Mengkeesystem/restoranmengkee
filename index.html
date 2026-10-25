@@ -1238,17 +1238,21 @@ const bkNoDates = (b,oi) => { const arr=v=>Array.isArray(v)?v.map(String):[], by
 function renderBooking(){
   if(!(S.booking&&S.booking.enabled)){ $("booking").hidden=true; return; }
   const b=BK(), keep=store.get("site_guest",{});
-  const dates=dateOptions(b.minDaysAhead,b.maxDaysAhead,"",b.slotMinutes,bkLead(b),60,bkNoDays(b),bkNoDates(b,outlets().length?(keep.outlet??""):undefined));
+  /* 订位草稿：客人填过的每一栏都存着，刷新/切换语言后还在；客人自己删掉的栏（空字串）就保持空，不再用旧资料补回 */
+  const dr0=store.get("site_bk_draft",null), dr=(dr0&&typeof dr0==="object"&&!Array.isArray(dr0))?dr0:{};
+  const dv=(k,fb)=>typeof dr[k]==="string"?dr[k].slice(0,120):fb;
+  const bkOut=dv("outlet",keep.outlet??"");
+  const dates=dateOptions(b.minDaysAhead,b.maxDaysAhead,dv("date",""),b.slotMinutes,bkLead(b),60,bkNoDays(b),bkNoDates(b,outlets().length?bkOut:undefined));
   const d0 = dates.length ? dates[0].match(/value="([^"]+)"/)[1] : "";
   let paxOpt=""; for(let i=1;i<=b.maxPax;i++) paxOpt+=`<option>${i}</option>`;
   $("bookForm").innerHTML = `
-    <div><label>${esc(t("name"))}</label><input id="bk_name" autocomplete="name" value="${esc(keep.name||"")}"></div>
-    <div><label>${esc(t("phone"))}</label><input id="bk_phone" type="tel" autocomplete="tel" value="${esc(keep.phone||"")}"></div>
-    ${outlets().length?`<div class="full"><label>${esc(t("outlet"))}</label><select id="bk_outlet">${outletOptions(keep.outlet)}</select></div>`:""}
+    <div><label>${esc(t("name"))}</label><input id="bk_name" autocomplete="name" value="${esc(dv("name",keep.name||""))}"></div>
+    <div><label>${esc(t("phone"))}</label><input id="bk_phone" type="tel" autocomplete="tel" value="${esc(dv("phone",keep.phone||""))}"></div>
+    ${outlets().length?`<div class="full"><label>${esc(t("outlet"))}</label><select id="bk_outlet">${outletOptions(bkOut)}</select></div>`:""}
     <div><label>${esc(t("date"))}</label><select id="bk_date">${dates.join("")}</select></div>
     <div><label>${esc(t("time"))}</label><select id="bk_time">${timeOptions(d0,b.slotMinutes,bkLead(b),60)}</select>${b.leadHours>1?`<div class="note">${esc(t("bkLead").replace("{h}",b.leadHours))}</div>`:""}${L(b,"noDaysNote")?`<div class="note">${esc(L(b,"noDaysNote"))}</div>`:""}</div>
     <div><label>${esc(t("pax"))}</label><select id="bk_pax">${paxOpt}</select><div class="note">${esc(t("paxMore").replace("{n}",b.maxPax))}</div></div>
-    <div><label>${esc(t("remark"))}</label><input id="bk_note" placeholder="${esc(t("remarkPh"))}"></div>
+    <div><label>${esc(t("remark"))}</label><input id="bk_note" placeholder="${esc(t("remarkPh"))}" value="${esc(dv("note",""))}"></div>
     <div class="full err" id="bk_err"></div>
     <div class="full"><button class="btn wa" id="bk_send">💬 ${esc(t("sendWa"))}</button><div class="note" style="margin-top:8px">${esc(t("waNote"))}</div></div>`;
   if($("bk_outlet")) $("bk_outlet").onchange=()=>{   /* 换分店：按该区公共假期重算可订日期，原本选的还能订就保留 */
@@ -1256,7 +1260,14 @@ function renderBooking(){
     const opts=dateOptions(b.minDaysAhead,b.maxDaysAhead,ds,b.slotMinutes,bkLead(b),60,bkNoDays(b),bkNoDates(b,$("bk_outlet").value));
     $("bk_date").innerHTML=opts.join("")||`<option value="">${esc(t("noSlot"))}</option>`;
     $("bk_time").innerHTML=timeOptions($("bk_date").value,b.slotMinutes,bkLead(b),60,tm); };
+  /* 还原草稿里的日期/时间/人数（只认选单里真的有的值） */
+  const has=(sel,v)=>v&&[...sel.options].some(o=>o.value===v);
+  if(has($("bk_date"),dv("date",""))) $("bk_date").value=dv("date","");
+  $("bk_time").innerHTML=timeOptions($("bk_date").value,b.slotMinutes,bkLead(b),60,dv("time",""));
+  if(has($("bk_pax"),dv("pax",""))) $("bk_pax").value=dv("pax","");
+  const saveBk=()=>store.set("site_bk_draft",{name:$("bk_name").value,phone:$("bk_phone").value,outlet:$("bk_outlet")?$("bk_outlet").value:"",date:$("bk_date").value,time:$("bk_time").value,pax:$("bk_pax").value,note:$("bk_note").value});
   $("bk_date").onchange=e=>{$("bk_time").innerHTML=timeOptions(e.target.value,b.slotMinutes,bkLead(b),60);};
+  $("bookForm").oninput=saveBk; $("bookForm").onchange=saveBk;
   $("bk_send").onclick=()=>{
     const name=$("bk_name").value.trim(), phone=$("bk_phone").value.trim(), date=$("bk_date").value, time=$("bk_time").value;
     const oi=$("bk_outlet")?$("bk_outlet").value:undefined;

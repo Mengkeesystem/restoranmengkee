@@ -395,8 +395,9 @@ window.SITE = {
       markupStep: 0.5,
       timeNote: "⏱️ 准备时间约 15–20 分钟（视食物分量而定），配送时间会根据交通繁忙时段和距离调整。",
       timeNoteEn: "⏱️ Preparation takes about 15–20 minutes (depending on order size); delivery time may vary with traffic and distance.",
-      note: "🛵 运费：5km 内 RM4、5–10km RM8、10–15km RM12，最远送 15km（路程按直线距离 × 1.3 估算）。外卖价为每份菜单价 +RM1（自取照原价），最低消费 RM30。",
-      noteEn: "🛵 Delivery fee: within 5km RM4, 5–10km RM8, 10–15km RM12, up to 15km (distance estimated as straight line × 1.3). Delivery prices are menu price +RM1 per portion (pickup at normal price). Minimum order RM30.",
+      /* 2026-10-26 业主：运费说明不用显示给客人看（运费照样在购物车合计里算）；要再显示就填回这两行 */
+      note: "",
+      noteEn: "",
     },
     priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
     /* 打包盒（2026-10-26 业主）：自取、外卖每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
