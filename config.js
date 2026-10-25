@@ -277,10 +277,10 @@ window.SITE = {
           "h": "保存在您的手机",
           "hEn": "Stored on your device",
           "p": [
-            "为了方便下次下单，网站会把购物车、语言、姓名及电话保存在您自己的浏览器里，不会上传。清除浏览器资料即可删除。本网站不使用广告或追踪 Cookie。"
+            "为了方便下次下单，网站会把购物车、语言、姓名、电话、送餐地址及地图位置保存在您自己的浏览器里，不会上传。清除浏览器资料即可删除。本网站不使用广告或追踪 Cookie。"
           ],
           "pEn": [
-            "To make your next order easier, the site keeps your cart, language, name and phone number in your own browser; this is not uploaded. Clearing your browser data removes it. This website does not use advertising or tracking cookies."
+            "To make your next order easier, the site keeps your cart, language, name, phone number, delivery address and map location in your own browser; this is not uploaded. Clearing your browser data removes it. This website does not use advertising or tracking cookies."
           ]
         },
         {
