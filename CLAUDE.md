@@ -113,6 +113,10 @@
 6. **自动确认讯息**：先用状态页 + 浏览器通知（免费）；要自动发 WhatsApp 需申请 WhatsApp Business API（按讯息收费），业主决定再做。
 7. 推荐奖励（分享链接、朋友首单付款后送 RM5 券）——要后台记录推荐码，最后做。
 8. admin.html 加：每张外卖单的骑手状态、Lalamove 费用、手动重叫按钮；每月总结加运费成本。
+**骑手公司改为「不绑死一家」（2026-10-26 业主补充）**：业主说客善用 Lalamove 那单 delay 了约 2 小时，问能否接 GrabExpress。结论：
+- **GrabExpress 有 Express API**（developer.grab.com，报价/下单/状态/取消 + 状态 webhook，先 staging 再 production），但要**先跟 Grab 业务部门谈合约**才开通，小店不一定批得快；GrabExpress 不收生食/冷冻品，熟食外卖可以。
+- 网上卖家经验（非官方）：Lalamove 报价便宜但常找不到骑手，GrabExpress 贵一点但比较容易叫到车。
+- **做法**：Edge Function 写成「骑手公司可换」的一层（同一套 报价/叫车/取消/状态 接口，后面接 Grab 或 Lalamove）；**主叫 GrabExpress，X 分钟（如 10 分钟）叫不到骑手就自动取消、改叫 Lalamove**，再不行响铃叫店员处理。也可考虑聚合平台（如 Delyva，一个接口接 GrabExpress/Lalamove/Borzo 等），省去分别谈合约，但多一层费用、要查它的 API 条件。
 **业主要准备**：Lalamove 商家账号 + API Partner 申请（公司资料）、预充 credit；付款网关商家账号；决定运费收法与准备时间（客善写 60–90 分钟）。
 **安全**：Edge Function 验 Lalamove/网关 webhook 签名；叫骑手只在后台确认已付款后；CSP 加新的 connect/导向域名。
 
