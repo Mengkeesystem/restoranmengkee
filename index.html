@@ -70,7 +70,8 @@ nav.links a:hover{background:#F6EADB}
 .hero h1::after{display:none}
 .hero p{font-size:18px;opacity:.92;margin:0 0 22px}
 .status{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:6px 14px;font-weight:700;margin-top:20px}
-.status.delst{display:flex;width:fit-content;margin-top:8px;font-size:14px;font-weight:600;padding:5px 12px}
+.status.delst{display:flex;width:fit-content;margin-top:8px;font-size:14px;font-weight:600;padding:5px 12px 5px 6px;gap:8px}
+.status.delst .rider{width:36px;height:24px;flex:none;background:#fff;border-radius:var(--rs);padding:1px}
 .dot{width:10px;height:10px;border-radius:50%;background:#bbb}
 .dot.on{background:#4ADE80}.dot.off{background:#F87171}
 .hero .acts{display:flex;flex-wrap:wrap;gap:10px}
@@ -759,7 +760,7 @@ function renderHero(){
       ${outlets().length?`<a class="btn alt" href="#outlets">📍 ${esc(t("outletBtn"))}</a>`:""}
     </div>
     <div class="status"><span class="dot ${st.open?"on":"off"}"></span>${stTxt}</div>
-    ${DEL()&&DEL().lastOrder?[["weekday","wkday"],["weekend","wkend"]].map(([k,lb])=>{ const v=DEL().lastOrder[k]; return Array.isArray(v)&&v.length?`<div class="status delst">🛵 ${esc(t("delHoursT").replace("{t}",v.map(ampm).join(lang==="en"?" & ":" 和 ")).replace("{d}",t(lb)))}</div>`:""; }).join(""):""}`;
+    ${DEL()&&DEL().lastOrder?[["weekday","wkday"],["weekend","wkend"]].map(([k,lb])=>{ const v=DEL().lastOrder[k]; return Array.isArray(v)&&v.length?`<div class="status delst"><img class="rider" src="images/rider.svg" alt="" width="36" height="24">${esc(t("delHoursT").replace("{t}",v.map(ampm).join(lang==="en"?" & ":" 和 ")).replace("{d}",t(lb)))}</div>`:""; }).join(""):""}`;
 }
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
 /* Waze：用地址搜索并直接开始导航；分店可在 config.js 用 waze 自订链接 */
