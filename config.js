@@ -166,14 +166,16 @@ window.SITE = {
           ]
         },
         {
-          "h": "我们这边的问题",
-          "hEn": "Issues on our side",
+          "h": "改正订单问题",
+          "hEn": "Order corrections",
           "p": [
             "如果收到的食物有错漏、少了菜，或品质有问题，请在收到后 2 小时内通过 WhatsApp 联系我们，并附上照片及订单参考号。核实后我们会补送、部分退款或全额退款。",
+            "订单送达（或自取取餐）超过 2 小时，一概不受理。",
             "如果因为售罄、分店临时休息或其他原因无法完成订单，我们会主动联系您，并全额退款或经您同意改换其他菜品。"
           ],
           "pEn": [
             "If any item is wrong, missing or not up to standard, contact us on WhatsApp within 2 hours of receiving your order with photos and your order reference. After checking, we will replace the item or give a partial or full refund.",
+            "Claims made more than 2 hours after delivery (or pickup) will not be accepted.",
             "If we cannot fulfil your order (sold out, outlet closed or other reasons), we will contact you and give a full refund, or a replacement dish if you agree."
           ]
         },
