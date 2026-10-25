@@ -375,7 +375,7 @@ window.SITE = {
     /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
       enabled: true,
-      /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = 直线距离 × roadFactor）；最后一档不写 maxKm = 以上全部。
+      /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = Google 路线真实路程）；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
       /* 2026-10-26 业主改：外送价 = 每份菜单价 +RM1（priceAdd），运费按距离分段收（原方案 A 是 +10% + 5km 内免运费，算下来每单亏 RM3–6） */
       zones: [
@@ -384,8 +384,8 @@ window.SITE = {
         { label: "10–15km", labelEn: "10–15km", fee: 12, maxKm: 15 },   // 现在最远只送 10km，这档暂时用不到（以后放宽距离再用）
       ],
       lastOrder: { weekday: ["14:30", "21:30"], weekend: ["14:00", "21:30"] },   // 2026-10-26 业主：外送最后接单（对应 hours 的午市/晚市）；之后到打烊不接外送
-      maxKm: 10,            // 2026-10-26 业主：开车路程 10km 内才送（路程 = 直线 × roadFactor 估算）。若改填 radiusKm 就按直线半径算
-      roadFactor: 1.3,      // 直线距离 × 1.3 ≈ 实际开车路程（2026-10-18 业主选的；免费，不是精准导航）
+      maxKm: 10,            // 2026-10-26 业主：Google 路线路程 10km 内才送
+      travelMode: "TWO_WHEELER",   // 2026-10-26 业主：距离全部用 Google 路线（Routes API）真实路程；摩托（TWO_WHEELER），算不到才用驾车
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 30,          // 外送最低消费，0 = 不限
       freeAbove: 0,         // 满多少免运费，0 = 不设
@@ -396,13 +396,13 @@ window.SITE = {
       markupStep: 0.5,
       /* 外送预计时间（2026-10-26 业主）：只接「现在送」，不选送达日期/时间；全部是预计。
          准备时间按购物车总份数：繁忙时段（12:00–14:00、19:00–21:00）用 peakTiers；其他时段用 tiers（业主：快 5 分钟）。
-         配送 = base + 路程km × perKm（分钟，[最快, 最慢]），以后接 Delyva 有真实时间就改用它。 */
+         配送 = Google 路线时间 + ride.wait，以后接 Delyva 有真实时间就改用它。 */
       prep: {
         peak: [["12:00", "14:00"], ["19:00", "21:00"]],
         peakTiers: [ { maxQty: 3, min: 10, max: 15 }, { maxQty: 7, min: 20, max: 25 }, { min: 40, max: 45 } ],
         tiers:     [ { maxQty: 3, min: 5, max: 10 }, { maxQty: 7, min: 15, max: 20 }, { min: 35, max: 40 } ],
       },
-      ride: { base: [5, 10], perKm: [2, 3] },
+      ride: { wait: [5, 10], slow: 1.3 },   // 配送时间 = Google 路线时间 + 等骑手 5–10 分；慢的那头 × 1.3（塞车）
       /* 2026-10-26 业主：运费说明不用显示给客人看（运费照样在购物车合计里算）；要再显示就填回这两行 */
       note: "",
       noteEn: "",
