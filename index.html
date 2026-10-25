@@ -895,7 +895,9 @@ function wireAddrSug(ta){
         const p=preds[+b.dataset.i]; hide();
         try{
           const pl=p.toPlace(); await pl.fetchFields({fields:["location","formattedAddress"]}); gTok=null;
-          const addr=(pl.formattedAddress||String(p.text)).trim();
+          let addr=(pl.formattedAddress||String(p.text)).trim();
+          const nm=p.mainText?String(p.mainText).trim():"";   /* Google 的正式地址常把大楼/公寓名去掉，骑手需要它，补回前面 */
+          if(nm&&!addr.toLowerCase().includes(nm.toLowerCase())) addr=nm+", "+addr;
           ta.value=addr; gPick={addr,lat:pl.location.lat(),lng:pl.location.lng(),lvl:"exact",name:addr};
           delGeo=null; delAuto=false; delKm=null; delFar=null; addrFail=false; geoMsg="";
           setTimeout(locateAddr,0);

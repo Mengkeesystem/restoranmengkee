@@ -43,7 +43,7 @@ window.SITE = {
    *    ① Application restrictions → Websites → 只填 https://mengkeesystem.github.io/*
    *    ② API restrictions → 只勾 Maps JavaScript API、Places API (New)、Geocoding API
    *    ③ Billing → Budgets & alerts 设预算提醒 */
-  googleMaps: { apiKey: "" },
+  googleMaps: { apiKey: "AIzaSyDT_OLyOxzx60ITUbkw-7O9sp_f3oIa_Y0" },   // 2026-10-26 业主提供；已限制 3 个网址 + 3 个 API
 
   /* 社交平台 / 外卖平台链接，没有的留空 "" 就不会显示 */
   social: {
