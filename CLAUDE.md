@@ -143,6 +143,7 @@
 6. **自动确认讯息**：先用状态页 + 浏览器通知（免费）；要自动发 WhatsApp 需申请 WhatsApp Business API（按讯息收费），业主决定再做。
 7. 推荐奖励（分享链接、朋友首单付款后送 RM5 券）——要后台记录推荐码，最后做。
 8. admin.html 加：每张外卖单的骑手状态、Lalamove 费用、手动重叫按钮；每月总结加运费成本。
+**Delyva 进度（2026-10-26，业主说先暂停）**：业主问过方案——建议 **Basic（按单扣 credit，无月费）**，DelyvaNow+ RM298/月 只多品牌追踪页/通知/绑自己骑手账号，外送量小不划算（Plus 每单若便宜 RM1，约每月 300 单才打平）。Delyva 回复只给了资料：开发指南 delyva.com/my/blog/kb/developer-guide-to-integrating-with-delyva-api/、API 文件 docs.api.delyva.com、**免费测试账号 trydx.delyva.app/customer**（假订单不扣钱）、改测试订单状态工具 dx-integration-sandbox.pages.dev、技术邮箱 dev@delyva.com。API：base `https://api.delyva.app/v1.0`，header `X-Delyvax-Access-Token`，key 在后台 Settings → API Integration 生成（只显示一次），webhook 验证用 `GET /user` 的 apiSecret；流程 报价 → 建草稿单(process:false) → 付款后 process → webhook。**还没确认**：Basic 能不能开正式 API key、一个账号多个取货地址、Basic/Plus 每单价差、熟食可用哪些骑手公司/叫不到车的后备——已帮业主写好英文追问信（寄 dev@delyva.com），业主在填测试账号表格（Account Type 选 Business、Sort Services 选 Fastest、Label 留 A6-1）时说先暂停。**key 绝不放网页/仓库/聊天**，等 Supabase 后台建好放 Edge Function。
 **骑手公司改为「不绑死一家」（2026-10-26 业主补充）**：业主说客善用 Lalamove 那单 delay 了约 2 小时，问能否接 GrabExpress。结论：
 - **GrabExpress 有 Express API**（developer.grab.com，报价/下单/状态/取消 + 状态 webhook，先 staging 再 production），但要**先跟 Grab 业务部门谈合约**才开通，小店不一定批得快；GrabExpress 不收生食/冷冻品，熟食外卖可以。
 - 网上卖家经验（非官方）：Lalamove 报价便宜但常找不到骑手，GrabExpress 贵一点但比较容易叫到车。
