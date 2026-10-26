@@ -471,6 +471,7 @@ window.SITE = {
         },
         {
           "id": "A003",
+          "image": "images/menu/A003.jpg",
           "tt": "肉嫩滑，鱼头胶质软糯（细刺多） · 姜丝鲜香，较清淡",
           "ttEn": "Silky flesh, soft collagen-rich head (many fine bones) · Fresh ginger aroma, lighter taste",
           "code": "A003",
