@@ -73,8 +73,10 @@ window.SITE = {
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+      payment: { qr: "images/pay/scott-duitnow.png", accountName: "RESTORAN MENG KEE SCOTT" } },
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
+      payment: { qr: "images/pay/pj-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "MK KELANA SB" } },
     { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
     { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
     { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
