@@ -19,7 +19,8 @@ window.SITE = {
   heroPos: "center",                      // 图片对准哪里
   heroSize: "100% auto",                  // 电脑版：招牌整张横着摆满（上下用招牌底色补）
   heroSizeMobile: "100% auto",            // 手机版：整张招牌横着摆满（画面窄，招牌会比较小）
-  heroPosMobile: "center 4%",             // 手机版：招牌放在上面
+  heroPosMobile: "center top",           // 手机版：招牌贴最上面
+  heroRepeatMobile: true,                 // 手机版：招牌往下重复铺，铺到外送灯那一行为止
   heroPushMobile: true,                   // 手机版把店名/按钮往下推，招牌横条露在最上面
   heroColor: "#800000",                   // 招牌底色，图片没盖到的地方用它
 

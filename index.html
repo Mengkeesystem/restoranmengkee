@@ -788,9 +788,9 @@ function renderHero(){
     bg.style.backgroundImage=`url("${encodeURI(small?S.heroImageMobile:S.heroImage)}")`; const pos=(matchMedia("(max-width:760px)").matches&&S.heroPosMobile)||S.heroPos; if(pos) bg.style.backgroundPosition=String(pos).replace(/[^a-z0-9% .-]/gi,"");
     const sz=matchMedia("(max-width:760px)").matches?(S.heroSizeMobile||S.heroSize):S.heroSize; if(sz) bg.style.backgroundSize=String(sz).replace(/[^a-z0-9% .-]/gi,"");
     if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
-    bg.style.backgroundRepeat="no-repeat";
+    bg.style.backgroundRepeat=(S.heroRepeatMobile&&matchMedia("(max-width:760px)").matches)?"repeat-y":"no-repeat";
     /* 手机版招牌横条在最上面（heroPushMobile）：把店名/按钮往下推，不要盖住招牌 */
-    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth; $("heroIn").style.marginTop=Math.max(0,Math.round(band-40))+"px"; }; im.src=S.heroImageMobile||S.heroImage; } }
+    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth; $("heroIn").style.marginTop=Math.max(0,Math.round(band-40))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
   $("heroIn").innerHTML = `
     ${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}
     <h1>${esc(L(S,"name"))}</h1>
@@ -803,7 +803,16 @@ function renderHero(){
     <div class="status"><span class="dot ${st.open?"on":"off"}"></span>${stTxt}</div>
     ${DEL()&&DEL().windows?(()=>{ const ds=delOpenState(), c=ds.ok?(ds.warn?"warn":"go"):"stop";   /* 外送灯：青=外送 / 黄=最后点餐时间 / 红=停止外送 */
       return `<div class="status delst"><span class="dot ${c}"></span>${esc(ds.ok?t(ds.warn?"delWarnT":"delGoT"):t("delStopT").replace("{n}",ds.next||""))}</div>`; })():""}`;
+  sizeHbg();
 }
+/* 手机版招牌重复铺（heroRepeatMobile，2026-10-26 业主）：从最上面一条一条往下铺到外送灯那一行为止，下面（本店故事）用底色 */
+function sizeHbg(){
+  const h=$("hero"), bg=h&&h.querySelector(".hbg"); if(!bg) return;
+  if(!(S.heroRepeatMobile&&matchMedia("(max-width:760px)").matches)){ bg.style.height=""; bg.style.bottom=""; return; }
+  const last=[...h.querySelectorAll("#heroIn .status")].pop(); if(!last) return;
+  bg.style.bottom="auto"; bg.style.height=Math.round(last.getBoundingClientRect().bottom-h.getBoundingClientRect().top+14)+"px";
+}
+window.addEventListener("resize",()=>sizeHbg());
 function outlets(){ return Array.isArray(S.outlets)?S.outlets:[]; }
 /* Waze：用地址搜索并直接开始导航；分店可在 config.js 用 waze 自订链接 */
 const wazeLink = (addr, custom) => custom || ("https://waze.com/ul?q="+encodeURIComponent(addr)+"&navigate=yes");
