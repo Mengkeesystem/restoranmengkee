@@ -518,6 +518,7 @@ window.SITE = {
       "items": [
         {
           "id": "A008",
+          "image": "images/menu/A008.jpg",
           "tt": "肉质紧实细嫩，刺少 · 鲜香甘甜，姜蓉微辣",
           "ttEn": "Firm, tender flesh, few bones · Fresh and sweet, light ginger-chilli kick",
           "code": "A008",
@@ -567,6 +568,7 @@ window.SITE = {
         },
         {
           "id": "A012",
+          "image": "images/menu/A012.jpg",
           "tt": "肉质紧实细嫩，刺少 · 香脆可口",
           "ttEn": "Firm, tender flesh, few bones · Crispy and fragrant",
           "code": "A012",
@@ -644,6 +646,7 @@ window.SITE = {
         },
         {
           "id": "A019",
+          "image": "images/menu/A019.jpg",
           "tt": "肉厚细腻、入口即化，刺少 · 咸鲜回甘，油脂香浓",
           "ttEn": "Thick, melt-in-mouth flesh, few bones · Savoury, rich natural oils",
           "code": "A019",
@@ -662,6 +665,7 @@ window.SITE = {
         },
         {
           "id": "A020",
+          "image": "images/menu/A020.jpg",
           "tt": "肉嫩滑，几乎无刺 · 清甜鲜美",
           "ttEn": "Tender and smooth, almost boneless · Light and sweet",
           "code": "A020",
@@ -698,6 +702,7 @@ window.SITE = {
         },
         {
           "id": "A022",
+          "image": "images/menu/A022.jpg",
           "tt": "蚌肉爽滑弹牙 · 香辣惹味，蒜香虾米味浓",
           "ttEn": "Springy clams · Spicy, garlic & dried-shrimp aroma",
           "code": "A022",
@@ -710,6 +715,7 @@ window.SITE = {
         },
         {
           "id": "A023",
+          "image": "images/menu/A023.jpg",
           "tt": "海鲜爽弹、豆腐软滑 · 椰香咸甜，几乎不辣",
           "ttEn": "Bouncy seafood, silky tofu · Coconut curry, barely spicy",
           "code": "A023",
@@ -719,6 +725,7 @@ window.SITE = {
         },
         {
           "id": "A024",
+          "image": "images/menu/A024.jpg",
           "tt": "苏东爽脆弹牙 · 酸辣开胃，娘惹香料",
           "ttEn": "Crisp, springy squid · Sour-spicy Nyonya spices",
           "code": "A024",
@@ -728,6 +735,7 @@ window.SITE = {
         },
         {
           "id": "A025",
+          "image": "images/menu/A025.jpg",
           "tt": "苏东嫩滑弹口 · 清鲜带甘",
           "ttEn": "Tender, bouncy squid · Light and sweet",
           "code": "A025",
@@ -737,6 +745,7 @@ window.SITE = {
         },
         {
           "id": "A026",
+          "image": "images/menu/A026.jpg",
           "tt": "外脆内嫩弹牙 · 咸香惹味",
           "ttEn": "Crispy outside, springy inside · Savoury",
           "code": "A026",
@@ -749,6 +758,7 @@ window.SITE = {
         },
         {
           "id": "A027",
+          "image": "images/menu/A027.jpg",
           "tt": "外酥内弹 · 椒盐香咸，微辣",
           "ttEn": "Crispy, bouncy · Salt & pepper, mildly spicy",
           "code": "A027",
@@ -796,6 +806,7 @@ window.SITE = {
         },
         {
           "id": "A031",
+          "image": "images/menu/A031.jpg",
           "tt": "虾肉紧实弹牙 · 鲜甜多汁",
           "ttEn": "Firm, bouncy prawn · Sweet and juicy",
           "code": "A031",
@@ -816,6 +827,7 @@ window.SITE = {
         },
         {
           "id": "A033",
+          "image": "images/menu/A033.jpg",
           "tt": "虾肉紧实弹牙 · 咸蛋咸香",
           "ttEn": "Firm, bouncy prawn · Savoury salted egg",
           "code": "A033",
@@ -860,6 +872,7 @@ window.SITE = {
         },
         {
           "id": "A036",
+          "image": "images/menu/A036.jpg",
           "tt": "外脆内嫩多汁 · 南乳咸香回甘",
           "ttEn": "Crispy and juicy · Fermented beancurd, sweet finish",
           "code": "A036",
@@ -902,6 +915,7 @@ window.SITE = {
         },
         {
           "id": "A039",
+          "image": "images/menu/A039.jpg",
           "tt": "排骨软嫩脱骨 · 咖喱香辣，微带椰香",
           "ttEn": "Fall-off-the-bone · Spicy curry, hint of coconut",
           "code": "A039",
@@ -929,6 +943,7 @@ window.SITE = {
         },
         {
           "id": "A041",
+          "image": "images/menu/A041.jpg",
           "tt": "五花肉软糯，肥而不腻 · 咸鱼香浓，下饭",
           "ttEn": "Soft pork belly, not greasy · Salted fish, great with rice",
           "code": "A041",
@@ -986,6 +1001,7 @@ window.SITE = {
         },
         {
           "id": "A044",
+          "image": "images/menu/A044.jpg",
           "tt": "鸡肉嫩滑入味 · 酱香浓，九层塔麻油香",
           "ttEn": "Tender chicken · Rich sauce, basil & sesame oil",
           "code": "A044",
@@ -1061,6 +1077,7 @@ window.SITE = {
         },
         {
           "id": "A048",
+          "image": "images/menu/A048.jpg",
           "tt": "爽脆多汁 · 清甜微苦",
           "ttEn": "Crisp and juicy · Sweet, slightly bitter",
           "code": "A048",
@@ -1080,6 +1097,7 @@ window.SITE = {
         },
         {
           "id": "A049",
+          "image": "images/menu/A049.jpg",
           "tt": "梗脆叶软 · 清香微甘",
           "ttEn": "Crisp stems, soft leaves · Light and sweet",
           "code": "A049",
@@ -1099,6 +1117,7 @@ window.SITE = {
         },
         {
           "id": "A050",
+          "image": "images/menu/A050.jpg",
           "tt": "叶滑茎嫩 · 清甜温和",
           "ttEn": "Silky leaves, tender stems · Mild and sweet",
           "code": "A050",
@@ -1118,6 +1137,7 @@ window.SITE = {
         },
         {
           "id": "A051",
+          "image": "images/menu/A051.jpg",
           "tt": "嫩滑爽口 · 清甜鲜嫩",
           "ttEn": "Tender and smooth · Sweet and fresh",
           "code": "A051",
@@ -1137,6 +1157,7 @@ window.SITE = {
         },
         {
           "id": "A052",
+          "image": "images/menu/A052.jpg",
           "tt": "梗脆叶嫩 · 清甜淡雅",
           "ttEn": "Crisp stems, tender leaves · Sweet and delicate",
           "code": "A052",
@@ -1156,6 +1177,7 @@ window.SITE = {
         },
         {
           "id": "A053",
+          "image": "images/menu/A053.jpg",
           "tt": "爽脆多汁 · 清甜解腻",
           "ttEn": "Crunchy and juicy · Light and refreshing",
           "code": "A053",
@@ -1175,6 +1197,7 @@ window.SITE = {
         },
         {
           "id": "A054",
+          "image": "images/menu/A054.jpg",
           "tt": "叶嫩梗脆 · 清甜带甘",
           "ttEn": "Tender leaves, crisp stems · Sweet and refreshing",
           "code": "A054",
@@ -1191,6 +1214,7 @@ window.SITE = {
         },
         {
           "id": "A055",
+          "image": "images/menu/A055.jpg",
           "tt": "多样蔬菜爽脆 · 参峇香辣，虾米味浓",
           "ttEn": "Crunchy mixed veg · Spicy sambal, dried shrimp",
           "code": "A055",
@@ -1268,6 +1292,7 @@ window.SITE = {
         },
         {
           "id": "A059",
+          "image": "images/menu/A059.jpg",
           "tt": "外焦香、内滑嫩 · 酱香浓，蛋香足",
           "ttEn": "Seared outside, silky inside · Rich sauce with egg",
           "code": "A059",
@@ -1280,6 +1305,7 @@ window.SITE = {
         },
         {
           "id": "A060",
+          "image": "images/menu/A060.jpg",
           "tt": "边脆心嫩，蛋黄流心 · 蛋香浓，咸香",
           "ttEn": "Crispy edges, runny yolk · Rich and savoury",
           "code": "A060",
@@ -1291,6 +1317,7 @@ window.SITE = {
         },
         {
           "id": "A061",
+          "image": "images/menu/A061.jpg",
           "tt": "外微焦、内松软 · 蛋香十足",
           "ttEn": "Lightly browned, fluffy · Full egg flavour",
           "code": "A061",
@@ -1300,6 +1327,7 @@ window.SITE = {
         },
         {
           "id": "A062",
+          "image": "images/menu/A062.jpg",
           "tt": "蛋松软、葱爽甜 · 咸香开胃",
           "ttEn": "Fluffy egg, sweet onion · Savoury",
           "code": "A062",
@@ -1338,6 +1366,7 @@ window.SITE = {
         },
         {
           "id": "A066",
+          "image": "images/menu/A066.jpg",
           "tt": "蛋松软、菜圃爽脆 · 咸香带甜",
           "ttEn": "Fluffy egg, crunchy preserved radish · Savoury-sweet",
           "code": "A066",
@@ -1347,6 +1376,7 @@ window.SITE = {
         },
         {
           "id": "A067",
+          "image": "images/menu/A067.jpg",
           "tt": "蛋松软、虾仁弹牙 · 鲜甜咸香",
           "ttEn": "Fluffy egg, bouncy shrimp · Sweet and savoury",
           "code": "A067",
@@ -1396,6 +1426,30 @@ window.SITE = {
             25
           ]
         }
+      ]
+    },
+    {
+      /* 2026-10-26 业主：新增饭类，照 Grab 价钱减 RM1（白饭 RM1.50）；炒饭的口味用「份量」那排按钮选（价钱不同） */
+      "cat": "饭类",
+      "catEn": "Rice",
+      "items": [
+        { "id": "R001", "code": "R001", "name": "白饭", "nameEn": "White Rice", "price": 1.5,
+          "tt": "粒粒松软 · 配什么菜都好吃", "ttEn": "Soft and fluffy · Goes with every dish" },
+        { "id": "R002", "code": "R002", "name": "炒饭", "nameEn": "Fried Rice",
+          "sizes": ["家乡炒饭", "叁巴炒饭", "咸鱼炒饭", "虾仁炒饭", "海鲜炒饭"],
+          "sizesEn": ["Kampung", "Sambal", "Salted Fish", "Shrimp", "Seafood"],
+          "prices": [12.9, 12.9, 13.9, 14.9, 18.9],
+          "tt": "粒粒分明有锅气 · 五种口味任选", "ttEn": "Fluffy with wok hei · Choose from five flavours" },
+        { "id": "R003", "code": "R003", "name": "豉汁排骨饭", "nameEn": "Black Bean Paste Pork Ribs Rice", "price": 15.9, "image": "images/menu/R003.jpg",
+          "tt": "排骨嫩滑 · 豉汁咸香下饭", "ttEn": "Tender ribs · Savoury black bean sauce" },
+        { "id": "R004", "code": "R004", "name": "咖喱排骨饭", "nameEn": "Curry Pork Ribs Rice", "price": 15.9, "image": "images/menu/R004.jpg",
+          "tt": "排骨入味 · 咖喱浓香微辣", "ttEn": "Well-seasoned ribs · Rich, mildly spicy curry" },
+        { "id": "R005", "code": "R005", "name": "咕咾肉饭", "nameEn": "Sweet and Sour Pork Rice", "price": 15.9, "image": "images/menu/R005.jpg",
+          "tt": "外脆内嫩 · 酸甜开胃", "ttEn": "Crispy outside, tender inside · Sweet and tangy" },
+        { "id": "R006", "code": "R006", "name": "冬菜蒸猪肉饭", "nameEn": "Dong Choi Steam Meat Patty Rice", "price": 18.9, "image": "images/menu/R006.jpg",
+          "tt": "肉饼嫩滑多汁 · 冬菜咸香", "ttEn": "Juicy steamed patty · Savoury preserved vegetable" },
+        { "id": "R007", "code": "R007", "name": "卤猪脚饭", "nameEn": "Signature Stewed Pork Rice", "price": 18.9, "image": "images/menu/R007.jpg", "tag": "招牌",
+          "tt": "皮糯肉软 · 卤汁咸甜拌饭一流", "ttEn": "Soft, sticky pork · Savoury-sweet braise over rice" }
       ]
     },
     {
@@ -1497,6 +1551,7 @@ window.SITE = {
         },
         {
           "id": "B009",
+          "image": "images/menu/B009.jpg",
           "tt": "竹蔗马蹄 · 清甜解渴",
           "ttEn": "Sugarcane & water chestnut · Sweet and thirst-quenching",
           "code": "B009",
@@ -1506,6 +1561,7 @@ window.SITE = {
         },
         {
           "id": "B010",
+          "image": "images/menu/B010.jpg",
           "tt": "洋参菊花 · 清香微甘",
           "ttEn": "Ginseng & chrysanthemum · Light, slightly sweet",
           "code": "B010",
@@ -1515,6 +1571,7 @@ window.SITE = {
         },
         {
           "id": "B011",
+          "image": "images/menu/B011.jpg",
           "tt": "爱玉滑溜 · 酸甜冰凉",
           "ttEn": "Smooth jelly · Sweet, tangy and icy",
           "code": "B011",
@@ -1524,6 +1581,7 @@ window.SITE = {
         },
         {
           "id": "B012",
+          "image": "images/menu/B012.jpg",
           "tt": "冰凉解渴",
           "ttEn": "Cold and refreshing",
           "code": "B012",
@@ -1533,6 +1591,7 @@ window.SITE = {
         },
         {
           "id": "B013",
+          "image": "images/menu/B013.jpg",
           "tt": "冰凉清爽",
           "ttEn": "Cold and refreshing",
           "code": "B013",
