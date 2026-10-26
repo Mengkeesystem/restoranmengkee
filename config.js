@@ -70,7 +70,9 @@ window.SITE = {
   /* delivery: true = 这间分店有外送（2026-10-26 业主：先开 OKR 两间 + Kelana Jaya 三间外送，其他只开自取）。
      全部分店都没写 delivery 时 = 每间都送。 */
   outlets: [
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+      /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
+      payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur" },
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor" },
     { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
