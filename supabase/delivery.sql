@@ -132,8 +132,8 @@ revoke all on function public.web_order_track(text, uuid) from public;
 grant execute on function public.web_order_track(text, uuid) to anon, authenticated;
 
 -- 5) 客人用电话查「我的订单」（2026-10-28）-------------------------------
--- 只回传：参考号、时间、分店、自取/外送、金额、付款状态、骑手状态码。
--- 不回传姓名、地址、订单内容、token（拿到参考号也查不到骑手资料/追踪链接）。
+-- 只回传：参考号、时间、分店、自取/外送、金额、付款状态、骑手状态码、菜品与金额明细。
+-- 不回传姓名、电话、地址、备注、token（拿到参考号也查不到骑手资料/追踪链接）。
 -- 防乱查：同一个 IP 10 分钟最多 10 次、全站 10 分钟最多 600 次；只查最近 30 天、最多 20 笔。
 create table if not exists public.web_lookup_log (
   id bigserial primary key,
@@ -172,7 +172,9 @@ begin
   insert into public.web_lookup_log (ip) values (v_ip);
   select coalesce(jsonb_agg(x order by x->>'at' desc), '[]'::jsonb) into v_out from (
     select jsonb_build_object('ref', ref, 'at', created_at, 'outlet', outlet, 'type', order_type, 'amount', amount, 'status', status,
-      'courier', case when courier_order_id is null then null else courier_status end) x
+      'courier', case when courier_order_id is null then null else courier_status end,
+      -- 订单讯息第一段（标题、分店、菜品、小计/SST/运费/合计），空一行之后的姓名/电话/地址不回传
+      'detail', left(split_part(message, E'\n\n', 1), 3000)) x
     from public.web_orders
     where public.web_norm_phone(customer_phone) = v_phone and created_at > now() - interval '30 days'
     order by created_at desc limit 20) s;
