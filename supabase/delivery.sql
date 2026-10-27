@@ -130,3 +130,54 @@ end $$;
 
 revoke all on function public.web_order_track(text, uuid) from public;
 grant execute on function public.web_order_track(text, uuid) to anon, authenticated;
+
+-- 5) 客人用电话查「我的订单」（2026-10-28）-------------------------------
+-- 只回传：参考号、时间、分店、自取/外送、金额、付款状态、骑手状态码。
+-- 不回传姓名、地址、订单内容、token（拿到参考号也查不到骑手资料/追踪链接）。
+-- 防乱查：同一个 IP 10 分钟最多 10 次、全站 10 分钟最多 600 次；只查最近 30 天、最多 20 笔。
+create table if not exists public.web_lookup_log (
+  id bigserial primary key,
+  ip text,
+  at timestamptz not null default now()
+);
+create index if not exists web_lookup_log_at_idx on public.web_lookup_log (at);
+alter table public.web_lookup_log enable row level security;
+revoke all on public.web_lookup_log from anon, authenticated;
+
+create or replace function public.web_norm_phone(p text)
+returns text language plpgsql immutable set search_path = public as $$
+declare d text := regexp_replace(coalesce(p, ''), '[^0-9]', '', 'g');
+begin
+  if d like '60%' then d := '0' || substr(d, 3); end if;   -- +60 12-345 6789 = 012-345 6789
+  return d;
+end $$;
+revoke all on function public.web_norm_phone(text) from public;
+
+create or replace function public.web_my_orders(p_phone text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_phone text := public.web_norm_phone(p_phone); v_ip text; v_out jsonb;
+begin
+  if v_phone !~ '^0[0-9]{8,10}$' then raise exception 'bad phone'; end if;
+  begin
+    v_ip := split_part(coalesce(current_setting('request.headers', true)::json->>'x-forwarded-for', ''), ',', 1);
+  exception when others then v_ip := '';
+  end;
+  delete from public.web_lookup_log where at < now() - interval '1 day';
+  if (select count(*) from public.web_lookup_log where ip = v_ip and at > now() - interval '10 minutes') >= 10 then
+    raise exception 'too many lookups, try again later';
+  end if;
+  if (select count(*) from public.web_lookup_log where at > now() - interval '10 minutes') >= 600 then
+    raise exception 'too many lookups, try again later';
+  end if;
+  insert into public.web_lookup_log (ip) values (v_ip);
+  select coalesce(jsonb_agg(x order by x->>'at' desc), '[]'::jsonb) into v_out from (
+    select jsonb_build_object('ref', ref, 'at', created_at, 'outlet', outlet, 'type', order_type, 'amount', amount, 'status', status,
+      'courier', case when courier_order_id is null then null else courier_status end) x
+    from public.web_orders
+    where public.web_norm_phone(customer_phone) = v_phone and created_at > now() - interval '30 days'
+    order by created_at desc limit 20) s;
+  return v_out;
+end $$;
+
+revoke all on function public.web_my_orders(text) from public;
+grant execute on function public.web_my_orders(text) to anon, authenticated;
