@@ -122,19 +122,24 @@ async function dispatch(id: number, by: string) {
   const senderPhone = phoneMY(out.phone || SENDER_PHONE);
   if (!senderPhone) throw new Error("还没设定分店电话（web_outlets.phone 或 WEB_DELYVA_SENDER_PHONE）");
 
-  // 1) 报价，选服务
-  const q = await dv("POST", "/service/instantQuote/", {
+  // 1) 报价，选服务。FOOD 没有服务就改 PARCEL 再问；都没有就不指定服务，让 Delyva 自己选
+  const quote = (itemType: string) => dv("POST", "/service/instantQuote/", {
     customerId: Number(DCUST),
     origin: { address1: out.address, address2: "", city: out.city || "", state: oState, postcode: out.postcode || "", country: "MY", coord: { lat: out.lat, lon: out.lng } },
     destination: { address1: d.address, address2: d.unit || "", city: cityOf(d.address, dpc), state: dState, postcode: dpc, country: "MY", coord: { lat: d.lat, lon: d.lng } },
     weight: { value: weight, unit: "kg" },
-    itemType: ITEM_TYPE,
+    itemType,
   });
-  const services: any[] = q?.data?.services || [];
-  if (!services.length) throw new Error("Delyva 没有可用的骑手服务（这个地址/时间）");
-  const code = (s: any) => s?.service?.serviceCompany?.companyCode || s?.service?.code;
-  const pick = (PREF_SERVICE && services.find((s) => [s?.service?.code, s?.service?.serviceCompany?.companyCode, s?.service?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
-    || services.slice().sort((a, b) => Number(a?.price?.amount ?? 1e9) - Number(b?.price?.amount ?? 1e9))[0];
+  const listOf = (q: any): any[] => {
+    const c = q?.data?.services ?? q?.services ?? q?.data?.quotes ?? q?.data;
+    return Array.isArray(c) ? c.filter((s) => s && (s.service || s.code || s.serviceCode)) : [];
+  };
+  let itemType = ITEM_TYPE, q: any = await quote(itemType), services = listOf(q), quoteRaw = JSON.stringify(q ?? null).slice(0, 160);
+  if (!services.length && itemType !== "PARCEL") { itemType = "PARCEL"; q = await quote(itemType); services = listOf(q); }
+  const code = (s: any) => s?.service?.serviceCompany?.companyCode || s?.service?.code || s?.serviceCode || s?.code;
+  const price = (s: any) => Number(s?.price?.amount ?? s?.price ?? 1e9);
+  const pick = services.length ? ((PREF_SERVICE && services.find((s) => [code(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
+    || services.slice().sort((a, b) => price(a) - price(b))[0]) : null;
 
   // 2) 建单（isDraft:false = 直接下单叫骑手）
   const loc = (addr: string, unit: string, city: string, state: string, pc: string, lat: number, lng: number) =>
@@ -148,17 +153,17 @@ async function dispatch(id: number, by: string) {
       location: loc(d.address, d.unit || "", cityOf(d.address, dpc), dState, dpc, d.lat, d.lng) },
     parcel: { weight: { unit: "kg", parcelWeight: weight }, quantity: 1, orderRemarks: `${o.ref}${d.unit ? " · " + d.unit : ""}${d.note ? " · " + d.note : ""}`.slice(0, 250) },
     inventory: [{ name: `Meng Kee food order ${o.ref}`, value: { amount: Number(o.amount), currency: "MYR" }, weight: { value: weight, unit: "kg" }, quantity: 1, description: `Cooked food · ${items} item(s)` }],
-    deliveryService: { serviceType: code(pick), pickupDateTime: klTime(PICKUP_MIN), codAmount: 0, insuranceAmount: 0, itemType: ITEM_TYPE },
+    deliveryService: { ...(pick ? { serviceType: code(pick) } : {}), pickupDateTime: klTime(PICKUP_MIN), codAmount: 0, insuranceAmount: 0, itemType },
     source: "mengkee-website",
     isDraft: false,
   }, { "idempotency-key": `mk-${o.ref}-${o.courier_status === 900 ? Date.now() : "1"}` });
   const ds = res?.deliveryService || res?.data?.deliveryService || res?.data || {};
   const orderId = ds.orderId || ds.id;
-  if (!orderId) throw new Error("Delyva 没有回传订单号");
+  if (!orderId) throw new Error(`Delyva 没有回传订单号${pick ? "" : "（报价也没有服务：" + quoteRaw + "）"}：${JSON.stringify(res ?? null).slice(0, 160)}`);
   const fee = Number(ds?.deliveryCost?.amount ?? pick?.price?.amount ?? 0) || null;
   const [saved] = await patchOrder(id, {
     courier: "delyva", courier_order_id: String(orderId), courier_tracking: ds.trackingNumber || ds.consignmentNo || null,
-    courier_service: String(pick?.service?.name || code(pick) || "").slice(0, 80), courier_fee: fee, courier_status: 100,
+    courier_service: String(pick?.service?.name || pick?.name || (pick ? code(pick) : "Delyva 自动选择") || "").slice(0, 80), courier_fee: fee, courier_status: 100,
     courier_rider: null, courier_error: null,
   });
   console.log(`dispatch ${o.ref} by ${by} → ${orderId}`);

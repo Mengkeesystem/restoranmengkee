@@ -121,6 +121,7 @@
   - 网站：外送单 `create_web_order` 带 `p_dest`（自取不带，所以没跑 delivery.sql 也不影响自取）。admin.html：外送单显示地址/地图/路程；**按已收款后自动叫骑手**（web-delyva 有设定 key 才会）；显示骑手状态/服务/运费成本/骑手名字电话/追踪链接、「🛵 叫骑手」（失败或取消后重叫）、「取消骑手」（取餐前）、页面上方「🛵 设定 Delyva 通知」（登记 webhook，做一次）。没跑 delivery.sql 时自动退回只读基本栏位。
   - ⚠️ 真实 Delyva 回应格式（特别是建单回传、测试账号的 base URL/company code）沙箱没法验证，要业主用 trydx 测试账号走一遍；有出错看 admin 订单上的「叫车失败：…」讯息。分店电话还没给，先用 `WEB_DELYVA_SENDER_PHONE`。
 - **2026-10-27 业主进度**：Delyva 测试账号 trydx（Customer ID 128997）；Secrets 已填 API_KEY/CUSTOMER_ID/COMPANY_CODE=trydx/SENDER_PHONE（**API Secret 还没找到**，暂用 customerId 核对 webhook）；web-delyva 已部署、Verify JWT 已关。admin.html 提示音按钮旁加 `#dvSt` 显示 Delyva 连线状态（已连接/没填 key/未连接+原因）方便排查；check.html 页头加「← 返回付款确认」。删除测试订单：店员没有 delete 权限（刻意），由业主在 SQL Editor 跑 delete（不做删除按钮，免得店员误删真单）。⚠️ 测试 key 业主截图露出过（测试账号，风险低），上线换正式 key 时提醒他别截图。
+- **业主实测（2026-10-27）**：delivery.sql 已跑、设定通知已按；按已收款后报价成功但「Delyva 没有可用的骑手服务」（trydx 报价回空列表）。web-delyva 改：报价 FOOD 没服务就改 PARCEL 再问；都没有就**不带 serviceType 直接建单**让 Delyva 自己选；服务列表兼容 `data.services`/`services`/`data.quotes`/`data` 数组；建单没回订单号时错误讯息附报价与回应前 160 字（不含 key）方便排查。改完要业主**重新部署**（贴新代码 → Deploy）。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
