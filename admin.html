@@ -106,7 +106,7 @@ async function boot(){
   if(error||!ok){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
   $("hUser").textContent=me.email; $("logoutBtn").hidden=false;
   $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); loginView(); };
-  app.innerHTML = `<div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在 TNG / 银行 App 核对收到的金额和参考号，再按「已收款」</b>，客人的网页会自动跳到 WhatsApp 发订单。</div>
+  app.innerHTML = `<div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
     <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span></div>
     <div class="tabs" id="tabs"></div><div id="list"></div>`;
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
@@ -150,7 +150,7 @@ function render(newIds){
 
 async function act(b){
   const st=b.dataset.act, q = st==="paid"
-    ? `确认已收到 ${b.dataset.amt}（参考号 ${b.dataset.ref}）？\n按确定后，客人的网页会自动跳到 WhatsApp 发订单。`
+    ? `确认已收到 ${b.dataset.amt}（参考号 ${b.dataset.ref}）？\n按确定后，客人的网页会显示「店家已确认收款」，请开始准备。`
     : `确定拒绝订单 ${b.dataset.ref}？客人的网页会显示「未能确认付款」。`;
   if(!confirm(q)) return;
   b.disabled=true;

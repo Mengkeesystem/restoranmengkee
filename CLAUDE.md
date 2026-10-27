@@ -113,6 +113,7 @@
 - 已对照明记 ERP 仓库（Mengkeesystem/ERP-testing-1.0 的 supabase-schema.sql / security-hardening.sql / push-schema.sql）：ERP 用 `erp_store`、`erp_users`、`erp_push_subs`，函数 `invite_role`、`invite_outlet`、`my_email`、`is_whitelisted`、`is_admin`、`erp_users_is_empty`，Edge Function `send-order-push`；**仓库里没有 auth.users 触发器**（邀请码是在 `erp_users` 的 insert 策略里判断）。网站 `supabase/schema.sql` 只建 `web_orders`、`web_staff`、`is_web_staff`、`create_web_order`、`web_order_status`，**名字都不冲突**，也不改 ERP 任何表/策略。`create extension if not exists pgcrypto` 在 Supabase 本来就有，不影响。
 - admin.html 只登录不注册，不会碰 ERP 的邀请码注册流程；店员用自己的 ERP 账号登录，但还要把邮箱加进 `web_staff` 才看得到订单（ERP 白名单 ≠ 网站店员白名单）。
 - ⚠️ 牛室踩过「线上数据库跟仓库不一样」的坑，所以跑 schema.sql 前要业主先在明记项目跑**只读检查**（列 public 的表、函数、auth.users 上的触发器），确认线上没有同名的 `web_*` 东西。
+- **已接上（2026-10-27）**：`config.js` `backend` 填了明记项目 URL + publishable key（就是 ERP 网页里那把）。业主已跑 schema.sql（线上只读检查：6 个 ERP 函数 + 3 张 ERP 表，auth.users 没有触发器）；第一位店员 `yxchong3@gmail.com`。**流程改了（业主：客人不要再手动发 WhatsApp）**：付款视窗照样显示金额/参考号/QR → 客人勾「我已完成付款」按「✅ 付款完成，送出订单」→ `create_web_order` 建单（这时才建，避免没付钱的单塞满后台）→ **立刻清空购物车**，显示「订单已送到店里，店员核对收款中…」（关掉也不会丢单）→ 店员 admin.html 按已收款 → 客人页显示「店家已确认收款」（**不再跳 WhatsApp**）；拒绝/30 分钟没确认 → 显示联系 WhatsApp 按钮。后台连不上 → 退回旧的 WhatsApp 流程并显示 `psFallback`。admin.html 提示文字同步改。沙箱连不到 supabase.co，用模拟回应测过（成功/后台失败两种）；**真实连线要业主自己在手机测**。supabase-js 仍用 2.45.4（publishable key 跟 apikey 同值放 Authorization 可用；沙箱连不到 jsdelivr 升级不了）。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）

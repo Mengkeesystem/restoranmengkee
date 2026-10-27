@@ -334,13 +334,15 @@ window.SITE = {
     requirePrepay: true,
   },
 
-  /* ---------- 付款确认小后台（Supabase，官网专用项目，跟 ERP 分开）----------
-   * 两个都填好：选「现在转账付款」的客人付款后，网页自动等店员在 admin.html 按「已收款」，再自动跳 WhatsApp。
+  /* ---------- 订单后台（Supabase）----------
+   * 2026-10-27 业主决定放在明记 ERP 的 Supabase 项目（只用 web_ 开头的表/函数，不碰 ERP 资料）。
+   * 两个都填好：客人付款后按「送出订单」，订单直接进店员后台 admin.html（会响铃），不用客人发 WhatsApp；
+   *   店员核对收款后按「已收款」，客人网页显示「店家已确认」。
    * 留空：客人自己勾「我已完成付款」再发 WhatsApp（旧流程）。
-   * anon key 是公开用的（publishable），可以放网页；绝对不要放 service_role key。设定步骤见 README。 */
+   * 这里放的是 publishable key（本来就公开在 ERP 网页里）；绝对不要放 secret / service_role key。 */
   backend: {
-    supabaseUrl: "",        // 例如 "https://xxxx.supabase.co"
-    supabaseAnonKey: "",    // Project Settings → API → anon public key
+    supabaseUrl: "https://kmcdokwiyetlmsrdlgqw.supabase.co",
+    supabaseAnonKey: "sb_publishable_HVJ_hcFmSDU-N2kFUg5CRw_LH-X_phO",
   },
 
   /* ---------- 订位设定 ---------- */
