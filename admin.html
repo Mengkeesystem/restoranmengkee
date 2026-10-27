@@ -47,7 +47,7 @@ label{font-weight:700;font-size:14px;display:block;margin:10px 0 4px}
 .meta{font-size:14px;color:var(--mut);margin-top:4px}
 .meta b{color:var(--tx)}
 .tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:2px;margin-left:6px;vertical-align:middle}
-.tag.pending{background:#FFF0C2;color:#8A5A00}.tag.paid{background:#E2F5E9;color:var(--ok)}.tag.rejected{background:#eee;color:#666}.tag.old{background:#FDE2E2;color:var(--p)}
+.tag.pending{background:#FFF0C2;color:#8A5A00}.tag.paid{background:#E2F5E9;color:var(--ok)}.tag.rejected{background:#eee;color:#666}.tag.done{background:#DDEBFF;color:#1F4E9A}.tag.old{background:#FDE2E2;color:var(--p)}
 details{margin-top:8px}
 summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--p)}
 pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px solid var(--line);padding:10px;font-size:13.5px;margin:8px 0 0;font-family:inherit}
@@ -138,7 +138,8 @@ async function boot(){
 async function load(){
   const since=new Date(Date.now()-3*24*3600*1000).toISOString();
   const q=c=>sb.from("web_orders").select(c).gte("created_at",since).order("created_at",{ascending:false}).limit(300);
-  let {data, error} = await q(hasCourierCols?COLS+COLS_DEL:COLS);
+  let {data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:""):COLS);
+  if(error&&hasDoneCols&&/completed_|column|42703/i.test(error.message+error.code)){ hasDoneCols=false; ({data, error} = await q(hasCourierCols?COLS+COLS_DEL:COLS)); }   /* 还没跑新版 delivery.sql（第 6 部分） */
   if(error&&hasCourierCols&&/column|42703/i.test(error.message+error.code)){ hasCourierCols=false; ({data, error} = await q(COLS)); }   /* 还没跑 delivery.sql */
   if(error){ if($("list")) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
   const fresh = data.filter(o=>o.status==="pending" && !seen.has(o.id));
@@ -150,7 +151,11 @@ async function load(){
 
 const COLS="id,ref,outlet,order_type,customer_name,customer_phone,amount,message,status,created_at,confirmed_at,confirmed_by";
 const COLS_DEL=",outlet_idx,dest,courier_order_id,courier_tracking,courier_service,courier_fee,courier_status,courier_rider,courier_error,courier_updated_at";
-let hasCourierCols=true, dcfg=null, busy=new Set();
+const COLS_DONE=",completed_at,completed_by";
+let hasCourierCols=true, hasDoneCols=true, dcfg=null, busy=new Set();
+/* 已完成：店员按了「完成」，或 Delyva 通知已送达（700/1000） */
+const isDone = o => o.status==="paid" && (!!o.completed_at || o.courier_status===700 || o.courier_status===1000);
+const tabOf = o => isDone(o) ? "done" : o.status;
 /* Delyva 状态代码（照官方插件） */
 const DSTAT={100:"已叫车，等骑手接单",110:"已叫车，等骑手接单",200:"骑手已接单",400:"骑手前往取餐",475:"⚠️ 取餐失败",500:"已取餐",600:"配送中",650:"⚠️ 送达失败",700:"✅ 已送达",1000:"✅ 已完成",900:"已取消"};
 async function fn(action,id,extra){
@@ -190,28 +195,39 @@ function hhmm(ts){ const d=new Date(ts); return String(d.getHours()).padStart(2,
 function render(newIds){
   newIds=newIds||[];
   const list=orders.filter(o=>!outletF||o.outlet===outletF);
-  const cnt={pending:0,paid:0,rejected:0}; list.forEach(o=>cnt[o.status]++);
-  $("tabs").innerHTML=[["pending","待确认"],["paid","已收款"],["rejected","已拒绝"]].map(([k,l])=>`<button class="${tab===k?"on":""}" data-k="${k}">${l}<span class="n">${cnt[k]}</span></button>`).join("");
+  const cnt={pending:0,paid:0,done:0,rejected:0}; list.forEach(o=>cnt[tabOf(o)]++);
+  $("tabs").innerHTML=[["pending","待确认"],["paid","已收款"],["done","已完成"],["rejected","已拒绝"]].map(([k,l])=>`<button class="${tab===k?"on":""}" data-k="${k}">${l}<span class="n">${cnt[k]}</span></button>`).join("");
   $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ tab=b.dataset.k; render(); });
-  const rows=list.filter(o=>o.status===tab);
+  const rows=list.filter(o=>tabOf(o)===tab);
   $("list").innerHTML = rows.length? rows.map(o=>{
     const old = o.status==="pending" && (Date.now()-new Date(o.created_at))>30*60000;
     return `<div class="ord ${o.status}${newIds.includes(o.id)?" new":""}">
-      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${o.status}">${o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${old?`<span class="tag old">超过 30 分钟</span>`:""}
+      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${isDone(o)?"done":o.status}">${isDone(o)?"已完成":o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${old?`<span class="tag old">超过 30 分钟</span>`:""}
         <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外送":"🛍️ 自取"}</div>
         <div class="meta">👤 <b>${esc(o.customer_name||"")}</b> · 📞 <a href="tel:${esc(String(o.customer_phone||"").replace(/[^\d+]/g,""))}">${esc(o.customer_phone||"")}</a></div></div>
         <div class="amt">${money(o.amount)}</div></div>
       <details ${o.status==="pending"?"open":""}><summary>订单内容</summary><pre>${esc(o.message)}</pre></details>
       ${o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
-        :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}</div>`}
+        :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}${isDone(o)?` · 完成：${esc(o.completed_by||"Delyva")}${o.completed_at?" · "+hhmm(o.completed_at):""}`:""}</div>`}
+      ${o.status==="paid"&&hasDoneCols&&!isDone(o)?`<div class="acts"><button class="btn ok sm" data-done="1" data-id="${o.id}" data-ref="${esc(o.ref)}" data-del="${o.order_type==="delivery"?1:""}">✅ ${o.order_type==="delivery"?"标记完成（已送达）":"完成（客人已取餐）"}</button></div>`:""}
+      ${isDone(o)&&o.completed_at&&o.completed_by&&o.completed_by!=="Delyva"&&o.courier_status!==700&&o.courier_status!==1000?`<div class="acts"><button class="btn alt sm" data-done="0" data-id="${o.id}" data-ref="${esc(o.ref)}">↩ 撤回完成</button></div>`:""}
       ${courierHTML(o)}
     </div>`; }).join("") : `<div class="empty">${tab==="pending"?"目前没有待确认的订单 ☕":"没有记录"}</div>`;
   $("list").querySelectorAll("button[data-act]").forEach(b=>b.onclick=()=>act(b));
   $("list").querySelectorAll("button[data-cour]").forEach(b=>b.onclick=()=>courAct(b));
+  $("list").querySelectorAll("button[data-done]").forEach(b=>b.onclick=()=>doneAct(b));
   $("list").querySelectorAll("button[data-sim]").forEach(b=>b.onclick=async()=>{ const id=+b.dataset.id; busy.add(id); render();
     try{ await fn("simulate",id,{code:+b.dataset.sim}); }catch(e){ alert("模拟失败："+e.message); } busy.delete(id); await load(); });
 }
 
+async function doneAct(b){
+  const on=b.dataset.done==="1";
+  if(!confirm(on ? `订单 ${b.dataset.ref} ${b.dataset.del?"确定已送达？\n（用 Delyva 的单，送达后会自动完成，不用按）":"确定客人已取餐？"}` : `把订单 ${b.dataset.ref} 撤回「已收款」？`)) return;
+  b.disabled=true;
+  const {error}=await sb.from("web_orders").update(on?{completed_at:new Date().toISOString(),completed_by:me.email}:{completed_at:null,completed_by:null}).eq("id",+b.dataset.id).eq("status","paid");
+  if(error){ alert("更新失败："+error.message); b.disabled=false; return; }
+  await load();
+}
 async function act(b){
   const st=b.dataset.act, q = st==="paid"
     ? `确认已收到 ${b.dataset.amt}（参考号 ${b.dataset.ref}）？\n按确定后，客人的网页会显示「店家已确认收款」，请开始准备。`

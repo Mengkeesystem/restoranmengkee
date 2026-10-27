@@ -173,6 +173,7 @@ begin
   select coalesce(jsonb_agg(x order by x->>'at' desc), '[]'::jsonb) into v_out from (
     select jsonb_build_object('ref', ref, 'at', created_at, 'outlet', outlet, 'type', order_type, 'amount', amount, 'status', status,
       'courier', case when courier_order_id is null then null else courier_status end,
+      'done', completed_at is not null,   -- 栏位在下面第 6 部分加（plpgsql 执行时才检查，同一份脚本跑完就有）
       -- 订单讯息第一段（标题、分店、菜品、小计/SST/运费/合计），空一行之后的姓名/电话/地址不回传
       'detail', left(split_part(message, E'\n\n', 1), 3000)) x
     from public.web_orders
@@ -183,3 +184,12 @@ end $$;
 
 revoke all on function public.web_my_orders(text) from public;
 grant execute on function public.web_my_orders(text) to anon, authenticated;
+
+-- 6) 已完成（2026-10-28）------------------------------------------------
+-- 外送：Delyva 通知送达（700/1000）时由 web-delyva 自动填；自取：店员在后台按「完成」。
+alter table public.web_orders
+  add column if not exists completed_at timestamptz,
+  add column if not exists completed_by text;
+grant update (completed_at, completed_by) on public.web_orders to authenticated;   -- 仍受 RLS 限制（只有白名单店员）
+update public.web_orders set completed_at = coalesce(courier_updated_at, now()), completed_by = 'Delyva'
+  where completed_at is null and status = 'paid' and courier_status in (700, 1000);

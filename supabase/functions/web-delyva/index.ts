@@ -21,7 +21,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28b";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28c";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -64,10 +64,12 @@ const getOrder = async (id: number) => (await db(`web_orders?id=eq.${id}&select=
 async function patchOrder(id: number, patch: Record<string, unknown>) {
   const body = { ...patch, courier_updated_at: new Date().toISOString() };
   try { return await db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(body) }); }
-  catch (e) {   // 还没跑新版 delivery.sql（没有 courier_track_url 栏）时，去掉这栏再存一次，不影响叫车
-    if (!("courier_track_url" in body) || !/courier_track_url/.test(String((e as Error).message))) throw e;
-    delete (body as Record<string, unknown>).courier_track_url;
-    return db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  catch (e) {   // 还没跑新版 delivery.sql（没有这些新栏）时，去掉新栏再存一次，不影响叫车/状态
+    const msg = String((e as Error).message), b = body as Record<string, unknown>;
+    const drop = ["courier_track_url", "completed_at", "completed_by"].filter((k) => k in b && msg.includes(k));
+    if (!drop.length) throw e;
+    for (const k of ["courier_track_url", "completed_at", "completed_by"]) delete b[k];
+    return db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(b) });
   }
 }
 /* 客人追踪骑手的网址（Delyva 公开追踪页） */
@@ -220,12 +222,14 @@ async function applyStatus(data: any) {
   const delyvaId = String(data?.orderId ?? data?.id ?? "");
   const code = Number(data?.statusCode);
   if (!delyvaId || !Number.isFinite(code)) return { ok: true, ignored: true };
-  const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=id,courier_status`);
+  const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=*`);
   if (!rows.length) return { ok: true, unknown: true };    // 不是网站叫的单
   const p = data?.personnel;
   await patchOrder(rows[0].id, {
     courier_status: code,
     ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo), courier_track_url: trackUrl(data.consignmentNo) } : {}),
+    // 送达 → 订单自动进「已完成」（店员已经手动按完成的就不改）
+    ...((code === 700 || code === 1000) && !rows[0].completed_at ? { completed_at: new Date().toISOString(), completed_by: "Delyva" } : {}),
     ...(p ? { courier_rider: { name: p.name ?? null, phone: p.phone ?? p.contactNumber ?? null, plate: p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo ?? null } } : {}),
   });
   return { ok: true };
