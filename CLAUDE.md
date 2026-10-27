@@ -122,6 +122,7 @@
   - ⚠️ 真实 Delyva 回应格式（特别是建单回传、测试账号的 base URL/company code）沙箱没法验证，要业主用 trydx 测试账号走一遍；有出错看 admin 订单上的「叫车失败：…」讯息。分店电话还没给，先用 `WEB_DELYVA_SENDER_PHONE`。
 - **2026-10-27 业主进度**：Delyva 测试账号 trydx（Customer ID 128997）；Secrets 已填 API_KEY/CUSTOMER_ID/COMPANY_CODE=trydx/SENDER_PHONE（**API Secret 还没找到**，暂用 customerId 核对 webhook）；web-delyva 已部署、Verify JWT 已关。admin.html 提示音按钮旁加 `#dvSt` 显示 Delyva 连线状态（已连接/没填 key/未连接+原因）方便排查；check.html 页头加「← 返回付款确认」。删除测试订单：店员没有 delete 权限（刻意），由业主在 SQL Editor 跑 delete（不做删除按钮，免得店员误删真单）。⚠️ 测试 key 业主截图露出过（测试账号，风险低），上线换正式 key 时提醒他别截图。
 - **业主实测（2026-10-27）**：delivery.sql 已跑、设定通知已按；按已收款后报价成功但「Delyva 没有可用的骑手服务」（trydx 报价回空列表）。web-delyva 改：报价 FOOD 没服务就改 PARCEL 再问；都没有就**不带 serviceType 直接建单**让 Delyva 自己选；服务列表兼容 `data.services`/`services`/`data.quotes`/`data` 数组；建单没回订单号时错误讯息附报价与回应前 160 字（不含 key）方便排查。改完要业主**重新部署**（贴新代码 → Deploy）。
+- **✅ Delyva 全流程实测通过（2026-10-27，trydx 测试账号）**：外送单按已收款 → 自动建 Delyva 单（TRX0006145SG / MK1027-5911，服务「Try Express - Standard」，trydx 报价有回服务，坐标改字串后建单成功，Delyva 后台「Ready to ship」状态 Ready）；业主在 Delyva 后台用 Action 取消 → **webhook 回到我们后台显示「已取消」**（没设 API Secret，靠 customerId 核对通过）。Delyva 状态工具 dx-integration-sandbox 用 trydx 登不进（「company code not allowed」），已帮业主写信请 Delyva 开通 + 问 API Secret。上线前：正式 key/Customer ID/company code 覆盖 Secrets 再按一次设定通知、补 API Secret、3 间外送分店电话（`update web_outlets set phone=…`）、清测试单。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
