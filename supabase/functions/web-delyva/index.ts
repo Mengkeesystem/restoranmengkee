@@ -143,7 +143,7 @@ async function dispatch(id: number, by: string) {
 
   // 2) 建单（isDraft:false = 直接下单叫骑手）
   const loc = (addr: string, unit: string, city: string, state: string, pc: string, lat: number, lng: number) =>
-    ({ address: addr, address2: unit, city, state, country: "MY", postcode: pc, coordinates: { lat, lon: lng, lom: lng } });
+    ({ address: addr, address2: unit, city, state, country: "MY", postcode: pc, coordinates: { lat: String(lat), lon: String(lng) } });   // Delyva 要求坐标是文字（2026-10-27 实测 400）
   const res = await dv("POST", "/order/ms2781/create", {
     customerId: Number(DCUST),
     orderNumber: o.ref,
