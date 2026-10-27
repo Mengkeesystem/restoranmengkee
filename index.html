@@ -1736,7 +1736,10 @@ async function myRcpt(ref){
 }
 function myView(ref){
   const h=myHist().find(x=>x.ref===ref); if(!h) return;
-  trkStop(); trk={...h,st:"pending",courier:null,fb:false}; trkSave(); myClose(); if(drawerOpen) closeDrawer(); trkOpen();
+  /* 先用列表里刚查到的状态打开（不会先闪「等待确认」），再去查骑手详情 */
+  const row=myo&&(myo.list||[]).find(x=>x&&x.ref===ref), rs=row&&["pending","paid","rejected"].includes(row.status)?row.status:"pending";
+  const rc=row&&row.courier!==null&&Number.isFinite(Number(row.courier))?{status:Number(row.courier),service:"",track:"",rider:null}:null;
+  trkStop(); trk={...h,st:rs,courier:rc,fb:false,done:!!(row&&row.done===true)}; trkSave(); myClose(); if(drawerOpen) closeDrawer(); trkOpen();
 }
 function myRender(){
   if(!myo) return; const hist=myHist(), byRef=Object.create(null); hist.forEach(h=>byRef[h.ref]=h);
@@ -1744,7 +1747,7 @@ function myRender(){
   const when=a=>{ const d=new Date(a); return isNaN(d)?"":d.toLocaleString(lang==="en"?"en-MY":"zh-CN",{timeZone:"Asia/Kuala_Lumpur",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}); };
   const st=o=>{ const s=["pending","paid","rejected"].includes(o.status)?o.status:"pending", c=Number.isFinite(Number(o.courier))&&o.courier!==null?Number(o.courier):null;
     return o.done===true&&s==="paid"?t("moDone"):statusText(s,o.type==="delivery"?"delivery":"pickup",c,new Date(o.at).getTime()||Date.now(),false); };
-  const list=rows.map(o=>{ const mine=byRef[o.ref], s=st(o), bad=o.status==="rejected"||[475,650,900].includes(Number(o.courier)), ok=o.status==="paid"&&(o.done===true||o.type!=="delivery"||[700,1000].includes(Number(o.courier)));
+  const list=rows.map(o=>{ const mine=byRef[o.ref], s=st(o), bad=o.done!==true&&(o.status==="rejected"||[475,650,900].includes(Number(o.courier))), ok=o.status==="paid"&&(o.done===true||o.type!=="delivery"||[700,1000].includes(Number(o.courier)));
     return `<div class="moitem ${bad?"bad":ok?"ok":""}"><div class="mot"><b>${esc(o.ref)}</b><span>${esc(when(o.at))}</span></div>
       <div class="note">${o.type==="delivery"?"🛵 "+esc(t("moDel")):"🛍️ "+esc(t("moPickup"))} · ${esc(String(o.outlet||""))} · ${money(Number(o.amount)||0)}</div>
       <div class="mos">${bad?"⚠️":ok?"✅":"⏳"} ${esc(s)}</div>
