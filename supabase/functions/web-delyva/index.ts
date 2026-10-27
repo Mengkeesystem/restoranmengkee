@@ -21,7 +21,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28b";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -61,8 +61,17 @@ async function db(path: string, init: RequestInit = {}) {
   return t ? JSON.parse(t) : null;
 }
 const getOrder = async (id: number) => (await db(`web_orders?id=eq.${id}&select=*`))[0] || null;
-const patchOrder = (id: number, patch: Record<string, unknown>) =>
-  db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ ...patch, courier_updated_at: new Date().toISOString() }) });
+async function patchOrder(id: number, patch: Record<string, unknown>) {
+  const body = { ...patch, courier_updated_at: new Date().toISOString() };
+  try { return await db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(body) }); }
+  catch (e) {   // 还没跑新版 delivery.sql（没有 courier_track_url 栏）时，去掉这栏再存一次，不影响叫车
+    if (!("courier_track_url" in body) || !/courier_track_url/.test(String((e as Error).message))) throw e;
+    delete (body as Record<string, unknown>).courier_track_url;
+    return db(`web_orders?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  }
+}
+/* 客人追踪骑手的网址（Delyva 公开追踪页） */
+const trackUrl = (no: unknown) => no ? `https://${DCODE}.delyva.app/customer/strack?trackingNo=${encodeURIComponent(String(no))}` : null;
 
 // ---------- 店员登录检查 ----------
 async function staffEmail(req: Request): Promise<string | null> {
@@ -164,6 +173,7 @@ async function dispatch(id: number, by: string) {
   const fee = Number(ds?.deliveryCost?.amount ?? pick?.price?.amount ?? 0) || null;
   const [saved] = await patchOrder(id, {
     courier: "delyva", courier_order_id: String(orderId), courier_tracking: ds.trackingNumber || ds.consignmentNo || null,
+    courier_track_url: trackUrl(ds.trackingNumber || ds.consignmentNo),
     courier_service: String(pick?.service?.name || pick?.name || (pick ? code(pick) : "Delyva 自动选择") || "").slice(0, 80), courier_fee: fee, courier_status: 100,
     courier_rider: null, courier_error: null,
   });
@@ -215,7 +225,7 @@ async function applyStatus(data: any) {
   const p = data?.personnel;
   await patchOrder(rows[0].id, {
     courier_status: code,
-    ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo) } : {}),
+    ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo), courier_track_url: trackUrl(data.consignmentNo) } : {}),
     ...(p ? { courier_rider: { name: p.name ?? null, phone: p.phone ?? p.contactNumber ?? null, plate: p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo ?? null } } : {}),
   });
   return { ok: true };
@@ -227,7 +237,7 @@ async function simulate(id: number, code: number) {
   if (!SIM_CODES.includes(code)) throw new Error("不支持的模拟状态");
   const o = await getOrder(id);
   if (!o?.courier_order_id) throw new Error("这张单还没叫骑手");
-  return applyStatus({ orderId: o.courier_order_id, statusCode: code,
+  return applyStatus({ orderId: o.courier_order_id, statusCode: code, ...(o.courier_tracking ? { consignmentNo: o.courier_tracking } : {}),
     ...(code >= 200 && code !== 475 ? { personnel: { name: "Test Rider（测试骑手）", phone: "0123456789", vehicleNo: "WTEST 123" } } : {}) });
 }
 

@@ -104,3 +104,29 @@ end $$;
 
 revoke all on function public.create_web_order(text,text,text,text,text,numeric,text,jsonb) from public;
 grant execute on function public.create_web_order(text,text,text,text,text,numeric,text,jsonb) to anon, authenticated;
+
+-- 4) 客人查骑手进度（2026-10-28）-----------------------------------------
+-- 客人网页用 ref + token 查自己那笔订单的骑手状态；只回传客人需要看的栏位
+-- （不含地址、金额、店员资料、Delyva 订单号）。
+alter table public.web_orders add column if not exists courier_track_url text;
+
+create or replace function public.web_order_track(p_ref text, p_token uuid)
+returns jsonb language plpgsql security definer stable set search_path = public as $$
+declare o public.web_orders%rowtype;
+begin
+  select * into o from public.web_orders where ref = p_ref and token = p_token;
+  if not found then return jsonb_build_object('status', 'notfound'); end if;
+  return jsonb_build_object(
+    'status', o.status,
+    'type', o.order_type,
+    'courier', case when o.courier_order_id is null then null else jsonb_build_object(
+      'status', o.courier_status,
+      'service', o.courier_service,
+      'track', o.courier_track_url,
+      'rider', case when o.courier_rider is null then null else jsonb_build_object(
+        'name', o.courier_rider->>'name', 'phone', o.courier_rider->>'phone', 'plate', o.courier_rider->>'plate') end,
+      'updated', o.courier_updated_at) end);
+end $$;
+
+revoke all on function public.web_order_track(text, uuid) from public;
+grant execute on function public.web_order_track(text, uuid) to anon, authenticated;
