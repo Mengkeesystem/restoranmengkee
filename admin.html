@@ -168,18 +168,18 @@ function courierHTML(o){
   if(!o.dest) return `<div class="cour"><span class="mut">🛵 这张单没有送餐坐标（旧订单），请手动叫车。</span></div>`;
   const d=o.dest, map=`https://www.google.com/maps?q=${encodeURIComponent(d.lat+","+d.lng)}`;
   const addr=`<div class="mut">📍 ${esc(d.unit?d.unit+", ":"")}${esc(d.address||"")} · <a href="${map}" target="_blank" rel="noopener">地图</a>${d.km?` · 约 ${esc(d.km)} km`:""}${d.note?`<br>📝 ${esc(d.note)}`:""}</div>`;
-  const b=busy.has(o.id);
+  const b=busy.has(o.id), dn=isDone(o);   /* 已完成的单不再显示叫车/取消/模拟按钮 */
   if(!o.courier_order_id||o.courier_status===900){
     return `<div class="cour">${addr}${o.courier_status===900?`<div class="mut">Delyva：已取消</div>`:""}${o.courier_error?`<div class="err">叫车失败：${esc(o.courier_error)}</div>`:""}
-      <div class="acts"><button class="btn sm" data-cour="dispatch" data-id="${o.id}" ${b?"disabled":""}>${b?"叫车中…":"🛵 叫骑手（Delyva）"}</button></div></div>`;
+      ${dn?"":`<div class="acts"><button class="btn sm" data-cour="dispatch" data-id="${o.id}" ${b?"disabled":""}>${b?"叫车中…":"🛵 叫骑手（Delyva）"}</button></div>`}</div>`;
   }
   const r=o.courier_rider||{}, trk=o.courier_tracking&&dcfg&&dcfg.company?`https://${encodeURIComponent(dcfg.company)}.delyva.app/customer/strack?trackingNo=${encodeURIComponent(o.courier_tracking)}`:"";
   return `<div class="cour">${addr}<div><b>🛵 ${esc(DSTAT[o.courier_status]||("状态 "+(o.courier_status??"-")))}</b>${o.courier_service?` · ${esc(o.courier_service)}`:""}${o.courier_fee?` · 运费成本 ${money(o.courier_fee)}`:""}</div>
     ${r.name||r.phone?`<div class="mut">骑手：${esc(r.name||"")} ${r.phone?`· <a href="tel:${esc(String(r.phone).replace(/[^\d+]/g,""))}">${esc(r.phone)}</a>`:""} ${r.plate?`· ${esc(r.plate)}`:""}</div>`:""}
     <div class="mut">Delyva 单号 ${esc(o.courier_order_id)}${trk?` · <a href="${trk}" target="_blank" rel="noopener">追踪</a>`:""}</div>
     ${o.courier_error?`<div class="err">${esc(o.courier_error)}</div>`:""}
-    ${(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}
-    ${dcfg&&String(dcfg.company).toLowerCase()==="trydx"?`<div class="sim"><span class="mut">🧪 测试账号模拟骑手：</span>${[[200,"接单"],[400,"前往取餐"],[500,"已取餐"],[600,"配送中"],[700,"送达"],[650,"送达失败"]].map(([c,l])=>`<button class="btn alt sm" data-sim="${c}" data-id="${o.id}" ${b?"disabled":""}>${l}</button>`).join("")}</div>`:""}</div>`;
+    ${!dn&&(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}
+    ${!dn&&dcfg&&String(dcfg.company).toLowerCase()==="trydx"?`<div class="sim"><span class="mut">🧪 测试账号模拟骑手：</span>${[[200,"接单"],[400,"前往取餐"],[500,"已取餐"],[600,"配送中"],[700,"送达"],[650,"送达失败"]].map(([c,l])=>`<button class="btn alt sm" data-sim="${c}" data-id="${o.id}" ${b?"disabled":""}>${l}</button>`).join("")}</div>`:""}</div>`;
 }
 async function courAct(b){
   const id=+b.dataset.id, a=b.dataset.cour;

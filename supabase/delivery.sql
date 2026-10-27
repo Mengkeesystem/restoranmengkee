@@ -119,6 +119,7 @@ begin
   return jsonb_build_object(
     'status', o.status,
     'type', o.order_type,
+    'done', o.completed_at is not null,   -- 栏位在第 6 部分加；店员按完成或 Delyva 送达
     'courier', case when o.courier_order_id is null then null else jsonb_build_object(
       'status', o.courier_status,
       'service', o.courier_service,
