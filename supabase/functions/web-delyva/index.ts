@@ -21,7 +21,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28c";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28d";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -212,25 +212,29 @@ async function webhook(req: Request, raw: string) {
   let data: any; try { data = JSON.parse(raw); } catch { return json(req, { error: "bad json" }, 400); }
   if (DSECRET) {
     if (!(await hmacOk(raw, req.headers.get("x-delyvax-hmac-sha256") || ""))) return json(req, { error: "bad signature" }, 401);
+  } else if (DCODE.toLowerCase() !== "trydx") {
+    // 正式账号一定要有 API Secret 验签：customerId 不是秘密，只核对它别人可以伪造「已送达」或塞假骑手电话给客人
+    return json(req, { error: "webhook secret not set" }, 401);
   } else if (!DCUST || Number(data?.customerId) !== Number(DCUST)) {
-    return json(req, { error: "customer mismatch" }, 401);      // 没设定 secret 时退而求其次：核对 customerId
+    return json(req, { error: "customer mismatch" }, 401);      // 只限测试账号 trydx：没 secret 时核对 customerId
   }
   return json(req, await applyStatus(data));
 }
+const cut = (v: unknown, n: number) => (v === null || v === undefined || v === "") ? null : String(v).slice(0, n);
 /* 把一笔 Delyva 状态写进订单（真的 webhook 和测试模拟共用同一段） */
 async function applyStatus(data: any) {
   const delyvaId = String(data?.orderId ?? data?.id ?? "");
   const code = Number(data?.statusCode);
-  if (!delyvaId || !Number.isFinite(code)) return { ok: true, ignored: true };
+  if (!delyvaId || !Number.isInteger(code) || code < 0 || code > 2000) return { ok: true, ignored: true };
   const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=*`);
   if (!rows.length) return { ok: true, unknown: true };    // 不是网站叫的单
   const p = data?.personnel;
   await patchOrder(rows[0].id, {
     courier_status: code,
-    ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo), courier_track_url: trackUrl(data.consignmentNo) } : {}),
+    ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo).slice(0, 60), courier_track_url: trackUrl(String(data.consignmentNo).slice(0, 60)) } : {}),
     // 送达 → 订单自动进「已完成」（店员已经手动按完成的就不改）
     ...((code === 700 || code === 1000) && !rows[0].completed_at ? { completed_at: new Date().toISOString(), completed_by: "Delyva" } : {}),
-    ...(p ? { courier_rider: { name: p.name ?? null, phone: p.phone ?? p.contactNumber ?? null, plate: p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo ?? null } } : {}),
+    ...(p ? { courier_rider: { name: cut(p.name, 60), phone: cut(String(p.phone ?? p.contactNumber ?? "").replace(/[^\d+]/g, ""), 20), plate: cut(p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo, 20) } } : {}),
   });
   return { ok: true };
 }

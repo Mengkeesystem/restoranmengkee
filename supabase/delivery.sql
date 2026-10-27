@@ -194,3 +194,14 @@ alter table public.web_orders
 grant update (completed_at, completed_by) on public.web_orders to authenticated;   -- 仍受 RLS 限制（只有白名单店员）
 update public.web_orders set completed_at = coalesce(courier_updated_at, now()), completed_by = 'Delyva'
   where completed_at is null and status = 'paid' and courier_status in (700, 1000);
+
+-- 7) 权限收紧（2026-10-28 安全检查）---------------------------------------
+-- Supabase 会自动把新表/新函数的全部权限给 anon、authenticated（所有登录账号，包括一般 ERP 员工）。
+-- RLS 已经挡住了，这里再把用不到的权限收回（多一层保险）：
+revoke all on public.web_orders from anon, authenticated;
+grant select on public.web_orders to authenticated;                                                  -- 仍受 RLS：只有 web_staff 看得到
+grant update (status, confirmed_at, confirmed_by, completed_at, completed_by) on public.web_orders to authenticated;   -- 店员只能改状态，改不了金额/内容
+revoke all on public.web_staff, public.web_outlets, public.web_lookup_log from anon, authenticated;
+revoke all on function public.is_web_staff() from public, anon;
+grant execute on function public.is_web_staff() to authenticated;
+revoke all on function public.web_norm_phone(text) from public, anon, authenticated;
