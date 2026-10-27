@@ -55,6 +55,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .acts .btn{flex:1;min-width:140px}
 .who{font-size:12px;color:var(--mut);margin-top:6px}
 .cour{margin-top:10px;padding:10px;border:1px dashed var(--line);background:#FFFDF6;font-size:14px}.cour .mut,.mut{color:var(--mut);font-size:13px}.cour .acts{margin-top:8px}.cour .err{margin-top:4px}
+.sim{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:8px;border-top:1px dashed var(--line)}
 .empty{text-align:center;color:var(--mut);padding:40px 0}
 .hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
 </style>
@@ -152,8 +153,8 @@ const COLS_DEL=",outlet_idx,dest,courier_order_id,courier_tracking,courier_servi
 let hasCourierCols=true, dcfg=null, busy=new Set();
 /* Delyva 状态代码（照官方插件） */
 const DSTAT={100:"已叫车，等骑手接单",110:"已叫车，等骑手接单",200:"骑手已接单",400:"骑手前往取餐",475:"⚠️ 取餐失败",500:"已取餐",600:"配送中",650:"⚠️ 送达失败",700:"✅ 已送达",1000:"✅ 已完成",900:"已取消"};
-async function fn(action,id){
-  const {data,error}=await sb.functions.invoke("web-delyva",{body:{action,id}});
+async function fn(action,id,extra){
+  const {data,error}=await sb.functions.invoke("web-delyva",{body:{action,id,...(extra||{})}});
   if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
   return data;
 }
@@ -172,7 +173,8 @@ function courierHTML(o){
     ${r.name||r.phone?`<div class="mut">骑手：${esc(r.name||"")} ${r.phone?`· <a href="tel:${esc(String(r.phone).replace(/[^\d+]/g,""))}">${esc(r.phone)}</a>`:""} ${r.plate?`· ${esc(r.plate)}`:""}</div>`:""}
     <div class="mut">Delyva 单号 ${esc(o.courier_order_id)}${trk?` · <a href="${trk}" target="_blank" rel="noopener">追踪</a>`:""}</div>
     ${o.courier_error?`<div class="err">${esc(o.courier_error)}</div>`:""}
-    ${(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}</div>`;
+    ${(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}
+    ${dcfg&&String(dcfg.company).toLowerCase()==="trydx"?`<div class="sim"><span class="mut">🧪 测试账号模拟骑手：</span>${[[200,"接单"],[400,"前往取餐"],[500,"已取餐"],[600,"配送中"],[700,"送达"],[650,"送达失败"]].map(([c,l])=>`<button class="btn alt sm" data-sim="${c}" data-id="${o.id}" ${b?"disabled":""}>${l}</button>`).join("")}</div>`:""}</div>`;
 }
 async function courAct(b){
   const id=+b.dataset.id, a=b.dataset.cour;
@@ -206,6 +208,8 @@ function render(newIds){
     </div>`; }).join("") : `<div class="empty">${tab==="pending"?"目前没有待确认的订单 ☕":"没有记录"}</div>`;
   $("list").querySelectorAll("button[data-act]").forEach(b=>b.onclick=()=>act(b));
   $("list").querySelectorAll("button[data-cour]").forEach(b=>b.onclick=()=>courAct(b));
+  $("list").querySelectorAll("button[data-sim]").forEach(b=>b.onclick=async()=>{ const id=+b.dataset.id; busy.add(id); render();
+    try{ await fn("simulate",id,{code:+b.dataset.sim}); }catch(e){ alert("模拟失败："+e.message); } busy.delete(id); await load(); });
 }
 
 async function act(b){

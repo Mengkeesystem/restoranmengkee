@@ -21,7 +21,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-27c";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -203,18 +203,32 @@ async function webhook(req: Request, raw: string) {
   } else if (!DCUST || Number(data?.customerId) !== Number(DCUST)) {
     return json(req, { error: "customer mismatch" }, 401);      // 没设定 secret 时退而求其次：核对 customerId
   }
+  return json(req, await applyStatus(data));
+}
+/* 把一笔 Delyva 状态写进订单（真的 webhook 和测试模拟共用同一段） */
+async function applyStatus(data: any) {
   const delyvaId = String(data?.orderId ?? data?.id ?? "");
   const code = Number(data?.statusCode);
-  if (!delyvaId || !Number.isFinite(code)) return json(req, { ok: true, ignored: true });
+  if (!delyvaId || !Number.isFinite(code)) return { ok: true, ignored: true };
   const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=id,courier_status`);
-  if (!rows.length) return json(req, { ok: true, unknown: true });    // 不是网站叫的单
+  if (!rows.length) return { ok: true, unknown: true };    // 不是网站叫的单
   const p = data?.personnel;
   await patchOrder(rows[0].id, {
     courier_status: code,
     ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo) } : {}),
     ...(p ? { courier_rider: { name: p.name ?? null, phone: p.phone ?? p.contactNumber ?? null, plate: p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo ?? null } } : {}),
   });
-  return json(req, { ok: true });
+  return { ok: true };
+}
+/* 🧪 测试账号专用：假装 Delyva 发来骑手状态（正式账号一律拒绝，不会碰到真单） */
+const SIM_CODES = [200, 400, 500, 600, 700, 475, 650];
+async function simulate(id: number, code: number) {
+  if (DCODE.toLowerCase() !== "trydx") throw new Error("模拟只限 Delyva 测试账号（trydx）");
+  if (!SIM_CODES.includes(code)) throw new Error("不支持的模拟状态");
+  const o = await getOrder(id);
+  if (!o?.courier_order_id) throw new Error("这张单还没叫骑手");
+  return applyStatus({ orderId: o.courier_order_id, statusCode: code,
+    ...(code >= 200 && code !== 475 ? { personnel: { name: "Test Rider（测试骑手）", phone: "0123456789", vehicleNo: "WTEST 123" } } : {}) });
 }
 
 Deno.serve(async (req) => {
@@ -231,12 +245,13 @@ Deno.serve(async (req) => {
     if (body.action === "dispatch") return json(req, await dispatch(id, by));
     if (body.action === "cancel") return json(req, await cancel(id, by));
     if (body.action === "setup_webhook") return json(req, await setupWebhook());
+    if (body.action === "simulate") return json(req, await simulate(id, Number(body.code)));
     if (body.action === "status") return json(req, { ok: true, version: VERSION, configured: !!(DKEY && DCUST), secret: !!DSECRET, base: DBASE, company: DCODE });
     return json(req, { error: "unknown action" }, 400);
   } catch (e) {
     const msg = String((e as Error)?.message || e).slice(0, 300);
     if (!isHook) {
-      try { const id = Number(JSON.parse(raw || "{}").id); if (id) await patchOrder(id, { courier_error: msg }); } catch { /* */ }
+      try { const b = JSON.parse(raw || "{}"), id = Number(b.id); if (id && b.action !== "simulate") await patchOrder(id, { courier_error: msg }); } catch { /* */ }
     }
     return json(req, { error: msg }, 400);
   }
