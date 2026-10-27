@@ -54,6 +54,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .acts .btn{flex:1;min-width:140px}
 .who{font-size:12px;color:var(--mut);margin-top:6px}
+.cour{margin-top:10px;padding:10px;border:1px dashed var(--line);background:#FFFDF6;font-size:14px}.cour .mut,.mut{color:var(--mut);font-size:13px}.cour .acts{margin-top:8px}.cour .err{margin-top:4px}
 .empty{text-align:center;color:var(--mut);padding:40px 0}
 .hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
 </style>
@@ -120,22 +121,62 @@ async function boot(){
   $("hUser").textContent=me.email; $("logoutBtn").hidden=false;
   $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); loginView(); };
   app.innerHTML = `<div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
-    <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button></div>
+    <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button></div>
     <div class="tabs" id="tabs"></div><div id="list"></div>`;
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
+  fn("status").then(r=>{ dcfg=r; if(r&&r.configured) $("dvBtn").hidden=false; render(); }).catch(()=>{ dcfg=null; });   /* 还没部署 web-delyva 就当没有外送功能 */
+  $("dvBtn").onclick=async()=>{ if(!confirm("在 Delyva 登记状态通知网址？（只需要做一次，换 key 后再做一次）")) return;
+    try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
   $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
   await load(); timer=setInterval(load,5000);
 }
 
 async function load(){
   const since=new Date(Date.now()-3*24*3600*1000).toISOString();
-  const {data, error} = await sb.from("web_orders").select("id,ref,outlet,order_type,customer_name,customer_phone,amount,message,status,created_at,confirmed_at,confirmed_by").gte("created_at",since).order("created_at",{ascending:false}).limit(300);
+  const q=c=>sb.from("web_orders").select(c).gte("created_at",since).order("created_at",{ascending:false}).limit(300);
+  let {data, error} = await q(hasCourierCols?COLS+COLS_DEL:COLS);
+  if(error&&hasCourierCols&&/column|42703/i.test(error.message+error.code)){ hasCourierCols=false; ({data, error} = await q(COLS)); }   /* 还没跑 delivery.sql */
   if(error){ if($("list")) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
   const fresh = data.filter(o=>o.status==="pending" && !seen.has(o.id));
   data.forEach(o=>seen.add(o.id));
   orders=data;
   if(!first && fresh.length){ beep(); document.title="🔔 新订单 · "+(S.name||""); setTimeout(()=>document.title=(S.name||"")+" · 店员后台",8000); }
   render(first?[]:fresh.map(o=>o.id)); first=false;
+}
+
+const COLS="id,ref,outlet,order_type,customer_name,customer_phone,amount,message,status,created_at,confirmed_at,confirmed_by";
+const COLS_DEL=",outlet_idx,dest,courier_order_id,courier_tracking,courier_service,courier_fee,courier_status,courier_rider,courier_error,courier_updated_at";
+let hasCourierCols=true, dcfg=null, busy=new Set();
+/* Delyva 状态代码（照官方插件） */
+const DSTAT={100:"已叫车，等骑手接单",110:"已叫车，等骑手接单",200:"骑手已接单",400:"骑手前往取餐",475:"⚠️ 取餐失败",500:"已取餐",600:"配送中",650:"⚠️ 送达失败",700:"✅ 已送达",1000:"✅ 已完成",900:"已取消"};
+async function fn(action,id){
+  const {data,error}=await sb.functions.invoke("web-delyva",{body:{action,id}});
+  if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
+  return data;
+}
+function courierHTML(o){
+  if(o.order_type!=="delivery"||o.status!=="paid"||!hasCourierCols) return "";
+  if(!o.dest) return `<div class="cour"><span class="mut">🛵 这张单没有送餐坐标（旧订单），请手动叫车。</span></div>`;
+  const d=o.dest, map=`https://www.google.com/maps?q=${encodeURIComponent(d.lat+","+d.lng)}`;
+  const addr=`<div class="mut">📍 ${esc(d.unit?d.unit+", ":"")}${esc(d.address||"")} · <a href="${map}" target="_blank" rel="noopener">地图</a>${d.km?` · 约 ${esc(d.km)} km`:""}${d.note?`<br>📝 ${esc(d.note)}`:""}</div>`;
+  const b=busy.has(o.id);
+  if(!o.courier_order_id||o.courier_status===900){
+    return `<div class="cour">${addr}${o.courier_status===900?`<div class="mut">Delyva：已取消</div>`:""}${o.courier_error?`<div class="err">叫车失败：${esc(o.courier_error)}</div>`:""}
+      <div class="acts"><button class="btn sm" data-cour="dispatch" data-id="${o.id}" ${b?"disabled":""}>${b?"叫车中…":"🛵 叫骑手（Delyva）"}</button></div></div>`;
+  }
+  const r=o.courier_rider||{}, trk=o.courier_tracking&&dcfg&&dcfg.company?`https://${encodeURIComponent(dcfg.company)}.delyva.app/customer/strack?trackingNo=${encodeURIComponent(o.courier_tracking)}`:"";
+  return `<div class="cour">${addr}<div><b>🛵 ${esc(DSTAT[o.courier_status]||("状态 "+(o.courier_status??"-")))}</b>${o.courier_service?` · ${esc(o.courier_service)}`:""}${o.courier_fee?` · 运费成本 ${money(o.courier_fee)}`:""}</div>
+    ${r.name||r.phone?`<div class="mut">骑手：${esc(r.name||"")} ${r.phone?`· <a href="tel:${esc(String(r.phone).replace(/[^\d+]/g,""))}">${esc(r.phone)}</a>`:""} ${r.plate?`· ${esc(r.plate)}`:""}</div>`:""}
+    <div class="mut">Delyva 单号 ${esc(o.courier_order_id)}${trk?` · <a href="${trk}" target="_blank" rel="noopener">追踪</a>`:""}</div>
+    ${o.courier_error?`<div class="err">${esc(o.courier_error)}</div>`:""}
+    ${(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}</div>`;
+}
+async function courAct(b){
+  const id=+b.dataset.id, a=b.dataset.cour;
+  if(a==="cancel"&&!confirm("确定取消这张单的 Delyva 骑手？")) return;
+  busy.add(id); render();
+  try{ await fn(a,id); }catch(e){ alert((a==="cancel"?"取消失败：":"叫车失败：")+e.message); }
+  busy.delete(id); await load();
 }
 
 function ago(ts){ const m=Math.floor((Date.now()-new Date(ts))/60000); return m<1?"刚刚":m<60?m+" 分钟前":Math.floor(m/60)+" 小时前"; }
@@ -152,14 +193,16 @@ function render(newIds){
     const old = o.status==="pending" && (Date.now()-new Date(o.created_at))>30*60000;
     return `<div class="ord ${o.status}${newIds.includes(o.id)?" new":""}">
       <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${o.status}">${o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${old?`<span class="tag old">超过 30 分钟</span>`:""}
-        <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外卖":"🛍️ 自取"}</div>
+        <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外送":"🛍️ 自取"}</div>
         <div class="meta">👤 <b>${esc(o.customer_name||"")}</b> · 📞 <a href="tel:${esc(String(o.customer_phone||"").replace(/[^\d+]/g,""))}">${esc(o.customer_phone||"")}</a></div></div>
         <div class="amt">${money(o.amount)}</div></div>
       <details ${o.status==="pending"?"open":""}><summary>订单内容</summary><pre>${esc(o.message)}</pre></details>
       ${o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
         :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}</div>`}
+      ${courierHTML(o)}
     </div>`; }).join("") : `<div class="empty">${tab==="pending"?"目前没有待确认的订单 ☕":"没有记录"}</div>`;
   $("list").querySelectorAll("button[data-act]").forEach(b=>b.onclick=()=>act(b));
+  $("list").querySelectorAll("button[data-cour]").forEach(b=>b.onclick=()=>courAct(b));
 }
 
 async function act(b){
@@ -171,6 +214,13 @@ async function act(b){
   const {error}=await sb.from("web_orders").update({status:st,confirmed_at:new Date().toISOString(),confirmed_by:me.email}).eq("id",+b.dataset.id).eq("status","pending");
   if(error){ alert("更新失败："+error.message); b.disabled=false; return; }
   await load();
+  /* 外送单：已收款后自动叫 Delyva 骑手（失败会显示在订单上，可再按「叫骑手」） */
+  const o=orders.find(x=>x.id===+b.dataset.id);
+  if(st==="paid"&&o&&o.order_type==="delivery"&&o.dest&&dcfg&&dcfg.configured&&!o.courier_order_id){
+    busy.add(o.id); render();
+    try{ await fn("dispatch",o.id); }catch(e){ alert("已收款，但自动叫骑手失败："+e.message+"\n可以在订单上按「🛵 叫骑手」再试，或手动叫车。"); }
+    busy.delete(o.id); await load();
+  }
 }
 
 sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT") loginView(); });

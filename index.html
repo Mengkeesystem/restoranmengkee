@@ -1543,7 +1543,9 @@ function renderDrawer(){
     const buildMsg = payLine => [t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),...(isDel()&&unit?[`${t("unitLbl")}: ${unit}`]:[]),...(isDel()&&delGeo?[`${t(delGeo.src==="pin"?"delGeoLblPin":delGeo.src==="addr"?"delGeoLblAddr":"delGeoLbl")}: https://www.google.com/maps?q=${delGeo.lat.toFixed(6)},${delGeo.lng.toFixed(6)}${geoKm(oi)!=null?` (${t("delGeoKm").replace("{km}",geoKm(oi).toFixed(1)).replace("{m}",t(delRoutes.mode==="DRIVING"?"modeCar":"modeMoto"))})`:""}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,...(isDel()?(eta?[`${t("etaLbl")}: ${eta.from}–${eta.to} (${t("etaShort").replace("{p1}",eta.p[0]).replace("{p2}",eta.p[1]).replace("{r1}",eta.r[0]).replace("{r2}",eta.r[1])})`]:[]):[`${t("pickupTime")}: ${time}`]),note?`${isDel()?t("delNoteLbl"):t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n");
     if(prepayReq()&&!pi){ $("od_err").textContent=t("payNotReady"); return; }
     if(pi && pi.allowPayAtCounter===false) payMode="now";
-    if(pi && payMode==="now"){ openPayStep(oi, buildMsg, {name, phone, type:isDel()?"delivery":"pickup", outlet: oi!==undefined&&oi!==""?outlets()[+oi].name:""}); return; }
+    if(pi && payMode==="now"){ openPayStep(oi, buildMsg, {name, phone, type:isDel()?"delivery":"pickup", outlet: oi!==undefined&&oi!==""?outlets()[+oi].name:"",
+      /* 外送资料给后台叫骑手（Delyva）：坐标、地址、出餐分店序号、路程、份数 */
+      dest: isDel()&&delGeo ? {lat:delGeo.lat, lng:delGeo.lng, address:addr, unit, note, oi:+oi, km:routeOf(oi)?+routeOf(oi).km.toFixed(1):null, items:Object.values(cart).reduce((a,b)=>a+b,0)} : null}); return; }
     openWa(buildMsg(pi?`${t("payMethod")}: ${t(isDel()?"payCod":"payCounter")}`:null), oi);
   };
 }
@@ -1587,7 +1589,7 @@ async function startAutoPay(){
   P.msg=mk();
   for(let i=0;i<3;i++){
     try{
-      P.token = await pbRpc("create_web_order",{p_ref:P.ref,p_outlet:P.meta.outlet||"",p_type:P.meta.type||"",p_name:P.meta.name||"",p_phone:P.meta.phone||"",p_amount:P.amount,p_message:P.msg});
+      P.token = await pbRpc("create_web_order",{p_ref:P.ref,p_outlet:P.meta.outlet||"",p_type:P.meta.type||"",p_name:P.meta.name||"",p_phone:P.meta.phone||"",p_amount:P.amount,p_message:P.msg,...(P.meta.dest?{p_dest:P.meta.dest}:{})});
       break;
     }catch(e){
       if(/duplicate|unique/i.test(String(e.message))&&i<2){ P.ref=genRef(); P.msg=mk(); continue; }
