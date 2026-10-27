@@ -108,6 +108,13 @@
 
 **同时最好一起补的资料**（不阻塞后台）：正式商家收款 QR + 银行户口（`payment`；现在测试模式用的是业主个人 TNG QR）、真实本店故事/优惠活动、Facebook 专页名、A007/A017 菜名价钱。
 
+## 网站后台放进明记 ERP 的 Supabase 项目（2026-10-27 业主决定，省每月 USD 10）
+业主要升级 Pro（org「ERP（明记和Beefhouse）」，Pro USD 25 + 每多一个项目约 USD 10），所以网站后台**不另开项目，放进明记 ERP 的项目**（`kmcdokwiyetlmsrdlgqw`）。**绝不能放牛室的项目。**
+- 已对照明记 ERP 仓库（Mengkeesystem/ERP-testing-1.0 的 supabase-schema.sql / security-hardening.sql / push-schema.sql）：ERP 用 `erp_store`、`erp_users`、`erp_push_subs`，函数 `invite_role`、`invite_outlet`、`my_email`、`is_whitelisted`、`is_admin`、`erp_users_is_empty`，Edge Function `send-order-push`；**仓库里没有 auth.users 触发器**（邀请码是在 `erp_users` 的 insert 策略里判断）。网站 `supabase/schema.sql` 只建 `web_orders`、`web_staff`、`is_web_staff`、`create_web_order`、`web_order_status`，**名字都不冲突**，也不改 ERP 任何表/策略。`create extension if not exists pgcrypto` 在 Supabase 本来就有，不影响。
+- admin.html 只登录不注册，不会碰 ERP 的邀请码注册流程；店员用自己的 ERP 账号登录，但还要把邮箱加进 `web_staff` 才看得到订单（ERP 白名单 ≠ 网站店员白名单）。
+- ⚠️ 牛室踩过「线上数据库跟仓库不一样」的坑，所以跑 schema.sql 前要业主先在明记项目跑**只读检查**（列 public 的表、函数、auth.users 上的触发器），确认线上没有同名的 `web_*` 东西。
+- 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
+
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
 **已做的防护（改代码时别拿掉）：**
 - 所有输出都经 `esc()`；`admin.html` 显示客人填的姓名/电话/订单内容也全部 `esc()`（客人可经 RPC 写任意文字进数据库，店员页是最需要防 XSS 的地方）。
