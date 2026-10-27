@@ -21,6 +21,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
+const VERSION = "2026-10-27c";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -230,7 +231,7 @@ Deno.serve(async (req) => {
     if (body.action === "dispatch") return json(req, await dispatch(id, by));
     if (body.action === "cancel") return json(req, await cancel(id, by));
     if (body.action === "setup_webhook") return json(req, await setupWebhook());
-    if (body.action === "status") return json(req, { ok: true, configured: !!(DKEY && DCUST), secret: !!DSECRET, base: DBASE, company: DCODE });
+    if (body.action === "status") return json(req, { ok: true, version: VERSION, configured: !!(DKEY && DCUST), secret: !!DSECRET, base: DBASE, company: DCODE });
     return json(req, { error: "unknown action" }, 400);
   } catch (e) {
     const msg = String((e as Error)?.message || e).slice(0, 300);
