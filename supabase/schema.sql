@@ -1,9 +1,11 @@
 -- =====================================================================
 -- 明记官网「付款确认」小后台（Supabase）
 -- ---------------------------------------------------------------------
--- 用法：在【官网专用的新 Supabase 项目】→ SQL Editor → 贴上整份 → Run。
+-- 用法：在【明记 ERP 的 Supabase 项目（明记_ERP_1.0）】→ SQL Editor → 贴上整份 → Run。
 --      可重复执行（会覆盖函数与策略，不会删订单）。
--- ⚠️ 这是官网专用项目，跟明记 / 牛室 ERP 的 Supabase 完全分开，别在 ERP 项目里跑。
+-- 2026-10-27 业主决定放进明记 ERP 项目（省一个项目的费用）。只新增 web_ 开头的表/函数，
+-- 不改 ERP 的 erp_store / erp_users / erp_push_subs 或任何 ERP 函数与策略。
+-- ⚠️ 绝对不能在牛室 Beef House 的项目里跑。
 --
 -- 流程：
 --   客人网页（匿名）→ create_web_order() 建一笔「待付款」订单，拿到一个秘密 token
@@ -108,5 +110,5 @@ grant execute on function public.web_order_status(text,uuid) to anon, authentica
 grant execute on function public.is_web_staff() to authenticated;
 
 -- 7) 加店员（把邮箱换成真的，可加多行）-------------------------------
---    店员账号先在 Supabase 后台 Authentication → Users → Add user 建（邮箱 + 密码），再把邮箱加进白名单：
+--    店员直接用自己的明记 ERP 账号登录（不要另外 Add user），只要把他的 ERP 登录邮箱加进白名单：
 -- insert into public.web_staff (email) values ('staff1@example.com') on conflict do nothing;
