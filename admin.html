@@ -57,11 +57,17 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .cour{margin-top:10px;padding:10px;border:1px dashed var(--line);background:#FFFDF6;font-size:14px}.cour .mut,.mut{color:var(--mut);font-size:13px}.cour .acts{margin-top:8px}.cour .err{margin-top:4px}
 .sim{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:8px;border-top:1px dashed var(--line)}
 .empty{text-align:center;color:var(--mut);padding:40px 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
+.kpi span{display:block;font-size:13px;color:var(--mut)}.kpi b{font-size:22px;color:var(--p)}.kpi small{display:block;color:var(--mut);font-size:12px}
+.sumsec{margin-bottom:16px}.sumsec h3{margin:0 0 8px;font-size:16px;color:var(--p)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.tbl th,.tbl td{border:1px solid var(--line);padding:6px 8px;text-align:left}.tbl th{background:#FFF6DA}.tbl td.n{text-align:right;white-space:nowrap}
+.tblw{overflow-x:auto}
 .hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><a class="btn alt sm" href="check.html" style="text-decoration:none;display:inline-flex;align-items:center">🔍 订单核对</a><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
+<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
 <div class="wrap" id="app"></div>
 
 <script>
@@ -120,10 +126,11 @@ async function boot(){
   const {data:ok, error} = await sb.rpc("is_web_staff");
   if(error||!ok){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
   $("hUser").textContent=me.email; $("logoutBtn").hidden=false;
-  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); loginView(); };
-  app.innerHTML = `<div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
+  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; loginView(); };
+  app.innerHTML = `<div id="ordView"><div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
     <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
-    <div class="tabs" id="tabs"></div><div id="list"></div>`;
+    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div>`;
+  $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="orders"?"summary":"orders");
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
   /* Delyva 连线状态：显示在提示音按钮旁边，方便排查（还没部署 web-delyva 就当没有外送功能） */
   fn("status").then(r=>{ dcfg=r; if(r&&r.configured) $("dvBtn").hidden=false;
@@ -133,6 +140,7 @@ async function boot(){
     try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
   $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
   await load(); timer=setInterval(load,5000);
+  if(location.hash==="#summary") setView("summary");
 }
 
 async function load(){
@@ -244,6 +252,97 @@ async function act(b){
     try{ await fn("dispatch",o.id); }catch(e){ alert("已收款，但自动叫骑手失败："+e.message+"\n可以在订单上按「🛵 叫骑手」再试，或手动叫车。"); }
     busy.delete(o.id); await load();
   }
+}
+
+/* ---------- 每月总结：直接读 web_orders（全分店自动汇总，只有店员看得到） ---------- */
+let view="orders", sumMonth="", sumOutlet="", sumRows=[];
+function klMonth(d){ const k=new Date((d?new Date(d):new Date()).getTime()+8*3600e3); return k.toISOString().slice(0,7); }
+function klDay(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(0,10); }
+function klHM(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(11,16); }
+function setView(v){
+  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary";
+  $("viewBtn").textContent=v==="orders"?"📊 每月总结":"📋 回到订单";
+  history.replaceState(null,"",v==="summary"?"#summary":location.pathname+location.search);
+  if(v==="summary"){ if(!sumMonth) sumMonth=klMonth(); renderSummaryShell(); loadSummary(); }
+}
+function renderSummaryShell(){
+  $("sumView").innerHTML=`<div class="bar"><input type="month" id="smon" value="${esc(sumMonth)}" style="width:auto">
+      <select id="sout"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option ${o.name===sumOutlet?"selected":""}>${esc(o.name)}</option>`).join("")}</select>
+      <button class="btn alt sm" id="sref">🔄 刷新</button><button class="btn sm" id="scsv">⬇ 导出 CSV</button></div>
+    <div class="live" style="margin-bottom:10px">按吉隆坡时间的下单日期分月。营业额 = 已收款（含已完成）的订单金额；待确认、已拒绝的不算。随时打开都是最新的，不用等月底。</div>
+    <div id="sbody"><div class="empty">读取中…</div></div>`;
+  $("smon").onchange=e=>{ sumMonth=e.target.value||klMonth(); loadSummary(); };
+  $("sout").onchange=e=>{ sumOutlet=e.target.value; drawSummary(); };
+  $("sref").onclick=()=>loadSummary();
+  $("scsv").onclick=()=>exportCsv();
+}
+async function loadSummary(){
+  if(!/^\d{4}-\d{2}$/.test(sumMonth)) return;
+  const [y,m]=sumMonth.split("-").map(Number), nx=m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,"0")}`;
+  const from=`${sumMonth}-01T00:00:00+08:00`, to=`${nx}-01T00:00:00+08:00`;
+  const cols=COLS+(hasCourierCols?",courier_order_id,courier_status,courier_fee":"")+(hasDoneCols?COLS_DONE:"");
+  $("sbody").innerHTML=`<div class="empty">读取中…</div>`;
+  const all=[];
+  for(let i=0;i<20000;i+=1000){
+    const {data,error}=await sb.from("web_orders").select(cols).gte("created_at",from).lt("created_at",to).order("created_at",{ascending:true}).range(i,i+999);
+    if(error){ $("sbody").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
+    all.push(...data); if(data.length<1000) break;
+  }
+  sumRows=all; drawSummary();
+}
+const num = s => Number(String(s).replace(/,/g,""))||0;
+function parseMsg(msg){
+  const r={items:[],sst:0,fee:0,disc:0};
+  String(msg||"").split("\n").forEach(l=>{ l=l.trim();
+    let m=l.match(/^•\s*(.+?)\s+x(\d+)\s*=\s*RM\s*([\d.,]+)/);
+    if(m){ r.items.push({name:m[1].replace(/\s*\[[^\]]*\]/g,"").trim(),q:+m[2],amt:num(m[3])}); return; }
+    if(/^SST/i.test(l)&&(m=l.match(/RM\s*([\d.,]+)/))){ r.sst+=num(m[1]); return; }
+    if(/^(运费|Delivery fee)\s*:/i.test(l)){ m=l.match(/RM\s*([\d.,]+)/); r.fee+=m?num(m[1]):0; return; }
+    if(/^(优惠码|Voucher)\s*:/i.test(l)&&(m=l.match(/[−-]\s*RM\s*([\d.,]+)/))) r.disc+=num(m[1]);
+  });
+  return r;
+}
+function sumData(){
+  const rows=sumRows.filter(o=>!sumOutlet||o.outlet===sumOutlet), paid=rows.filter(o=>o.status==="paid");
+  const D={rows,paid,rev:0,sst:0,fee:0,disc:0,cost:0,done:0,pend:rows.filter(o=>o.status==="pending").length,rej:rows.filter(o=>o.status==="rejected").length,
+    type:{pickup:[0,0],delivery:[0,0]},outlet:{},day:{},items:{}};
+  paid.forEach(o=>{ const a=+o.amount||0, p=parseMsg(o.message), t=o.order_type==="delivery"?"delivery":"pickup";
+    D.rev+=a; D.sst+=p.sst; D.fee+=p.fee; D.disc+=p.disc; if(isDone(o)) D.done++;
+    if(o.courier_order_id&&o.courier_status!==900) D.cost+=+o.courier_fee||0;
+    D.type[t][0]++; D.type[t][1]+=a;
+    const ou=D.outlet[o.outlet||"-"]=D.outlet[o.outlet||"-"]||[0,0]; ou[0]++; ou[1]+=a;
+    const dy=D.day[klDay(o.created_at)]=D.day[klDay(o.created_at)]||[0,0]; dy[0]++; dy[1]+=a;
+    p.items.forEach(it=>{ const x=D.items[it.name]=D.items[it.name]||[0,0]; x[0]+=it.q; x[1]+=it.amt; });
+  });
+  return D;
+}
+function drawSummary(){
+  if(!$("sbody")) return; const D=sumData(), n=D.paid.length;
+  const kpi=(l,v,sm)=>`<div class="kpi"><span>${l}</span><b>${v}</b>${sm?`<small>${sm}</small>`:""}</div>`;
+  const tbl=(head,rows)=>`<div class="tblw"><table class="tbl"><tr>${head.map((h,i)=>`<th${i?' class="n"':""}>${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td${i?' class="n"':""}>${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
+  if(!D.rows.length){ $("sbody").innerHTML=`<div class="empty">${esc(sumMonth)} 还没有订单</div>`; return; }
+  const top=Object.entries(D.items).sort((a,b)=>b[1][0]-a[1][0]||b[1][1]-a[1][1]).slice(0,15);
+  $("sbody").innerHTML=`<div class="kpis">
+      ${kpi("营业额（已收款）",money(D.rev),`${n} 张订单`)}${kpi("平均每单",money(n?D.rev/n:0))}
+      ${kpi("已完成",D.done,`还没完成 ${n-D.done}`)}${kpi("待确认 / 已拒绝",`${D.pend} / ${D.rej}`)}
+      ${kpi("SST（含在营业额里）",money(D.sst))}${kpi("向客人收的运费",money(D.fee))}
+      ${kpi("Delyva 骑手成本",money(D.cost),"已取消的不算")}${kpi("优惠折扣",money(D.disc))}</div>
+    <div class="sumsec"><h3>自取 / 外送</h3>${tbl(["类型","订单","营业额"],[["🛍️ 自取",D.type.pickup[0],money(D.type.pickup[1])],["🛵 外送",D.type.delivery[0],money(D.type.delivery[1])]])}</div>
+    ${sumOutlet?"":`<div class="sumsec"><h3>按分店</h3>${tbl(["分店","订单","营业额"],Object.entries(D.outlet).sort((a,b)=>b[1][1]-a[1][1]).map(([k,v])=>[esc(k),v[0],money(v[1])]))}</div>`}
+    <div class="sumsec"><h3>热卖 Top 15</h3>${top.length?tbl(["菜品","份数","金额"],top.map(([k,v])=>[esc(k),v[0],money(v[1])])):`<div class="live">没有菜品资料</div>`}</div>
+    <div class="sumsec"><h3>每天</h3>${tbl(["日期","订单","营业额"],Object.entries(D.day).sort().map(([k,v])=>[k,v[0],money(v[1])]))}</div>
+    <div class="sumsec"><h3>订单列表（${D.rows.length}）</h3>${tbl(["参考号","时间","分店","类型","金额","状态"],D.rows.slice().reverse().map(o=>[esc(o.ref),esc(klDay(o.created_at)+" "+klHM(o.created_at)),esc(o.outlet||"-"),o.order_type==="delivery"?"外送":"自取",money(o.amount),isDone(o)?"已完成":o.status==="paid"?"已收款":o.status==="pending"?"待确认":"已拒绝"]))}</div>`;
+}
+function exportCsv(){
+  const D=sumData(); if(!D.rows.length){ alert("这个月没有订单"); return; }
+  const cell=v=>{ let t=String(v==null?"":v); if(/^[=+\-@\t\r]/.test(t)) t="'"+t; return '"'+t.replace(/"/g,'""')+'"'; };   /* 防 Excel 公式注入 */
+  const lines=[["参考号","日期","时间","分店","类型","状态","金额","SST","运费","优惠","骑手成本","客人","电话","菜品"].map(cell).join(",")];
+  D.rows.forEach(o=>{ const p=parseMsg(o.message);
+    lines.push([o.ref,klDay(o.created_at),klHM(o.created_at),o.outlet,o.order_type==="delivery"?"外送":"自取",isDone(o)?"已完成":o.status==="paid"?"已收款":o.status==="pending"?"待确认":"已拒绝",
+      (+o.amount).toFixed(2),p.sst.toFixed(2),p.fee.toFixed(2),p.disc.toFixed(2),o.courier_order_id&&o.courier_status!==900?(+o.courier_fee||0).toFixed(2):"",o.customer_name,o.customer_phone,
+      p.items.map(i=>`${i.name} x${i.q}`).join("; ")].map(cell).join(",")); });
+  const b=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}), u=URL.createObjectURL(b), a=document.createElement("a");
+  a.href=u; a.download=`MengKee-${sumMonth}${sumOutlet?"-"+sumOutlet:""}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),30000);
 }
 
 sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT") loginView(); });
