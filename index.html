@@ -82,6 +82,11 @@ nav.links a:hover{background:#F6EADB}
   .hero .status{font-size:13px;padding:4px 10px;margin-top:12px;gap:6px}
   .hero .status.delst{margin-top:6px}
   .hero .dot{width:8px;height:8px}
+  .hgrid{gap:18px}
+  .hstory{padding:14px 14px 12px;box-shadow:4px 4px 0 rgba(0,0,0,.25)}
+  .hstory::before{inset:4px}
+  .hstory h2{padding-bottom:8px;margin-bottom:8px}
+  .hstory p{margin-bottom:6px;line-height:1.6}
 }
 .hero .wrap{position:relative}
 .hero h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.15;padding:0}
@@ -835,7 +840,7 @@ function renderHero(){
     if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
     bg.style.backgroundRepeat=(S.heroRepeatMobile&&matchMedia("(max-width:760px)").matches)?"repeat-y":"no-repeat";
     /* 手机版招牌横条在最上面（heroPushMobile）：把店名/按钮往下推，不要盖住招牌 */
-    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth; $("heroIn").style.marginTop=Math.max(0,Math.round(band-40))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
+    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth, pt=parseFloat(getComputedStyle(h).paddingTop)||0; $("heroIn").style.marginTop=Math.max(0,Math.round(band-pt+12))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
   $("heroIn").innerHTML = `
     <div class="hhead">${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}<div class="htxt">
     <h1>${esc(L(S,"name"))}</h1>

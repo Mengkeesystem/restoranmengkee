@@ -19,9 +19,9 @@ window.SITE = {
   heroPos: "center",                      // 图片对准哪里
   heroSize: "100% auto",                  // 电脑版：招牌整张横着摆满（上下用招牌底色补）
   heroSizeMobile: "100% auto",            // 手机版：整块招牌横着摆一次、居中（2026-10-28 业主：像电脑版一样只铺一次、淡一点）
-  heroPosMobile: "center",                // 手机版：招牌中间对准
+  heroPosMobile: "center top",            // 手机版：招牌放在红色背景最上面（2026-10-28 业主）
   heroRepeatMobile: false,                // 手机版：不重复铺（2026-10-28 业主：铺一次就好）
-  heroPushMobile: false,                  // 手机版不再把店名/按钮往下推
+  heroPushMobile: true,                   // 手机版把 logo/店名/按钮推到招牌下面
   heroColor: "#800000",                   // 招牌底色，图片没盖到的地方用它
 
   /* WhatsApp 号码：国家码开头、不要 + 和空格，例如 60123456789 */
