@@ -1026,7 +1026,7 @@ function loadGoogle(){
     sc.src="https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(GM().apiKey)+"&v=weekly&loading=async&libraries=places&language=en&region=MY&callback="+cb;
     sc.async=true; sc.onerror=()=>{ if(!done) res(null); };
     document.head.appendChild(sc);
-    setTimeout(()=>{ if(!done) res(null); },8000);
+    setTimeout(()=>{ if(!done){ console.warn("Google Maps 15 秒内没载完，先用 OpenStreetMap"); res(null); } },15000);   /* 手机网络慢：多等一点；晚到的话下次开购物车会换回 Google 地图（ensureMap） */
   }).then(gm=>{ if(!gm) gLoad=null; return gm; });
   return gLoad;
 }
@@ -1083,6 +1083,7 @@ async function ensureMap(){
     $("drawer").appendChild(pinWrap); wireMapUI();
   }
   mountPin();
+  if(pinMap&&!pinMap.g&&pinMap.lf&&window.google&&google.maps&&google.maps.Map&&!mapBusy){ try{ pinMap.lf.remove(); }catch(e){} pinMap=null; mapFail=false; const el0=pinWrap.querySelector("#pinmap"); el0.className=""; el0.innerHTML=""; gLoad=null; }   /* Google 晚到了：换掉备用的 OpenStreetMap */
   if(pinMap||mapBusy||mapFail) return;
   mapBusy=true;
   const ol=outletLL(curOi()), start=delGeo?[delGeo.lat,delGeo.lng]:(ol?[ol.lat,ol.lng]:[3.1,101.65]), zm=delGeo?18:13, el=pinWrap.querySelector("#pinmap");
@@ -1096,7 +1097,7 @@ async function ensureMap(){
     const LF=window.L, m=LF.map(el,{zoomControl:false}).setView(start,zm);
     LF.control.zoom({position:"bottomleft"}).addTo(m);
     LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(m);
-    pinMap={center:()=>{ const c=m.getCenter(); return {lat:c.lat,lng:c.lng}; },setView:(ll,z)=>m.setView(ll,z||m.getZoom()),resize:()=>m.invalidateSize()};
+    pinMap={lf:m,center:()=>{ const c=m.getCenter(); return {lat:c.lat,lng:c.lng}; },setView:(ll,z)=>m.setView(ll,z||m.getZoom()),resize:()=>m.invalidateSize()};
     m.on("dragstart",()=>{ pinSet=true; }); m.on("moveend",onMapIdle);
   }
   mapBusy=false; mountPin();
