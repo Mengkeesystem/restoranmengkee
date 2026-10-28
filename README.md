@@ -40,7 +40,7 @@ images/      照片：菜品图、门面/环境照、logo、首页大图
 `index.html` 原封不动，只换 `config.js` 和 `images/`。详见 `CLAUDE.md`。
 
 ## 店员：每月总结（员工后台 `admin.html` → 📊 每月总结）
-网址：`https://mengkeesystem.github.io/restoranmengkee/admin.html`，登录后按右上角「📊 每月总结」。
+网址：`https://restoranmengkee.com.my/admin.html`（旧网址 mengkeesystem.github.io/restoranmengkee/admin.html 会自动转过来），登录后按右上角「📊 每月总结」。
 
 - 直接读后台数据库的真实订单，**全部分店自动汇总**，随时打开都是最新的（不用等月底、不用手动记录）。
 - 选月份、选分店；营业额只算「已收款 / 已完成」的订单（待确认、已拒绝不算）。
