@@ -255,6 +255,8 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 @media (prefers-reduced-motion:reduce){.hstory.rv{opacity:1;transform:none;transition:none}}
 @media(max-width:860px){.hgrid{grid-template-columns:1fr;gap:28px}.hstory{padding:22px 20px}}
 @media(max-width:560px){.hero::after{inset:6px}}
+/* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
+@media(max-width:760px){.hero.img::after{inset:auto;top:6px;left:6px;right:6px;height:auto;aspect-ratio:1731/423}}
 .promo{position:relative}
 .promo .badge{position:absolute;top:0;right:0;background:var(--p);color:#fff;font-size:12px;font-weight:800;padding:4px 10px;letter-spacing:1px}
 .promo .in{padding:18px 16px 16px}
