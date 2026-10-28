@@ -83,6 +83,7 @@
 - **手机版招牌放最上面 + 本店故事框缩小（2026-10-28 业主，接上一条）**：`heroPosMobile:"center top"`、`heroPushMobile:true` → 整块招牌（只一次、淡）在红色背景最上面，logo/店名/按钮推到招牌下面；推开的距离改成 `招牌高度 − hero 上内距 + 12px`（原本写死 −40，跟紧凑版的 22px 内距对不上）。本店故事框手机版：内距 14px、内框线 4px、标题和段落间距变小、投影 4px，**字体大小不变**；hgrid 间距 18px。393 宽：红色区块到约 396px。
 - **手机版金色线框只框招牌（2026-10-28 业主）**：≤760px 时 `.hero.img::after` 不再框整个红色背景，改成 `top/left/right:6px` + `aspect-ratio:1731/423`（招牌图比例），只框住最上面那条招牌；电脑版照旧框整个首页。
 - **招牌缩进金框 + OKR (Scott Garden 对面) 不收 SST（2026-10-28 业主）**：
+  - 金框跟背景招牌一起浮现（业主）：背景图载完时 `.hbg` 加 `.in`、`#hero` 同时加 `.hbgin`；手机版 `.hero.img::after` 先 `opacity:0`，`.hbgin` 时播同一个 `hbgIn`（2.5s 淡入+去模糊），减少动态效果时直接显示。电脑版整页金框不变。
   - 金框加粗（业主）：手机版招牌框 `border:2.5px solid rgba(242,180,23,.85)` + 内外各 1px 深色细边，跟 logo 的金框比较搭。
   - 手机版招牌 `background-size:calc(100% - 24px) auto`、`background-position:center 12px`（CSS `!important` 盖过 config 的 inline 设定），金框高度 = 招牌高 + 12px，招牌完整在框里；推开距离按金框底部算。
   - **分店 `sst:false` 不收 SST**：`sstRate()` 改成看购物车当下的分店（`curOi()`），`outletNoSst(oi)`；原本的全站税率改叫 `sstBase()`。OKR (Scott Garden 对面) 已设 `sst:false`。效果：选这间分店（自取或外送、手动选或外送自动选最近）时，购物车/付款金额/订单讯息都没有 SST 那一行；换分店下拉若 SST 有变会立刻重算。admin 每月总结/客人收据本来就按讯息里有没有 SST 行算，不用改。

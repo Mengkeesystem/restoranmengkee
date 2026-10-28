@@ -66,7 +66,7 @@ nav.links a:hover{background:#F6EADB}
 .hero .hbg{position:absolute;inset:0;z-index:-1;background-size:cover;background-position:center;opacity:0}
 .hero .hbg.in{animation:hbgIn 2.5s ease-in-out forwards}
 @keyframes hbgIn{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
-@media (prefers-reduced-motion:reduce){.hero .hbg.in{animation:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.hero .hbg.in{animation:none;opacity:1}.hero.img.hbgin::after{animation:none;opacity:1}}
 /* 2026-10-26 业主：招牌已高清化，不再模糊；左边字的区域暗一点、右边让招牌看得清楚 */
 .hero.img::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(30,8,6,.82) 0%,rgba(30,8,6,.55) 45%,rgba(30,8,6,.22) 100%)}
 @media(max-width:760px){.hero.img::before{background:rgba(30,8,6,.62)}}
@@ -258,6 +258,8 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 /* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
 @media(max-width:760px){
   .hero.img::after{inset:auto;top:6px;left:6px;right:6px;border:2.5px solid rgba(242,180,23,.85);box-shadow:0 0 0 1px rgba(0,0,0,.25),inset 0 0 0 1px rgba(0,0,0,.2);height:calc((100% - 24px)*423/1731 + 12px);height:calc((100vw - 24px)*423/1731 + 12px)}
+  .hero.img::after{opacity:0}
+  .hero.img.hbgin::after{animation:hbgIn 2.5s ease-in-out forwards}   /* 金框跟背景招牌一起慢慢浮现（2026-10-28 业主） */
   .hero.img .hbg{background-size:calc(100% - 24px) auto!important;background-position:center 12px!important}   /* 招牌缩进金框里面（2026-10-28 业主） */
 }
 .promo{position:relative}
@@ -840,7 +842,7 @@ function renderHero(){
   if(S.heroImage){ const h=$("hero"), small=S.heroImageMobile&&matchMedia("(max-width:760px)").matches;
     h.classList.add("img");
     /* 背景图放在自己的一层 .hbg，开页时 2.5 秒从底色慢慢浮现（2026-10-26 业主）；切换语言重绘不重播 */
-    let bg=h.querySelector(".hbg"); if(!bg){ bg=document.createElement("div"); bg.className="hbg"; h.prepend(bg); const pre=new Image(); pre.onload=pre.onerror=()=>bg.classList.add("in"); pre.src=small?S.heroImageMobile:S.heroImage; }
+    let bg=h.querySelector(".hbg"); if(!bg){ bg=document.createElement("div"); bg.className="hbg"; h.prepend(bg); const pre=new Image(); pre.onload=pre.onerror=()=>{ bg.classList.add("in"); h.classList.add("hbgin"); }; pre.src=small?S.heroImageMobile:S.heroImage; }
     bg.style.backgroundImage=`url("${encodeURI(small?S.heroImageMobile:S.heroImage)}")`; const pos=(matchMedia("(max-width:760px)").matches&&S.heroPosMobile)||S.heroPos; if(pos) bg.style.backgroundPosition=String(pos).replace(/[^a-z0-9% .-]/gi,"");
     const sz=matchMedia("(max-width:760px)").matches?(S.heroSizeMobile||S.heroSize):S.heroSize; if(sz) bg.style.backgroundSize=String(sz).replace(/[^a-z0-9% .-]/gi,"");
     if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
