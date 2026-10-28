@@ -1039,6 +1039,8 @@ function loadGoogle(){
   }).then(gm=>{ gLoad=null; return gm&&gm.Map?gm:null; });
   return gLoad;
 }
+/* 地址 → 坐标：有 Google key 就只用 Google（业主 2026-10-28：不要其他地图）；没 key 的店才用 OpenStreetMap */
+async function geoAddr(a){ if(gOn()) return await gGeocode(a); return window.MKGEO ? await MKGEO.geocode(a) : null; }
 async function gGeocode(addr){
   if(gPick&&gPick.addr===addr) return gPick;          /* 客人刚从建议里选的 */
   const gm=await loadGoogle(); if(!gm||!gm.Geocoder) return null;
@@ -1068,7 +1070,7 @@ async function confirmAddr(manual){
   if(!manual&&a===confLast) return;
   const seq=++confSeq; confLast=a; setGeoMsg(t("addrFinding"));
   const btn=$("od_confaddr"); if(btn) btn.disabled=true;
-  let g=(await gGeocode(a)) || (window.MKGEO ? await MKGEO.geocode(a) : null);
+  let g=await geoAddr(a);
   if(seq!==confSeq) return;
   if($("od_confaddr")) $("od_confaddr").disabled=false;
   if(g&&!inArea(g.lat,g.lng)) g=null;
@@ -1154,6 +1156,7 @@ function locateMe(auto){
 async function revGeocode(lat,lng){
   const gm=await loadGoogle();
   if(gm&&gm.Geocoder){ try{ const r=await new gm.Geocoder().geocode({location:{lat,lng}}); const x=r&&r.results&&r.results.find(y=>!(y.types||[]).includes("plus_code"))||(r&&r.results||[])[0]; if(x&&x.formatted_address) return x.formatted_address; }catch(e){} }
+  if(gOn()) return "";
   try{ const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&accept-language=en&lat=${lat}&lon=${lng}`); const j=await r.json(); if(j&&j.display_name) return String(j.display_name); }catch(e){}
   return "";
 }
@@ -1175,7 +1178,7 @@ function wireMapUI(){
   q.addEventListener("blur",()=>setTimeout(hide,150));
   q.addEventListener("keydown",async e=>{
     if(e.key!=="Enter") return; e.preventDefault(); const s=q.value.trim(); if(s.length<3) return;
-    let g=(await gGeocode(s)) || (window.MKGEO ? await MKGEO.geocode(s) : null);
+    let g=await geoAddr(s);
     if(g&&!inArea(g.lat,g.lng)) g=null;
     if(g) goTo(g.lat,g.lng,g.name||s); else setGeoMsg(t("geoAddrFail"));
   });
