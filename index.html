@@ -257,7 +257,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 @media(max-width:560px){.hero::after{inset:6px}}
 /* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
 @media(max-width:760px){
-  .hero.img::after{inset:auto;top:6px;left:6px;right:6px;height:calc((100% - 24px)*423/1731 + 12px);height:calc((100vw - 24px)*423/1731 + 12px)}
+  .hero.img::after{inset:auto;top:6px;left:6px;right:6px;border:2.5px solid rgba(242,180,23,.85);box-shadow:0 0 0 1px rgba(0,0,0,.25),inset 0 0 0 1px rgba(0,0,0,.2);height:calc((100% - 24px)*423/1731 + 12px);height:calc((100vw - 24px)*423/1731 + 12px)}
   .hero.img .hbg{background-size:calc(100% - 24px) auto!important;background-position:center 12px!important}   /* 招牌缩进金框里面（2026-10-28 业主） */
 }
 .promo{position:relative}
