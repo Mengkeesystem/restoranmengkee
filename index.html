@@ -257,7 +257,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 @media(max-width:560px){.hero::after{inset:6px}}
 /* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
 @media(max-width:760px){
-  .hero.img::after{inset:auto;top:6px;left:6px;right:6px;border:2.5px solid rgba(242,180,23,.85);box-shadow:0 0 0 1px rgba(0,0,0,.25),inset 0 0 0 1px rgba(0,0,0,.2);height:calc((100% - 24px)*423/1731 + 12px);height:calc((100vw - 24px)*423/1731 + 12px)}
+  .hero.img::after{inset:auto;top:6px;left:6px;right:6px;border:2.5px solid rgba(242,180,23,.85);box-shadow:0 0 0 1px rgba(0,0,0,.25),inset 0 0 0 1px rgba(0,0,0,.2);height:calc((100vw - 24px)*379/1731 + 15px)}   /* 招牌图 423 高、字只到第 379 行：底边收到字下面约 9px，跟上面留白一样 */
   .hero.img::after{opacity:0}
   .hero.img.hbgin::after{animation:hbgIn 2.5s ease-in-out forwards}   /* 金框跟背景招牌一起慢慢浮现（2026-10-28 业主） */
   .hero.img .hbg{background-size:calc(100% - 24px) auto!important;background-position:center 12px!important}   /* 招牌缩进金框里面（2026-10-28 业主） */
@@ -848,7 +848,7 @@ function renderHero(){
     if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
     bg.style.backgroundRepeat=(S.heroRepeatMobile&&matchMedia("(max-width:760px)").matches)?"repeat-y":"no-repeat";
     /* 手机版招牌横条在最上面（heroPushMobile）：把店名/按钮往下推，不要盖住招牌 */
-    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=12+(h.clientWidth-24)*im.naturalHeight/im.naturalWidth+6, pt=parseFloat(getComputedStyle(h).paddingTop)||0; $("heroIn").style.marginTop=Math.max(0,Math.round(band-pt+14))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
+    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=12+(h.clientWidth-24)*im.naturalHeight*(379/423)/im.naturalWidth+9, pt=parseFloat(getComputedStyle(h).paddingTop)||0; $("heroIn").style.marginTop=Math.max(0,Math.round(band-pt+10))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
   $("heroIn").innerHTML = `
     <div class="hhead">${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}<div class="htxt">
     <h1>${esc(L(S,"name"))}</h1>
