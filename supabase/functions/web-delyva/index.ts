@@ -15,7 +15,8 @@
 //   WEB_DELYVA_SERVICE       想固定用哪个骑手服务（服务代码或名字的一部分，例如 grab）；不填 = 照 WEB_DELYVA_SORT
 //   WEB_DELYVA_ONLY          只用名字/代码含这些字的服务（| 分隔，不分大小写），默认只要即时骑手：instant|grab|lalamove|borzo|motor|bike|rider|on-demand|ondemand|express
 //   WEB_DELYVA_EXCLUDE       排除这些（默认 same-day|sameday|next-day|nextday|ndd|international|dhl|ecommerce|e-commerce|cargo|lorry|truck|van|4x4|economy|pickup point|drop）
-//   WEB_DELYVA_SORT          fastest（默认）= 用 Delyva 报价排第一的服务（Delyva 账号 Sort Services 设 Fastest 时第一个就是最快的）；cheapest = 最便宜
+//   WEB_DELYVA_SORT          fastest（默认）= 按 Delyva 报价的 duration（送达时间）最短；没有 duration（-1）的排后面，同样就照 Delyva 的顺序；cheapest = 最便宜
+//   WEB_DELYVA_MAXFEE        运费超过这个数（RM）的服务不选（防 Delyva 偶尔回不合理的价钱），默认 100
 //   WEB_DELYVA_BASE          默认 https://api.delyva.app/v1.0
 //   WEB_DELYVA_PICKUP_MIN    下单后几分钟让骑手来取，默认 15
 //
@@ -26,7 +27,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28g";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28h";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -40,6 +41,7 @@ const ITEM_TYPE = env("WEB_DELYVA_ITEM_TYPE", "FOOD");
 const SENDER_PHONE = env("WEB_DELYVA_SENDER_PHONE");
 const PREF_SERVICE = env("WEB_DELYVA_SERVICE").toLowerCase();
 const SORT = env("WEB_DELYVA_SORT", "fastest").toLowerCase();
+const MAXFEE = Number(env("WEB_DELYVA_MAXFEE", "100")) || 100;
 const words = (v: string) => v.toLowerCase().split("|").map((x) => x.trim()).filter(Boolean);
 const ONLY = words(env("WEB_DELYVA_ONLY", "instant|grab|lalamove|borzo|motor|bike|rider|on-demand|ondemand|express"));
 const EXCLUDE = words(env("WEB_DELYVA_EXCLUDE", "same-day|sameday|next-day|nextday|ndd|international|dhl|ecommerce|e-commerce|cargo|lorry|truck|van|4x4|economy|pickup point|drop"));
@@ -141,6 +143,8 @@ function klTime(min: number) {   // "YYYY-MM-DD HH:mm:ss"，马来西亚时间
 const weightOf = (items: number) => Math.min(20, Math.max(1, Math.round(Math.max(1, items) * 0.6 * 10) / 10));
 const svcCode = (s: any) => s?.service?.serviceCompany?.companyCode || s?.service?.code || s?.serviceCode || s?.code;
 const svcPrice = (s: any) => Number(s?.price?.amount ?? s?.price ?? 1e9);
+const svcDur = (s: any) => { const d = Number(s?.duration ?? s?.service?.duration); return isFinite(d) && d > 0 ? d : Infinity; };   // Delyva 送达时间，-1 = 不知道
+const svcKm = (s: any) => Number(s?.distance?.value);
 const svcName = (s: any) => String(s?.service?.name || s?.name || (s ? svcCode(s) : "") || "").slice(0, 80);
 // 熟食只用即时骑手（2026-10-28 业主：Delyva 报价会混当天送/国际/DHL 包裹快递）：名字/代码要含 ONLY 的字、不能含 EXCLUDE 的字
 const svcLabel = (x: any) => [svcName(x), svcCode(x), x?.service?.code, x?.service?.serviceCompany?.name, x?.service?.type, x?.service?.serviceType, x?.type].filter(Boolean).join(" ").toLowerCase();
@@ -160,13 +164,15 @@ async function quoteFor(out: any, d: any, weight: number) {
   };
   let itemType = ITEM_TYPE, q: any = await quote(itemType), services = listOf(q);
   const quoteRaw = JSON.stringify(q ?? null).slice(0, 160);
-  if (!services.some((x) => instant(x) && svcPrice(x) < 1e8) && itemType !== "PARCEL") { itemType = "PARCEL"; q = await quote(itemType); services = listOf(q); }   // FOOD 没有即时骑手就改问 PARCEL
+  if (!services.some((x) => instant(x) && svcPrice(x) >= 0 && svcPrice(x) <= MAXFEE) && itemType !== "PARCEL") { itemType = "PARCEL"; q = await quote(itemType); services = listOf(q); }   // FOOD 没有即时骑手就改问 PARCEL
   // 选服务：WEB_DELYVA_SERVICE 指定的 → 否则 fastest（默认）= Delyva 排第一的（账号 Sort Services 设 Fastest）；cheapest = 最便宜
-  const priced = services.filter((s) => svcPrice(s) < 1e8 && instant(s));
+  const priced = services.filter((s) => svcPrice(s) >= 0 && svcPrice(s) <= MAXFEE && instant(s));   // 价钱不合理（> MAXFEE，例如测试账号的 25000）不选
   if (services[0]) console.log(`quote raw: ${JSON.stringify(services[0]).slice(0, 700)}`);   // 看 Delyva 给了哪些字段（有没有送达时间可以排最快）
   const pick = priced.length ? ((PREF_SERVICE && priced.find((s) => [svcCode(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
-    || (SORT === "cheapest" ? priced.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0] : priced[0])) : null;
-  console.log(`quote ${itemType} ${weight}kg ⇒ 选中 ${pick ? `${svcName(pick)}=${svcPrice(pick)}` : "-（没有即时骑手服务）"} ｜ 即时: ${priced.map((x) => `${svcName(x)}=${svcPrice(x)}`).join(", ") || "无"} ｜ 全部: ${services.map((x) => `${svcName(x)}=${svcPrice(x)}`).join(", ") || "无服务"}`);
+    || (SORT === "cheapest" ? priced.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0]
+      : priced.map((x, i) => ({ x, i })).sort((a, b) => (svcDur(a.x) - svcDur(b.x)) || (a.i - b.i))[0].x)) : null;   // 最快：duration 最短，一样（或都不知道）就照 Delyva 顺序
+  const show = (x: any) => `${svcName(x)}=RM${svcPrice(x)}/${svcDur(x) === Infinity ? "?" : svcDur(x)}${isFinite(svcKm(x)) ? `/${svcKm(x)}km` : ""}`;   // 名字=价钱/送达时间/路程
+  console.log(`quote ${itemType} ${weight}kg ⇒ 选中 ${pick ? show(pick) : "-（没有即时骑手服务）"} ｜ 即时: ${priced.map(show).join(", ") || "无"} ｜ 全部: ${services.map(show).join(", ") || "无服务"}`);
   return { pick, itemType, quoteRaw, dpc, dState, oState };
 }
 
