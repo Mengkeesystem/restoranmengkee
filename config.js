@@ -390,6 +390,9 @@ window.SITE = {
       /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = Google 路线真实路程）；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
       /* 2026-10-26 业主改：外送价 = 每份菜单价 +RM1（priceAdd），运费按距离分段收（原方案 A 是 +10% + 5km 内免运费，算下来每单亏 RM3–6） */
+      /* 运费来源（2026-10-28 业主）："delyva" = 客人定好送餐位置后，向 Delyva 报价（web-delyva 的 quote），运费 = Delyva 价钱
+         （跟之后叫骑手选的同一个服务）；Delyva 报不到价时才用下面 zones 按 Google 路程估算。不写 = 只用 zones。 */
+      feeSource: "delyva",
       zones: [
         { label: "0–5km", labelEn: "0–5km", fee: 4, maxKm: 5 },
         { label: "5–10km", labelEn: "5–10km", fee: 8, maxKm: 10 },
@@ -406,7 +409,7 @@ window.SITE = {
       freeAbove: 0,         // 满多少免运费，0 = 不设
       leadMinutes: 45,      // 最快几分钟后送达
       area: { n: 3.45, s: 2.45, e: 102.15, w: 101.25 },   // 送餐服务范围（雪隆 + 芙蓉的大方框）：地址建议/定位只认这里面的位置
-      priceAdd: 1,          // 外送价 = 每份菜单价 + RM1（自取照原价）；填 0 才改用下面的 priceMarkup
+      priceAdd: 0,          // 2026-10-28 业主取消外送每份 +RM1（外送跟自取同价）；填数字 = 每份菜单价 + 这个金额
       priceMarkup: 0,       // 外送价 = 菜单价 × (1+priceMarkup)，往上凑整到 markupStep（priceAdd 为 0 时才用）
       markupStep: 0.5,
       /* 外送预计时间（2026-10-26 业主）：只接「现在送」，不选送达日期/时间；全部是预计。

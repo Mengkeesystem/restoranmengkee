@@ -17,11 +17,13 @@
 //   WEB_DELYVA_PICKUP_MIN    下单后几分钟让骑手来取，默认 15
 //
 // 店员（admin.html，带登录）：POST {action:"dispatch"|"cancel"|"setup_webhook"|"status", id?}
+// 客人（官网购物车，不用登录）：POST {action:"quote", idx, lat, lng, address, unit, items} → Delyva 运费报价
+//   （只回传运费和服务名；有输入检查、限次、10 分钟快取；选服务的规则跟叫骑手一样，所以报价 = 之后叫车的价钱）
 // Delyva webhook：POST（header X-Delyvax-Hmac-Sha256 / X-Delyvax-Event）
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28d";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28e";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -118,23 +120,13 @@ function klTime(min: number) {   // "YYYY-MM-DD HH:mm:ss"，马来西亚时间
   return d.toISOString().slice(0, 19).replace("T", " ");
 }
 
-async function dispatch(id: number, by: string) {
-  if (!DKEY || !DCUST) throw new Error("还没设定 WEB_DELYVA_API_KEY / WEB_DELYVA_CUSTOMER_ID");
-  const o = await getOrder(id);
-  if (!o) throw new Error("找不到订单");
-  if (o.order_type !== "delivery") throw new Error("这不是外送单");
-  if (o.status !== "paid") throw new Error("要先按「已收款」才能叫骑手");
-  if (!o.dest || o.outlet_idx === null) throw new Error("这张单没有送餐地址/出餐分店资料（旧订单），请手动叫车");
-  if (o.courier_order_id && o.courier_status !== 900) return { already: true, order: o };   // 已叫过且没取消
-  const out = (await db(`web_outlets?idx=eq.${o.outlet_idx}&select=*`))[0];
-  if (!out) throw new Error("找不到出餐分店资料（web_outlets）");
-
-  const d = o.dest, dpc = postcodeOf(d.address), dState = stateFromPostcode(dpc), oState = STATE[out.state] || stateFromPostcode(out.postcode);
-  const items = Math.max(1, Number(d.items) || 1), weight = Math.min(20, Math.max(1, Math.round(items * 0.6 * 10) / 10));
-  const senderPhone = phoneMY(out.phone || SENDER_PHONE);
-  if (!senderPhone) throw new Error("还没设定分店电话（web_outlets.phone 或 WEB_DELYVA_SENDER_PHONE）");
-
-  // 1) 报价，选服务。FOOD 没有服务就改 PARCEL 再问；都没有就不指定服务，让 Delyva 自己选
+// ---------- 报价 + 选服务（客人看运费和店员叫骑手共用，两边价钱才会一样） ----------
+const weightOf = (items: number) => Math.min(20, Math.max(1, Math.round(Math.max(1, items) * 0.6 * 10) / 10));
+const svcCode = (s: any) => s?.service?.serviceCompany?.companyCode || s?.service?.code || s?.serviceCode || s?.code;
+const svcPrice = (s: any) => Number(s?.price?.amount ?? s?.price ?? 1e9);
+const svcName = (s: any) => String(s?.service?.name || s?.name || (s ? svcCode(s) : "") || "").slice(0, 80);
+async function quoteFor(out: any, d: any, weight: number) {
+  const dpc = postcodeOf(d.address), dState = stateFromPostcode(dpc), oState = STATE[out.state] || stateFromPostcode(out.postcode);
   const quote = (itemType: string) => dv("POST", "/service/instantQuote/", {
     customerId: Number(DCUST),
     origin: { address1: out.address, address2: "", city: out.city || "", state: oState, postcode: out.postcode || "", country: "MY", coord: { lat: out.lat, lon: out.lng } },
@@ -146,12 +138,66 @@ async function dispatch(id: number, by: string) {
     const c = q?.data?.services ?? q?.services ?? q?.data?.quotes ?? q?.data;
     return Array.isArray(c) ? c.filter((s) => s && (s.service || s.code || s.serviceCode)) : [];
   };
-  let itemType = ITEM_TYPE, q: any = await quote(itemType), services = listOf(q), quoteRaw = JSON.stringify(q ?? null).slice(0, 160);
+  let itemType = ITEM_TYPE, q: any = await quote(itemType), services = listOf(q);
+  const quoteRaw = JSON.stringify(q ?? null).slice(0, 160);
   if (!services.length && itemType !== "PARCEL") { itemType = "PARCEL"; q = await quote(itemType); services = listOf(q); }
-  const code = (s: any) => s?.service?.serviceCompany?.companyCode || s?.service?.code || s?.serviceCode || s?.code;
-  const price = (s: any) => Number(s?.price?.amount ?? s?.price ?? 1e9);
-  const pick = services.length ? ((PREF_SERVICE && services.find((s) => [code(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
-    || services.slice().sort((a, b) => price(a) - price(b))[0]) : null;
+  const pick = services.length ? ((PREF_SERVICE && services.find((s) => [svcCode(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
+    || services.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0]) : null;
+  return { pick, itemType, quoteRaw, dpc, dState, oState };
+}
+
+// 客人报价：不用登录，所以要挡乱用——输入检查、每个 IP 10 分钟最多 40 次、全部 10 分钟最多 1500 次、同一位置 10 分钟内用快取
+const AREA = { n: 3.45, s: 2.45, e: 102.15, w: 101.25 };   // 跟 config.js delivery.area 一样（雪隆 + 芙蓉）
+const qHits = new Map<string, number[]>(), qAll: number[] = [], qCache = new Map<string, { at: number; body: unknown }>();
+function qLimited(ip: string) {
+  const now = Date.now(), win = 10 * 60000;
+  while (qAll.length && now - qAll[0] > win) qAll.shift();
+  const h = (qHits.get(ip) || []).filter((t) => now - t < win);
+  if (h.length >= 40 || qAll.length >= 1500) return true;
+  h.push(now); qHits.set(ip, h); qAll.push(now);
+  if (qHits.size > 5000) qHits.clear();
+  return false;
+}
+async function publicQuote(req: Request, b: any) {
+  if (!DKEY || !DCUST) return { ok: false, error: "not configured" };
+  const idx = Number(b.idx), lat = Number(b.lat), lng = Number(b.lng), items = Math.round(Number(b.items));
+  const address = String(b.address ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 300), unit = String(b.unit ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 80);
+  if (!Number.isInteger(idx) || idx < 0 || idx > 50 || !isFinite(lat) || !isFinite(lng) || lat > AREA.n || lat < AREA.s || lng > AREA.e || lng < AREA.w
+    || !Number.isInteger(items) || items < 1 || items > 99 || address.length < 5) return { ok: false, error: "bad input" };
+  const weight = weightOf(items), key = `${idx}|${lat.toFixed(4)}|${lng.toFixed(4)}|${weight}|${postcodeOf(address)}`;
+  const c = qCache.get(key);
+  if (c && Date.now() - c.at < 10 * 60000) return c.body;
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
+  if (qLimited(ip)) return { ok: false, error: "too many" };
+  const out = (await db(`web_outlets?idx=eq.${idx}&select=*`))[0];
+  if (!out || !out.delivery) return { ok: false, error: "outlet" };
+  const { pick } = await quoteFor(out, { lat, lng, address, unit }, weight);
+  const body = pick && svcPrice(pick) < 1e8
+    ? { ok: true, fee: Math.round(svcPrice(pick) * 100) / 100, service: svcName(pick), weight }
+    : { ok: false, error: "no service" };
+  if (qCache.size > 2000) qCache.clear();
+  qCache.set(key, { at: Date.now(), body });
+  return body;
+}
+
+async function dispatch(id: number, by: string) {
+  if (!DKEY || !DCUST) throw new Error("还没设定 WEB_DELYVA_API_KEY / WEB_DELYVA_CUSTOMER_ID");
+  const o = await getOrder(id);
+  if (!o) throw new Error("找不到订单");
+  if (o.order_type !== "delivery") throw new Error("这不是外送单");
+  if (o.status !== "paid") throw new Error("要先按「已收款」才能叫骑手");
+  if (!o.dest || o.outlet_idx === null) throw new Error("这张单没有送餐地址/出餐分店资料（旧订单），请手动叫车");
+  if (o.courier_order_id && o.courier_status !== 900) return { already: true, order: o };   // 已叫过且没取消
+  const out = (await db(`web_outlets?idx=eq.${o.outlet_idx}&select=*`))[0];
+  if (!out) throw new Error("找不到出餐分店资料（web_outlets）");
+
+  const d = o.dest, items = Math.max(1, Number(d.items) || 1), weight = weightOf(items);
+  const senderPhone = phoneMY(out.phone || SENDER_PHONE);
+  if (!senderPhone) throw new Error("还没设定分店电话（web_outlets.phone 或 WEB_DELYVA_SENDER_PHONE）");
+
+  // 1) 报价，选服务（跟客人在购物车看到的报价同一套）。FOOD 没有服务就改 PARCEL 再问；都没有就不指定服务，让 Delyva 自己选
+  const { pick, itemType, quoteRaw, dpc, dState, oState } = await quoteFor(out, d, weight);
+  const code = svcCode;
 
   // 2) 建单（isDraft:false = 直接下单叫骑手）
   const loc = (addr: string, unit: string, city: string, state: string, pc: string, lat: number, lng: number) =>
@@ -176,7 +222,7 @@ async function dispatch(id: number, by: string) {
   const [saved] = await patchOrder(id, {
     courier: "delyva", courier_order_id: String(orderId), courier_tracking: ds.trackingNumber || ds.consignmentNo || null,
     courier_track_url: trackUrl(ds.trackingNumber || ds.consignmentNo),
-    courier_service: String(pick?.service?.name || pick?.name || (pick ? code(pick) : "Delyva 自动选择") || "").slice(0, 80), courier_fee: fee, courier_status: 100,
+    courier_service: pick ? svcName(pick) : "Delyva 自动选择", courier_fee: fee, courier_status: 100,
     courier_rider: null, courier_error: null,
   });
   console.log(`dispatch ${o.ref} by ${by} → ${orderId}`);
@@ -256,6 +302,8 @@ Deno.serve(async (req) => {
   const isHook = req.headers.has("x-delyvax-hmac-sha256") || req.headers.has("x-delyvax-event") || /"consignmentNo"/.test(raw);
   try {
     if (isHook) return await webhook(req, raw);
+    let pb: any = {}; try { pb = JSON.parse(raw || "{}"); } catch { /* */ }
+    if (pb && pb.action === "quote") return json(req, await publicQuote(req, pb));   // 客人报价不用登录
     const by = await staffEmail(req);
     if (!by) return json(req, { error: "请用店员账号登录" }, 401);
     let body: any = {}; try { body = JSON.parse(raw || "{}"); } catch { /* */ }
