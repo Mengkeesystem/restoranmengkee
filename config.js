@@ -46,8 +46,8 @@ window.SITE = {
   /* Google 地址建议（客人打几个字就跳出建议地址）+ 更准的地址定位。2026-10-26 加。
    * apiKey 留空 = 不用 Google，照旧用免费的 OpenStreetMap。
    * ⚠️ key 会出现在网页里，必须在 Google Cloud 后台限制：
-   *    ① Application restrictions → Websites → 只填 https://mengkeesystem.github.io/*
-   *    ② API restrictions → 只勾 Maps JavaScript API、Places API (New)、Geocoding API
+   *    ① Application restrictions → Websites → 填 https://restoranmengkee.com.my/*、https://www.restoranmengkee.com.my/*、https://mengkeesystem.github.io/*
+   *    ② API restrictions → 只勾 Maps JavaScript API、Places API (New)、Geocoding API、Routes API
    *    ③ Billing → Budgets & alerts 设预算提醒 */
   googleMaps: { apiKey: "AIzaSyDT_OLyOxzx60ITUbkw-7O9sp_f3oIa_Y0" },   // 2026-10-26 业主提供；已限制 3 个网址 + 3 个 API
 
