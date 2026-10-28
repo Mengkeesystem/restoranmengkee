@@ -12,7 +12,8 @@
 //   WEB_DELYVA_COMPANY_CODE  追踪网址用，例如 my（正式）；测试账号看 Delyva 给的网址
 //   WEB_DELYVA_SENDER_PHONE  分店还没填电话时，给骑手联络的电话
 //   WEB_DELYVA_ITEM_TYPE     默认 FOOD
-//   WEB_DELYVA_SERVICE       想固定用哪个骑手服务（服务代码或名字的一部分）；不填 = 选最便宜的
+//   WEB_DELYVA_SERVICE       想固定用哪个骑手服务（服务代码或名字的一部分，例如 grab）；不填 = 照 WEB_DELYVA_SORT
+//   WEB_DELYVA_SORT          fastest（默认）= 用 Delyva 报价排第一的服务（Delyva 账号 Sort Services 设 Fastest 时第一个就是最快的）；cheapest = 最便宜
 //   WEB_DELYVA_BASE          默认 https://api.delyva.app/v1.0
 //   WEB_DELYVA_PICKUP_MIN    下单后几分钟让骑手来取，默认 15
 //
@@ -23,7 +24,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28e";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-28f";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -36,6 +37,7 @@ const DCODE = env("WEB_DELYVA_COMPANY_CODE", "my");
 const ITEM_TYPE = env("WEB_DELYVA_ITEM_TYPE", "FOOD");
 const SENDER_PHONE = env("WEB_DELYVA_SENDER_PHONE");
 const PREF_SERVICE = env("WEB_DELYVA_SERVICE").toLowerCase();
+const SORT = env("WEB_DELYVA_SORT", "fastest").toLowerCase();
 const PICKUP_MIN = Math.max(0, Math.min(120, Number(env("WEB_DELYVA_PICKUP_MIN", "15")) || 15));
 const FN_URL = `${SB_URL}/functions/v1/web-delyva`;
 const ORIGINS = ["https://mengkeesystem.github.io", "https://restoranmengkee.com.my", "https://www.restoranmengkee.com.my"];
@@ -91,12 +93,22 @@ async function staffEmail(req: Request): Promise<string | null> {
 }
 
 // ---------- Delyva ----------
-async function dv(method: string, path: string, body?: unknown, extra: Record<string, string> = {}) {
-  const r = await fetch(DBASE + path, {
-    method,
-    headers: { "content-type": "application/json", "X-Delyvax-Access-Token": DKEY, ...extra },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+async function dv(method: string, path: string, body?: unknown, extra: Record<string, string> = {}, tries = 1): Promise<any> {
+  let r: Response;
+  try {
+    r = await fetch(DBASE + path, {
+      method,
+      headers: { "content-type": "application/json", "X-Delyvax-Access-Token": DKEY, ...extra },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (e) {   // 网络问题：再试一次
+    if (tries > 1) { await new Promise((ok) => setTimeout(ok, 800)); return dv(method, path, body, extra, tries - 1); }
+    throw new Error("Delyva 连不上");
+  }
+  if (r.status >= 500 && tries > 1) { await new Promise((ok) => setTimeout(ok, 800)); return dv(method, path, body, extra, tries - 1); }
+  return dvParse(r);
+}
+async function dvParse(r: Response) {
   let j: any = null;
   try { j = await r.json(); } catch { /* 非 JSON */ }
   if (!r.ok) throw new Error(`Delyva ${r.status}: ${j?.error?.message || j?.message || "error"}`);   // 不带 key
@@ -133,7 +145,7 @@ async function quoteFor(out: any, d: any, weight: number) {
     destination: { address1: d.address, address2: d.unit || "", city: cityOf(d.address, dpc), state: dState, postcode: dpc, country: "MY", coord: { lat: d.lat, lon: d.lng } },
     weight: { value: weight, unit: "kg" },
     itemType,
-  });
+  }, {}, 2);   // 报价失败（网络/5xx）再试一次
   const listOf = (q: any): any[] => {
     const c = q?.data?.services ?? q?.services ?? q?.data?.quotes ?? q?.data;
     return Array.isArray(c) ? c.filter((s) => s && (s.service || s.code || s.serviceCode)) : [];
@@ -141,8 +153,11 @@ async function quoteFor(out: any, d: any, weight: number) {
   let itemType = ITEM_TYPE, q: any = await quote(itemType), services = listOf(q);
   const quoteRaw = JSON.stringify(q ?? null).slice(0, 160);
   if (!services.length && itemType !== "PARCEL") { itemType = "PARCEL"; q = await quote(itemType); services = listOf(q); }
-  const pick = services.length ? ((PREF_SERVICE && services.find((s) => [svcCode(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
-    || services.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0]) : null;
+  // 选服务：WEB_DELYVA_SERVICE 指定的 → 否则 fastest（默认）= Delyva 排第一的（账号 Sort Services 设 Fastest）；cheapest = 最便宜
+  const priced = services.filter((s) => svcPrice(s) < 1e8);
+  const pick = priced.length ? ((PREF_SERVICE && priced.find((s) => [svcCode(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
+    || (SORT === "cheapest" ? priced.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0] : priced[0])) : null;
+  console.log(`quote ${itemType} ${weight}kg → ${services.map((x) => `${svcName(x)}=${svcPrice(x)}`).join(" | ") || "无服务"} ⇒ ${pick ? svcName(pick) : "-"}`);
   return { pick, itemType, quoteRaw, dpc, dState, oState };
 }
 
@@ -176,7 +191,7 @@ async function publicQuote(req: Request, b: any) {
     ? { ok: true, fee: Math.round(svcPrice(pick) * 100) / 100, service: svcName(pick), weight }
     : { ok: false, error: "no service" };
   if (qCache.size > 2000) qCache.clear();
-  qCache.set(key, { at: Date.now(), body });
+  qCache.set(key, { at: Date.now() - ((body as any).ok ? 0 : 9 * 60000), body });   // 报到价快取 10 分钟；报不到只记 1 分钟（客人按重新报价可以很快再问）
   return body;
 }
 
