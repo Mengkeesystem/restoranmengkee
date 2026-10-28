@@ -73,7 +73,7 @@ window.SITE = {
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       payment: { qr: "images/pay/scott-duitnow.png", accountName: "RESTORAN MENG KEE SCOTT" } },
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
       payment: { qr: "images/pay/pj-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "MK KELANA SB" } },
@@ -422,7 +422,7 @@ window.SITE = {
       note: "",
       noteEn: "",
     },
-    priceNote: "价钱不含 SST", priceNoteEn: "Prices exclude SST",
+    priceNote: "以上价格未含 6% 服务税（SST），结账时另计；OKR（Scott Garden 对面）分店免收 SST。", priceNoteEn: "Prices exclude 6% SST, which is added at checkout. No SST is charged at OKR (opposite Scott Garden).",   // 2026-10-28 业主
     /* 打包盒（2026-10-26 业主）：自取、外送每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
     packaging: { fee: 1, label: "打包盒", labelEn: "Takeaway box" },
     /* 客人按「+」时跳出的客制化选项（2026-10-26 业主）；分类写 customize: false 就不跳（饮料） */

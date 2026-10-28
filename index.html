@@ -256,7 +256,10 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 @media(max-width:860px){.hgrid{grid-template-columns:1fr;gap:28px}.hstory{padding:22px 20px}}
 @media(max-width:560px){.hero::after{inset:6px}}
 /* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
-@media(max-width:760px){.hero.img::after{inset:auto;top:6px;left:6px;right:6px;height:auto;aspect-ratio:1731/423}}
+@media(max-width:760px){
+  .hero.img::after{inset:auto;top:6px;left:6px;right:6px;height:calc((100% - 24px)*423/1731 + 12px);height:calc((100vw - 24px)*423/1731 + 12px)}
+  .hero.img .hbg{background-size:calc(100% - 24px) auto!important;background-position:center 12px!important}   /* 招牌缩进金框里面（2026-10-28 业主） */
+}
 .promo{position:relative}
 .promo .badge{position:absolute;top:0;right:0;background:var(--p);color:#fff;font-size:12px;font-weight:800;padding:4px 10px;letter-spacing:1px}
 .promo .in{padding:18px 16px 16px}
@@ -381,6 +384,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .item .ft{gap:8px;flex-wrap:wrap}
 @media(max-width:380px){.item .ph,.item.noimg .ph{width:88px;min-width:88px;min-height:96px}.qty{gap:6px}.qty button{width:32px;height:32px;font-size:18px}.item .in{padding:9px 10px}}
 .price .amt{white-space:nowrap}
+.sstnote{font-size:13.5px;color:var(--mut);background:#FFFBF0;border-left:3px solid var(--a);padding:8px 12px;margin:0 0 14px}
 .price .nosst{font-size:10.5px;font-weight:600;color:var(--mut);white-space:nowrap}
 .code{position:absolute;bottom:8px;right:8px;background:rgba(139,0,0,.88);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--rs)}
 .sizes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -534,7 +538,7 @@ footer a{color:#fff}
   <div class="hero" id="hero"><div class="wrap hgrid"><div id="heroIn"></div><aside class="hstory" id="about"><h2 data-t="aboutT"></h2><div id="story"></div></aside></div></div>
   <section id="gallerySec" style="background:#FBF1E4" hidden><div class="wrap"><div class="gal" id="gallery"></div></div></section>
   <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div id="voucherBox"></div><div class="promos" id="promoList"></div></div></section>
-  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
+  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><p class="sstnote" id="menuSst" hidden></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
@@ -842,7 +846,7 @@ function renderHero(){
     if(/^#[0-9a-f]{3,8}$/i.test(S.heroColor||"")) h.style.background=S.heroColor;   /* 盖掉 .hero 默认的红色渐层，跟招牌底色接得上 */
     bg.style.backgroundRepeat=(S.heroRepeatMobile&&matchMedia("(max-width:760px)").matches)?"repeat-y":"no-repeat";
     /* 手机版招牌横条在最上面（heroPushMobile）：把店名/按钮往下推，不要盖住招牌 */
-    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=h.clientWidth*im.naturalHeight/im.naturalWidth, pt=parseFloat(getComputedStyle(h).paddingTop)||0; $("heroIn").style.marginTop=Math.max(0,Math.round(band-pt+12))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
+    if(S.heroPushMobile&&matchMedia("(max-width:760px)").matches){ const im=new Image(); im.onload=()=>{ const band=12+(h.clientWidth-24)*im.naturalHeight/im.naturalWidth+6, pt=parseFloat(getComputedStyle(h).paddingTop)||0; $("heroIn").style.marginTop=Math.max(0,Math.round(band-pt+14))+"px"; sizeHbg(); }; im.src=S.heroImageMobile||S.heroImage; } }
   $("heroIn").innerHTML = `
     <div class="hhead">${S.logo?`<img class="hlogo" src="${esc(S.logo)}" alt="${esc(S.name)}">`:""}<div class="htxt">
     <h1>${esc(L(S,"name"))}</h1>
@@ -1266,7 +1270,10 @@ function delFee(){
   return d.freeAbove&&net>=d.freeAbove ? 0 : zoneFee(z, delAuto?delKm:null);
 }
 /* SST：按（食物小计 − 优惠）计算，运费不收 SST。税率在 config.js 的 ordering.sstRate */
-const sstRate = () => +(S.ordering&&S.ordering.sstRate)||0;
+const sstBase = () => +(S.ordering&&S.ordering.sstRate)||0;
+/* 分店 sst:false 不收 SST（2026-10-28 业主：OKR Scott Garden 对面没有 SST），按购物车当下选的分店算 */
+const outletNoSst = oi => { const o=oi!==""&&oi!=null?outlets()[+oi]:null; return !!(o&&o.sst===false); };
+const sstRate = () => outletNoSst(curOi()) ? 0 : sstBase();
 const sstAmt = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub)+boxTotal())*sstRate()*100)/100; };   /* 打包盒也算 SST */
 const sstLabel = () => `SST ${Math.round(sstRate()*1000)/10}%`;
 const finalTotal = () => { const sub=cartTotal(); return Math.round((sub-vDiscount(sub)+boxTotal()+sstAmt()+delFee())*100)/100; };
@@ -1396,6 +1403,7 @@ function renderMenu(){
   const on = S.ordering&&S.ordering.enabled;
   $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}" class="${openCats.has(i)?"on":""}">${esc(L(c,"cat"))}</button>`).join("");
   const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
+  if($("menuSst")){ const show=!!(pn&&sstBase()); $("menuSst").hidden=!show; $("menuSst").textContent=show?pn:""; }   /* 菜单上方一句 SST 说明（取代每道菜的「不含SST」） */
   $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c);
     return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}"><span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
     (c.items||[]).map((it,ii)=>{
@@ -1409,7 +1417,7 @@ function renderMenu(){
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&canOrder(it)?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&canOrder(it)?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
-        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&sstRate()?`<small class="nosst">${esc(t("exSst"))}</small>`:""}${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si)))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
+        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si)))}</small>`:""}</span>${on&&canOrder(it)?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
   if(justOpened>=0) catSeen.add("cat-"+justOpened);   /* 客人自己点开的分类不再淡入，免得标题闪一下 */
   justOpened=-1;
@@ -1602,7 +1610,7 @@ function renderDrawer(){
   if($("od_date")) $("od_date").onchange=e=>{$("od_time").innerHTML=timeOptions(e.target.value,15,lead,15); saveOdDraft();};
   $("drawer").oninput=e=>{ if(e.target&&e.target.id!=="mapq") saveOdDraft(); }; $("drawer").onchange=$("drawer").oninput;
   if($("od_zone")) $("od_zone").onchange=e=>{ delZone=e.target.value; store.set("site_zone",delZone); refreshCart(); };
-  if($("od_outlet")) $("od_outlet").addEventListener("change",e=>{ $("payBox").innerHTML=payBoxHTML(e.target.value); setOutlet(e.target.value); if(isDel()&&delGeo){ const v=e.target.value; ensureOutletLL(v).then(()=>{ applyGeoZone(v); refreshCart(); }); } });
+  if($("od_outlet")) $("od_outlet").addEventListener("change",e=>{ const sstWas=outletNoSst(curOutlet); $("payBox").innerHTML=payBoxHTML(e.target.value); setOutlet(e.target.value); if(outletNoSst(e.target.value)!==sstWas) refreshCart(); if(isDel()&&delGeo){ const v=e.target.value; ensureOutletLL(v).then(()=>{ applyGeoZone(v); refreshCart(); }); } });
   if($("od_usepin")) $("od_usepin").onclick=()=>fillAddrFromPin(false);
   /* 客人打好地址 →「确认地址」（或离开地址栏）：按地址找位置，把地图和图钉移过去（就算之前已经定位在别处，例如人在办公室要送回家）。异步，查完才重绘 */
   if($("od_confaddr")) $("od_confaddr").onclick=()=>confirmAddr(true);
