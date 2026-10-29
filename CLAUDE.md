@@ -200,6 +200,7 @@
 6. 在 admin.html 加「每月总结」直接读 `web_orders`（全分店自动汇总，取代 check.html 的手动记录）。
 7. 安全：webhook 一定验签名/向网关查单确认，不能只信 callback 参数；Edge Function 用 service_role 时只在服务器端；CSP 的 `connect-src`/导向网关域名要加白名单。
 
+**HitPay 进度（2026-10-29）**：业主选 **HitPay**，马来西亚商家账号已通过审核（已开：卡、FPX、TnG、WeChat Pay、ShopeePay、GrabPay；Shopee PayLater 约 4 周、Grab PayLater 约 1 周由对方审核）。HitPay 回复：一个 HitPay 账号只能转到一个银行户口、没有子账号；要分户口就每间公司另开账号（不同邮箱、各自审核、各自 API key/webhook）。**业主决定：暂时全部分店用同一个 HitPay 账号、进同一个户口**（以后要分，程序做成按分店选账号的 key 即可）。网站不在 HitPay 插件名单里 → 用 HitPay API 直接接（官方支持的做法，不用另外申请）。API Key/Salt 在 HitPay 后台 Settings → Payment Gateway → API Keys，**只放 Supabase Secrets（`WEB_HITPAY_*`），不放聊天/仓库**；webhook 等程序写好再登记。沙箱：dashboard.sandbox.hit-pay.com（另注册）。还没定：手续费谁出。⚠️ 沙箱网络挡了 docs.hitpayapp.com / api.hit-pay.com，开工前要业主在 session 网络设定允许。
 **业主说「开始做付款网关」时要先问的**：选哪家网关（是否已申请好商家账号、拿到 API key / secret / collection code）、手续费由谁承担（加进客人合计或店家吸收）、还要不要保留「到店付款/货到付款」。
 
 ## ⏳ 待办（第三步）：做到跟「客善 HakShan」一样的全自动外卖（2026-10-25 业主要求）
