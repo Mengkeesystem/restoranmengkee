@@ -1912,7 +1912,7 @@ async function startHitPay(){
   try{
     const notes={}; Object.keys(cart).forEach(k=>{ if(cartNotes[k]) notes[k]=cartNotes[k]; });
     res=await fnPost("web-hitpay",{action:"pay",ref:P.ref,token:P.token,oi:+P.oi,cart,notes,voucher:voucher&&voucher.v?voucher.code:"",qaddr:dq&&dq.addr||""});
-  }catch(e){ if(payPending!==P) return; P.st="err"; P.err=String(e.message||"").slice(0,200); P.retry=!/金额|已取消|已经付款|过期|分店|菜品|优惠码|份数/.test(P.err); renderPayStep(); return; }
+  }catch(e){ if(payPending!==P) return; P.st="err"; P.err=String(e.message||"").slice(0,200); P.retry=!/金额|已取消|已经付款|过期|分店|菜品|优惠码|份数|截单/.test(P.err); renderPayStep(); return; }
   if(payPending!==P) return;
   if(!res||!HP_URL_RE.test(String(res.url||""))){ P.st="err"; P.err=t("hpNoNet"); renderPayStep(); return; }
   /* 订单已建好：清空购物车，记住这张单（付完回来继续看进度），然后跳去 HitPay */

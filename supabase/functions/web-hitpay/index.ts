@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-30d";
+const VERSION = "2026-10-30e";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -199,6 +199,19 @@ async function delyvaFee(o: any, qaddr: string) {
   return j && j.ok === true && typeof j.fee === "number" ? { fee: r2(j.fee), tag: `Delyva${j.service ? " · " + String(j.service).slice(0, 60) : ""}` } : null;
 }
 
+// ---------- 接单时段（2026-10-30 业主：截单后网页和服务器都要挡，不用店员手动取消） ----------
+// 按网站 config.js 的 delivery.windows（平日/周末各几段 [开始, 最后点餐]，含头含尾、按分钟，吉隆坡时间）。
+// 外送单一律按这个时段；自取单在 ordering.pickupFollowsDelivery=true 时也一样。用订单建立时间（服务器时间）判断。
+const hm = (s: string) => { const [h, m] = String(s).split(":").map(Number); return h * 60 + m; };
+function orderWindowOk(S: any, del: boolean, at: number) {
+  const d = S.ordering?.delivery, w = d?.windows;
+  if (!w || !(del || S.ordering?.pickupFollowsDelivery)) return true;
+  const kl = new Date(at + 8 * 3600000), day = kl.getUTCDay(), m = kl.getUTCHours() * 60 + kl.getUTCMinutes();
+  const segs = (day === 0 || day === 6) ? w.weekend : w.weekday;
+  if (!Array.isArray(segs)) return true;
+  return segs.some((x: any) => Array.isArray(x) && m >= hm(x[0]) && m <= hm(x[1]));
+}
+
 // ---------- 客人按「前往付款」 ----------
 const REF_RE = /^MK\d{4}-\d{4}$/, UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HPID_RE = /^[A-Za-z0-9-]{8,64}$/;   // HitPay 付款单号（文件写 UUID，实际格式可能不同，放宽）
@@ -227,6 +240,10 @@ async function pay(req: Request, b: any) {
   if (o.pay_id && o.pay_url) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 已经建过付款单（客人按了两次 / 回来继续付）
 
   const oi = Number(b.oi), del = o.order_type === "delivery";
+  if (!orderWindowOk(S, del, Date.parse(o.created_at) || Date.now())) {   // 截单后：订单直接作废，不建付款单
+    await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：已过网上点餐时间" }, "&status=eq.pending");
+    throw new UserError("网上点餐（自取和外送）已截单，请在接单时间内再下单");
+  }
   const outlet = (S.outlets || [])[oi];
   if (!Number.isInteger(oi) || !outlet || String(outlet.name).slice(0, 80) !== o.outlet || (del && o.outlet_idx !== oi)) throw new UserError("分店资料不对");
   const all = S.payment && S.payment.gateway === "hitpay";   // 全部分店用 HitPay（hitpay:false 排除）；否则只有 hitpay:true 的分店
