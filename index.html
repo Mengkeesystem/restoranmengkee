@@ -1701,7 +1701,7 @@ let payMode = null;
    没设 gateway 时只有写 hitpay:true 的分店用（以后复制给别的店用）。没有后台（backend）就不能网上付款。 */
 const HP_ALL = () => !!(S.payment && S.payment.gateway==="hitpay");
 const hpOn = oi => { if(!PB()||oi===undefined||oi===null||oi==="") return false; const o=outlets()[+oi]; return !!o && (HP_ALL() ? o.hitpay!==false : o.hitpay===true); };
-const HP_URL_RE = /^https:\/\/securecheckout\.(sandbox\.)?hit-pay\.com\//;
+const HP_URL_RE = /^https:\/\/([a-z0-9-]+\.)*hit-pay\.com\//i;   /* HitPay 付款页（只认 hit-pay.com 网域） */
 function payInfo(oi){
   if(hpOn(oi)) return {hitpay:true, allowPayAtCounter:false};
   if(HP_ALL()) return null;   /* 全部用 HitPay：这间不能用（没有后台/被排除）就暂停网上点餐，不退回 QR */

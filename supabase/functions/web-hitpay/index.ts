@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-30b";
+const VERSION = "2026-10-30c";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -201,6 +201,9 @@ async function delyvaFee(o: any, qaddr: string) {
 
 // ---------- 客人按「前往付款」 ----------
 const REF_RE = /^MK\d{4}-\d{4}$/, UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HPID_RE = /^[A-Za-z0-9-]{8,64}$/;   // HitPay 付款单号（文件写 UUID，实际格式可能不同，放宽）
+/* HitPay 付款页：只认 https + hit-pay.com 的网域（securecheckout.hit-pay.com、securecheckout.sandbox.hit-pay.com…） */
+const hpUrlOk = (u: string) => { try { const x = new URL(u); return x.protocol === "https:" && (x.hostname === "hit-pay.com" || x.hostname.endsWith(".hit-pay.com")); } catch { return false; } };
 const hits = new Map<string, number[]>();
 function limited(k: string, n: number, winMs: number) {
   const now = Date.now(), h = (hits.get(k) || []).filter((t) => now - t < winMs);
@@ -260,7 +263,10 @@ async function pay(req: Request, b: any) {
     redirect_url: `${SITE_URL}/?hp=${encodeURIComponent(o.ref)}`, allow_repeated_payments: "false", send_email: "false",
   });
   const url = String(reqHp?.url || ""), id = String(reqHp?.id || "");
-  if (!UUID_RE.test(id) || !/^https:\/\/securecheckout\.(sandbox\.)?hit-pay\.com\//.test(url)) throw new Error("HitPay 没有回传付款页");
+  if (!HPID_RE.test(id) || !hpUrlOk(url)) {
+    let host = ""; try { host = new URL(url).hostname; } catch { /* */ }
+    throw new Error(`HitPay 没有回传付款页（id=${id.slice(0, 40)} host=${host || "-"} keys=${Object.keys(reqHp || {}).join(",").slice(0, 120)}）`);
+  }
   await patch(o.id, { message, pay_provider: "hitpay", pay_acct: acct.id, pay_id: id, pay_url: url, pay_status: "pending" }, "&status=eq.pending");
   console.log(`pay ${o.ref} → HitPay ${id} ${P.total.toFixed(2)} ${HP_CUR}`);
   return { ok: true, url, amount: P.total };
@@ -316,7 +322,7 @@ async function webhook(req: Request, raw: string) {
   const sig = (req.headers.get("hitpay-signature") || "").trim().toLowerCase();
   if (!sig || !sameStr(await hmacHex(acct.salt, raw), sig)) return json(req, { error: "bad signature" }, 401);
   let d: any; try { d = JSON.parse(raw); } catch { return json(req, { error: "bad json" }, 400); }
-  const ids = [d?.id, d?.payment_request_id, d?.payment_request?.id].map((x) => String(x || "")).filter((x) => UUID_RE.test(x));
+  const ids = [d?.id, d?.payment_request_id, d?.payment_request?.id].map((x) => String(x || "")).filter((x) => HPID_RE.test(x));
   const refs = [d?.reference_number, d?.payment_request?.reference_number].map((x) => String(x || "")).filter((x) => REF_RE.test(x));
   let o: any = null;
   for (const id of ids) { o = (await db(`web_orders?pay_id=eq.${id}&select=*`))[0]; if (o) break; }
