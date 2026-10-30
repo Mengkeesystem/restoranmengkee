@@ -100,6 +100,15 @@ window.SITE = {
     "For 21 years, we have held on to one thing: cooking the home-style dishes everyone can enjoy every day, the way it's done at home.",
     "Every dish is wok-fried to order, our sauces are made in-house, and our ingredients are bought fresh every day. However busy life gets, drop by anytime for a warm meal that feels like home.",
   ],
+  storyTag: "SINCE 2005",          // 本店故事标题上面的小标签（留空不显示）
+  /* 本店故事下面三个特色（图标 + 短句）；留空数组不显示 */
+  storyPoints: [
+    { icon: "🔥", t: "现点现炒", tEn: "Wok-fried to order", d: "一锅一铲，热腾腾上桌", dEn: "Straight from the wok" },
+    { icon: "🥣", t: "酱料自家熬制", tEn: "House-made sauces", d: "老味道，外面吃不到", dEn: "Our family recipes" },
+    { icon: "🥬", t: "食材每日新鲜", tEn: "Fresh every day", d: "每天一早采办", dEn: "Bought every morning" },
+  ],
+  /* 本店故事旁边的照片（用 3 张：第一张横幅大图（只看下半部的菜），下面两张小方图）。有店内/门面照片后可以换掉 */
+  storyImages: ["images/menu/A031.jpg", "images/menu/A001.jpg", "images/menu/A034.jpg"],
 
   /* 环境照片：放进 images/ 文件夹，写文件名。留空数组则不显示这一块 */
   gallery: [                              // TODO 放店内/门面照片
@@ -389,6 +398,8 @@ window.SITE = {
 
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
+    /* 菜单最上面「招牌推荐」：写菜的编号（id），按顺序显示；没照片/时价的不显示。删掉这一行 = 自动用有「招牌」标签的菜 */
+    featured: ["A001", "A021", "A034", "A057", "A031", "A043", "A008", "A038", "A029", "R007"],
     voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
     /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {

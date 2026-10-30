@@ -82,11 +82,6 @@ nav.links a:hover{background:#F6EADB}
   .hero .status{font-size:13px;padding:4px 10px;margin-top:12px;gap:6px}
   .hero .status.delst{margin-top:6px}
   .hero .dot{width:8px;height:8px}
-  .hgrid{gap:18px}
-  .hstory{padding:14px 14px 12px;box-shadow:4px 4px 0 rgba(0,0,0,.25)}
-  .hstory::before{inset:4px}
-  .hstory h2{padding-bottom:8px;margin-bottom:8px}
-  .hstory p{margin-bottom:6px;line-height:1.6}
 }
 .hero .wrap{position:relative}
 .hero h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.15;padding:0}
@@ -233,7 +228,7 @@ nav.links a:hover{background:#F6EADB}
 .dvl{display:block;font-weight:800;font-size:14px;margin-bottom:6px}
 
 /* ===== 有棱有角的整体风格 ===== */
-h1,h2,.hstory h2,.region,.mname{font-family:var(--serif);letter-spacing:1px}
+h1,h2,.region,.mname,.fhead h3{font-family:var(--serif);letter-spacing:1px}
 h2{position:relative;padding-bottom:12px;margin-bottom:12px}
 h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;background:var(--a)}
 #outlets h2::after{left:50%;transform:translateX(-50%)}
@@ -242,18 +237,72 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .item:hover,.outlet:hover,.promo:hover{box-shadow:4px 4px 0 rgba(180,35,42,.22)}
 .hero{border-bottom:5px solid var(--a)}
 .hero::after{content:"";position:absolute;inset:14px;border:1px solid rgba(242,180,23,.35);pointer-events:none}
-.hgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
-.hstory{background:rgba(255,251,245,.97);color:var(--tx);padding:26px 28px;border-top:4px solid var(--a);box-shadow:6px 6px 0 rgba(0,0,0,.25);position:relative}
-.hstory::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none}
-.hstory h2{color:var(--p);font-size:24px}
-.hstory p{font-size:15.5px;margin:0 0 10px;opacity:1;line-height:1.75}
-.hstory p:last-child{margin-bottom:0}
-/* 本店故事：进画面时从右边滑进来（只播一次） */
-#hero{overflow-x:hidden;overflow-x:clip}
-.hstory.rv{opacity:0;transform:translateX(56px);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.75,.25,1) .15s}
-.hstory.rv.seen{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.hstory.rv{opacity:1;transform:none;transition:none}}
-@media(max-width:860px){.hgrid{grid-template-columns:1fr;gap:28px}.hstory{padding:22px 20px}}
+/* ===== 本店故事（2026-10-30 业主：从首页红框搬出来，放在优惠活动上面）：左文字 + 右边招牌菜照片拼图 ===== */
+.storysec{background:#FBF1E4;position:relative;overflow:hidden;overflow:clip}
+.storysec::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 18%,rgba(242,180,23,.16),transparent 42%),radial-gradient(circle at 92% 88%,rgba(180,35,42,.08),transparent 40%);pointer-events:none}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;position:relative}
+.eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:3px;color:var(--p);background:#fff;border:1px solid var(--line);padding:4px 10px;margin-bottom:12px}
+.eyebrow[hidden]{display:none}
+.stext h2{font-size:30px}
+.stext p{font-size:16px;line-height:1.85;margin:0 0 12px}
+.spoints{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.spoints:empty{display:none}
+.spoints li{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);padding:12px 10px;text-align:center;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
+.spoints span{display:block;font-size:26px;line-height:1.2}
+.spoints b{display:block;font-size:14.5px;margin-top:4px}
+.spoints small{display:block;color:var(--mut);font-size:12.5px;line-height:1.4;margin-top:2px}
+.spics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.1fr 1fr;gap:10px;aspect-ratio:1/1;max-height:470px}
+.spics[hidden]{display:none}
+.spics figure{margin:0;overflow:hidden;border:4px solid #fff;box-shadow:4px 4px 0 rgba(180,35,42,.14);background:#eee}
+.spics img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.spics figure:hover img{transform:scale(1.05)}
+.spics .sp0{grid-column:1/3}
+.spics .sp0 img{object-position:50% 78%}   /* 菜图上方印着菜名：横幅只露出下半部的菜 */
+.spics figure:nth-child(4){display:none}
+.storysec.rv .stext{opacity:0;transform:translateX(-40px);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.75,.25,1)}
+.storysec.rv .spics{opacity:0;transform:translateX(40px);transition:opacity .7s ease .15s,transform .8s cubic-bezier(.2,.75,.25,1) .15s}
+.storysec.rv.seen .stext,.storysec.rv.seen .spics{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.storysec.rv .stext,.storysec.rv .spics{opacity:1;transform:none;transition:none}}
+@media(max-width:860px){
+  .sgrid{grid-template-columns:1fr;gap:22px}
+  .stext h2{font-size:26px}
+  .stext p{font-size:15.5px;line-height:1.75}
+  .spics{aspect-ratio:auto;height:210px;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:1fr;max-height:none}
+  .spics .sp0{grid-column:auto}
+  .spics figure{border-width:3px}
+}
+@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 4px}.spoints span{font-size:22px}.spoints b{font-size:13px}.spoints small{display:none}.spics{height:150px}}
+
+/* ===== 招牌推荐（菜单最上面）：电脑 5 张一排，手机左右滑 ===== */
+#featured:empty{display:none}
+.fhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 0 12px}
+.fhead h3{margin:0;font-size:21px;color:var(--p)}
+.fhead span{color:var(--mut);font-size:14px}
+.ftrack{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.fcard{background:#fff;border:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10);display:flex;flex-direction:column;min-width:0;transition:transform .2s ease,box-shadow .2s ease}
+.fcard:hover{transform:translateY(-3px);box-shadow:5px 6px 0 rgba(180,35,42,.18)}
+.fph{position:relative;aspect-ratio:1/1;overflow:hidden;background:#F6EADB}
+.fph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.fcard:hover .fph img{transform:scale(1.06)}
+.fph .fq{position:absolute;left:0;top:0;background:var(--a);color:var(--dk);font-size:12px;font-weight:800;padding:3px 8px}
+.fph .so{position:absolute;inset:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.fin{padding:10px 10px 10px;display:flex;flex-direction:column;flex:1}
+.fin h4{margin:0;font-size:15px;line-height:1.35}
+.fin p{margin:3px 0 0;font-size:12.5px;color:var(--mut);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fft{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:8px}
+.fft b{color:var(--p);font-size:16px;white-space:nowrap}
+.fft b small{font-size:12px;color:var(--mut);font-weight:600}
+.fadd{width:36px;height:36px;flex:none;border:0;background:var(--p);color:#fff;font-size:22px;font-weight:800;line-height:1;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(0,0,0,.18)}
+.fadd:active{transform:scale(.92)}
+@media(max-width:900px){
+  .ftrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;margin:0 -16px 26px;padding:2px 16px 8px;scroll-padding:0 16px;scrollbar-width:none}
+  .ftrack::-webkit-scrollbar{display:none}
+  .fcard{flex:0 0 42%;scroll-snap-align:start}
+}
+@media(max-width:560px){.fcard{flex-basis:46%}.fin h4{font-size:14px}}
+/* 菜单分类标题：左边一张小菜图 */
+.mthumb{width:46px;height:46px;object-fit:cover;flex:none;border:1px solid var(--line);border-radius:var(--rs)}
+@media(max-width:480px){.mthumb{width:40px;height:40px}}
 @media(max-width:560px){.hero::after{inset:6px}}
 /* 手机版（招牌在最上面）：金色线框只框住招牌那一条，不框整个红色背景（2026-10-28 业主） */
 @media(max-width:760px){
@@ -301,6 +350,8 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 
 /* promos */
 .promos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+/* 手机：优惠活动改成左右滑（2026-10-30，四张叠起来太长） */
+@media(max-width:600px){.promos{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 10px;scroll-padding:0 16px;scrollbar-width:none;gap:12px}.promos::-webkit-scrollbar{display:none}.promos .promo{flex:0 0 82%;scroll-snap-align:start}}
 .promo{background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);border-left:6px solid var(--a)}
 .promo img{width:100%;aspect-ratio:16/9;object-fit:cover}
 .promo .in{padding:16px}
@@ -539,10 +590,11 @@ footer a{color:#fff}
 </header>
 
 <main id="top">
-  <div class="hero" id="hero"><div class="wrap hgrid"><div id="heroIn"></div><aside class="hstory" id="about"><h2 data-t="aboutT"></h2><div id="story"></div></aside></div></div>
+  <div class="hero" id="hero"><div class="wrap"><div id="heroIn"></div></div></div>
+  <section id="about" class="storysec" hidden><div class="wrap sgrid"><div class="stext" id="storyCard"><div class="eyebrow" id="storyTag"></div><h2 data-t="aboutT"></h2><div id="story"></div><ul class="spoints" id="storyPts"></ul></div><div class="spics" id="storyPics"></div></div></section>
   <section id="gallerySec" style="background:#FBF1E4" hidden><div class="wrap"><div class="gal" id="gallery"></div></div></section>
   <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div id="voucherBox"></div><div class="promos" id="promoList"></div></div></section>
-  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><p class="sstnote" id="menuSst" hidden></p><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
+  <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><p class="sstnote" id="menuSst" hidden></p><div id="featured"></div><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
@@ -579,7 +631,7 @@ const money = n => CUR+" "+(Math.round(n*100)/100).toFixed(2);
 
 /* ---------- 文字（中/英） ---------- */
 const T = {
-  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外送",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点 Google Maps 或 Waze 直接导航",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
+  zh:{menuT:"菜单",menuS:"点击 + 加入购物车，可网上下单自取或外送",promosT:"优惠活动",promosS:"最新优惠与节日套餐",bookT:"网上订位",bookS:"填好资料后会打开 WhatsApp，把订位资料发给我们确认",aboutT:"本店故事",featT:"招牌推荐",featS:"老顾客最常点，第一次来就点这些",featFrom:"起",custSize:"份量",hoursT:"营业时间",contactT:"联系我们",outletsT:"门店地址",outletsS:"共 {n} 间分店，点 Google Maps 或 Waze 直接导航",navOutlet:"门店",outletBtn:"门店地址",outlet:"分店",chooseOutlet:"请选择分店",needOutlet:"请选择分店",nav:"导航",allOutlets:"查看全部 {n} 间分店",showLess:"收起",
       navMenu:"菜单",navPromo:"优惠",navBook:"订位",navAbout:"故事",navContact:"联系",
       open:"门店营业中",delHoursT:"外送时间 Last order {t}（{d}）",wkday:"平日",wkend:"周末",delLast:"已过外送最后点餐时间（{l}），{n} 开启点餐。",closed:"已打烊",closedToday:"今天休息",opensAt:"营业至",nextOpen:"下次营业",orderNow:"网上点餐",bookNow:"订位",
       days:["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],rest:"休息",
@@ -594,7 +646,7 @@ const T = {
       waOrder:"【网上点餐 - 自取】",waBook:"【网上订位】",
       fb:"Facebook",ig:"Instagram",fp:"Foodpanda 外送",gf:"GrabFood 外送",follow:"关注我们 / 外送平台",
       until:"至",longTerm:"长期有效"},
-  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap Google Maps or Waze for directions",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",showLess:"Show less",
+  en:{menuT:"Menu",menuS:"Tap + to add to cart and order online for pickup or delivery",promosT:"Promotions",promosS:"Latest deals and festive sets",bookT:"Book a Table",bookS:"Your booking details will be sent to us on WhatsApp for confirmation",aboutT:"Our Story",featT:"Signature picks",featS:"Our regulars\u2019 favourites — start here",featFrom:"from",custSize:"Size",hoursT:"Opening Hours",contactT:"Contact",outletsT:"Our Outlets",outletsS:"{n} outlets — tap Google Maps or Waze for directions",navOutlet:"Outlets",outletBtn:"Our outlets",outlet:"Outlet",chooseOutlet:"Choose an outlet",needOutlet:"Please choose an outlet",nav:"Directions",allOutlets:"See all {n} outlets",showLess:"Show less",
       navMenu:"Menu",navPromo:"Promos",navBook:"Book",navAbout:"Story",navContact:"Contact",
       open:"Store open now",delHoursT:"Delivery last order {t} ({d})",wkday:"Weekdays",wkend:"Weekends",delLast:"Delivery last call ({l}) has passed. Delivery opens {n}.",closed:"Closed",closedToday:"Closed today",opensAt:"Open until",nextOpen:"Next open",orderNow:"Order online",bookNow:"Book a table",
       days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],rest:"Closed",
@@ -764,10 +816,11 @@ function stepKey(k,d){
 }
 /* ---------- 客制化视窗（2026-10-26 业主）：按「+」跳出：不要葱/不要蒜米…（可多选）+ 其他要求 + 打包盒说明 + 数量 ---------- */
 let custSt=null;
-function openCust(it){
+function openCust(it,pick){
   const p=curPick(it), os=custOpts(it), min=it.min||1;
-  if(!os.length&&!boxOf(it)){ addLine(it,p.si,p.oi,[],"",min); return; }   /* 没选项也没打包盒费 → 直接加 */
-  custSt={it,si:p.si,oi:p.oi,mods:new Set(),note:"",q:min};
+  const multi=!!pick&&((it.prices&&it.prices.length>1)||(it.options&&it.options.length>1));   /* 从招牌推荐加：在视窗里选份量/做法 */
+  if(!os.length&&!boxOf(it)&&!multi){ addLine(it,p.si,p.oi,[],"",min); return; }   /* 没选项也没打包盒费 → 直接加 */
+  custSt={it,si:p.si,oi:p.oi,mods:new Set(),note:"",q:min,pick:multi};
   renderCust(); $("cust").classList.add("show"); document.body.style.overflow="hidden";
 }
 function closeCust(){ custSt=null; $("cust").classList.remove("show"); $("cust").innerHTML=""; if(!drawerOpen&&!lbOpen) document.body.style.overflow=""; }
@@ -777,6 +830,8 @@ function renderCust(){
   $("cust").innerHTML=`<div class="psbox custbox" role="dialog" aria-modal="true">
     <div class="pshead"><b>${esc(itemName(it))}${esc(lab)}</b><button type="button" class="lbx dark" onclick="__site.cust('close')" aria-label="close">✕</button></div>
     <div class="note" style="margin-top:-6px">${money(up)}${isDel()&&hasDelMarkup()?` · ${esc(t("delPriceTag"))}`:""}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div>
+    ${c.pick&&it.prices&&it.prices.length>1?`<div><div class="custh">${esc(t("custSize"))}</div><div class="cchips">${it.prices.map((pr,i)=>`<button type="button" class="${i===c.si?"on":""}" aria-pressed="${i===c.si}" onclick="__site.cust('si',${i})">${esc(sizeNames(it)[i]||"")} · ${money(pr)}</button>`).join("")}</div></div>`:""}
+    ${c.pick&&it.options&&it.options.length>1?`<div><div class="custh">${esc(t("prep"))}</div><div class="cchips">${it.options.map((o,i)=>`<button type="button" class="${i===c.oi?"on":""}" aria-pressed="${i===c.oi}" onclick="__site.cust('oi',${i})">${esc(o)}</button>`).join("")}</div></div>`:""}
     ${os.length?`<div><div class="custh">${esc(t("custOpts"))}</div><div class="cchips">${os.map((o,i)=>`<button type="button" class="${c.mods.has(i)?"on":""}" aria-pressed="${c.mods.has(i)}" onclick="__site.cust('mod',${i})">${c.mods.has(i)?"✓ ":""}${esc(lang==="en"?(o.en||o.zh):o.zh)}</button>`).join("")}</div></div>
     <div><div class="custh">${esc(t("custOther"))}</div><input id="custNote" maxlength="${+CUST().noteMax||30}" placeholder="${esc(t("custOtherPh"))}" value="${esc(c.note)}"></div>`:""}
     ${box?`<div class="custbx">🥡 ${esc(L(PK(),"label"))} <b>+${money(box)}</b> / ${esc(t("custPer"))}</div>`:""}
@@ -791,13 +846,17 @@ function custAct(a,v){
   if(a==="close"){ closeCust(); return; }
   const n=$("custNote"); if(n) c.note=n.value;
   if(a==="mod"){ c.mods.has(v)?c.mods.delete(v):c.mods.add(v); renderCust(); }
+  else if(a==="si"&&c.pick&&c.it.prices&&c.it.prices[v]!==undefined){ c.si=v; renderCust(); }
+  else if(a==="oi"&&c.pick&&c.it.options&&c.it.options[v]!==undefined){ c.oi=v; renderCust(); }
   else if(a==="q"){ c.q=Math.max(c.it.min||1,Math.min(99,c.q+v)); renderCust(); }
   else if(a==="add"){ const it=c.it; closeCust(); addLine(it,c.si,c.oi,[...c.mods],c.note,c.q); }
 }
 window.__site = {
-  add:(id,d)=>{ const it=allItems[id]; if(!it||!canOrder(it)) return; const p=curPick(it);
+  /* 招牌推荐的 +：跟菜单的 + 一样（选分店 → 客制化视窗），视窗里多了份量/做法可选 */
+  feat:(id)=>window.__site.add(id,1,true),
+  add:(id,d,pick)=>{ const it=allItems[id]; if(!it||!canOrder(it)) return; const p=curPick(it);
     if(d<0){ const ks=Object.keys(cart).filter(k=>baseKey(k)===keyOf(id,p.si,p.oi)); if(ks.length) stepKey(ks[ks.length-1],-1); return; }
-    const go=()=>openCust(it);   /* 按「+」先跳客制化视窗（不要葱等 + 打包盒），选好才加进购物车 */
+    const go=()=>openCust(it,pick);   /* 按「+」先跳客制化视窗（不要葱等 + 打包盒），选好才加进购物车 */
     if(outlets().length&&!Object.keys(cart).length&&!opickDone){ openOutletPick(()=>{ opickDone=true; go(); opickDone=false; }); return; }
     go(); },
   cust:(a,v)=>custAct(a,v),
@@ -1377,7 +1436,7 @@ const motionOK = () => ("IntersectionObserver" in window) && !(window.matchMedia
 /* 本店故事卡片：第一次进画面时从右边滑进来。#about 本身不会重绘（只换里面的文字），所以只设一次 */
 function revealStory(){
   const el=$("about"); if(!el||!motionOK()) return;
-  el.classList.add("rv");
+  el.classList.add("rv");   /* 文字从左、照片从右滑进来 */
   const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); requestAnimationFrame(()=>el.classList.add("seen")); } },{threshold:0.15});
   io.observe(el);
 }
@@ -1452,13 +1511,33 @@ function lbRender(){
 function lbShow(i){ lbIdx=i; lbOpen=true; $("lb").classList.add("show"); document.body.style.overflow="hidden"; lbRender(); }
 function lbClose(){ lbOpen=false; $("lb").classList.remove("show"); $("lb").innerHTML=""; if(!drawerOpen) document.body.style.overflow=""; }
 function lbGo(d){ const mp=menuPhotos(), tr=$("lbtrack"); if(!tr) return; lbIdx=(lbIdx+d+mp.length)%mp.length; tr.querySelectorAll("img.zoom").forEach(x=>x.classList.remove("zoom")); tr.scrollTo({left:lbIdx*tr.clientWidth,behavior:"smooth"}); }
+/* 招牌推荐（2026-10-30 业主：网页要吸引客人下单）：菜单最上面一排招牌菜大图卡片，按 + 跟菜单里一样（选分店/客制化视窗） */
+function featuredItems(){
+  const ids=Array.isArray(S.ordering&&S.ordering.featured)?S.ordering.featured.map(String):null;
+  const all=(S.menu||[]).flatMap(c=>c.items||[]);
+  return (ids?ids.map(id=>all.find(x=>x.id===id)):all.filter(x=>x.tag)).filter(x=>x&&x.image&&!x.seasonal).slice(0,12);
+}
+function renderFeatured(on){
+  const el=$("featured"); if(!el) return; const list=featuredItems();
+  if(!list.length){ el.innerHTML=""; return; }
+  const keep=el.querySelector(".ftrack"), sl=keep?keep.scrollLeft:0;
+  el.innerHTML=`<div class="fhead"><h3>⭐ ${esc(t("featT"))}</h3><span>${esc(t("featS"))}</span></div><div class="ftrack">${list.map(it=>{
+    const id=esc(it.id).replace(/'/g,""), q=cartQtyOf(it.id), ok=on&&canOrder(it);
+    const pr=it.prices?`${money(Math.min(...it.prices))} <small>${esc(t("featFrom"))}</small>`:money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
+    return `<div class="fcard"><div class="fph"><img src="${esc(it.image)}" alt="${esc(itemName(it))}" loading="lazy">${q?`<span class="fq">${esc(t("inCart"))} ${q}</span>`:""}${it.soldOut?`<div class="so">${esc(t("soldOut"))}</div>`:""}</div>
+      <div class="fin"><h4>${esc(itemName(it))}</h4>${L(it,"tt")?`<p>${esc(String(L(it,"tt")).split(" · ").pop())}</p>`:""}<div class="fft"><b>${pr}</b>${ok?`<button type="button" class="fadd" onclick="__site.feat('${id}')" aria-label="+">+</button>`:""}</div></div></div>`;
+  }).join("")}</div>`;
+  if(sl) el.querySelector(".ftrack").scrollLeft=sl;
+}
+const cartQtyOf = id => Object.keys(cart).reduce((s,k)=>s+(k.split("|")[0]===id?(+cart[k]||0):0),0);
 function renderMenu(){
   const on = S.ordering&&S.ordering.enabled;
   $("cats").innerHTML = (S.menu||[]).map((c,i)=>`<button data-i="${i}" class="${openCats.has(i)?"on":""}">${esc(L(c,"cat"))}</button>`).join("");
   const mp=(S.ordering&&S.ordering.menuPhotos)||[], pn=S.ordering&&L(S.ordering,"priceNote");
   if($("menuSst")){ const show=!!(pn&&sstBase()); $("menuSst").hidden=!show; $("menuSst").textContent=show?pn:""; }   /* 菜单上方一句 SST 说明（取代每道菜的「不含SST」） */
-  $("menuList").innerHTML = (pn?`<p class="note" style="margin:-8px 0 14px">* ${esc(pn)}</p>`:"") + (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c);
-    return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}"><span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
+  renderFeatured(on);
+  $("menuList").innerHTML = (S.menu||[]).map((c,i)=>{ const open=openCats.has(i), n=(c.items||[]).length, inCart=catCartCount(c), th=(c.items||[]).find(x=>x.image);
+    return `<div class="mcat${open?" open":""}" id="cat-${i}"><button class="mhead" onclick="__site.cat(${i})" aria-expanded="${open}">${th?`<img class="mthumb" src="${esc(th.image)}" alt="" loading="lazy">`:""}<span class="mname">${esc(L(c,"cat"))}<small>${n} ${esc(t("dishes"))}</small></span>${inCart?`<span class="incart">${esc(t("inCart"))} ${inCart}</span>`:""}<span class="chev">${open?"−":"+"}</span></button>${!open?"":`${L(c,"note")?`<p class="note" style="margin:10px 0 12px">${esc(L(c,"note"))}</p>`:""}<div class="grid">${
     (c.items||[]).map((it,ii)=>{
       const id=esc(it.id).replace(/'/g,""), p=curPick(it), q=itemQty(it.id,p.si,p.oi);
       const sn=sizeNames(it);
@@ -1548,6 +1627,10 @@ function renderBooking(){
 }
 function renderAbout(){
   $("story").innerHTML = (L(S,"story")||[]).map(p=>`<p>${esc(p)}</p>`).join("");
+  $("storyTag").textContent = L(S,"storyTag")||""; $("storyTag").hidden = !L(S,"storyTag");
+  $("storyPts").innerHTML = (Array.isArray(S.storyPoints)?S.storyPoints:[]).map(x=>`<li><span>${esc(x.icon||"")}</span><b>${esc(L(x,"t"))}</b>${L(x,"d")?`<small>${esc(L(x,"d"))}</small>`:""}</li>`).join("");
+  const pics=(Array.isArray(S.storyImages)?S.storyImages:[]).filter(x=>typeof x==="string").slice(0,4);
+  $("storyPics").innerHTML = pics.map((src,i)=>`<figure class="sp${i}"><img src="${esc(src)}" alt="" loading="lazy"></figure>`).join(""); $("storyPics").hidden=!pics.length;
   $("gallery").innerHTML = (S.gallery||[]).map(g=>`<figure><img src="${esc(g.src)}" alt="${esc(g.caption||"")}" loading="lazy">${g.caption?`<figcaption>${esc(g.caption)}</figcaption>`:""}</figure>`).join("");
   $("gallery").hidden = !(S.gallery||[]).length; $("gallerySec").hidden = !(S.gallery||[]).length;
   $("about").hidden = !(L(S,"story")||[]).length;
@@ -1729,7 +1812,7 @@ async function pbRpc(fn, args){
 }
 function openPayStep(oi, buildMsg, meta){
   payPending={oi, buildMsg, meta:meta||{}, ref:genRef(), amount:finalTotal(), sent:false, auto:!!PB(), st:PB()?"pay":"manual", hp:hpOn(oi)};
-  renderPayStep(); $("paystep").classList.add("show");
+  renderPayStep(); $("paystep").classList.add("show"); if(payPending.hp) hpWarm();
 }
 async function startAutoPay(){
   const P=payPending; if(!P) return;
@@ -1757,6 +1840,19 @@ async function startAutoPay(){
 async function fnPost(fn, body){
   const b=PB(), r=await fetch(b.supabaseUrl.replace(/\/$/,"")+"/functions/v1/"+fn,{method:"POST",headers:{apikey:b.supabaseAnonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>null); if(!r.ok||!j||j.error) throw new Error((j&&j.error)||("HTTP "+r.status)); return j;
+}
+/* 付款快一点（2026-10-30 业主：跳去 HitPay 有点慢）：客人打开购物车/付款视窗时先叫醒付款函数（载好菜单价钱、外送顺便叫醒 Delyva），
+ * 4 分钟内只叫一次；按「前往付款」时就不用等函数冷启动。 */
+let hpWarmAt=0;
+function hpWarm(){
+  if(!PB()||!HP_ALL()||Date.now()-hpWarmAt<4*60000) return; hpWarmAt=Date.now();
+  fnPost("web-hitpay",{action:"warm",del:isDel()}).catch(()=>{ hpWarmAt=0; });
+}
+function hpPreconnect(){   /* 先跟后台和 HitPay 付款页建好连线（只是握手，不送资料） */
+  if(!PB()||!HP_ALL()) return;
+  [[PB().supabaseUrl,true],["https://securecheckout.hit-pay.com",false]].forEach(([u,cors])=>{ try{ const o=new URL(u).origin; if(document.querySelector(`link[rel=preconnect][href="${o}"]`)) return;
+    const l=document.createElement("link"); l.rel="preconnect"; l.href=o; if(cors) l.crossOrigin="";   /* fetch 用 CORS 连线；跳转付款页是一般连线，不能加 crossorigin */
+    document.head.appendChild(l); }catch(e){} });
 }
 async function startHitPay(){
   const P=payPending; if(!P||P.st==="creating") return;
@@ -2059,7 +2155,7 @@ function payBoxHTML(oi){
     </div>`:`<div class="note" style="margin-top:6px">${esc(t(isDel()?"payCodHint":"payCounterHint"))}</div>`}
   </div>`;
 }
-function openDrawer(){ drawerOpen=true; routeErr=false;   /* 上次 Google 路程没算到：重开购物车再试一次 */ renderDrawer(); $("drawer").classList.add("show"); $("ov").classList.add("show"); document.body.style.overflow="hidden"; refreshCartFab(); }
+function openDrawer(){ hpWarm(); drawerOpen=true; routeErr=false;   /* 上次 Google 路程没算到：重开购物车再试一次 */ renderDrawer(); $("drawer").classList.add("show"); $("ov").classList.add("show"); document.body.style.overflow="hidden"; refreshCartFab(); }
 function closeDrawer(){ drawerOpen=false; $("drawer").classList.remove("show"); $("ov").classList.remove("show"); document.body.style.overflow=""; refreshCartFab(); }
 function refreshCartFab(){ $("fab").classList.toggle("show", cartCount()>0 && !drawerOpen && !!(S.ordering&&S.ordering.enabled)); }
 
@@ -2081,6 +2177,7 @@ trk=trkLoad(); if(trk){ trkRender(); if(!trkFinal()) trkPoll(); }
   ["hp","reference","status"].forEach(x=>q.delete(x)); try{ history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash); }catch(e){}
   if(trk&&trk.ref===r) trkOpen(); })();
 revealStory();
+hpPreconnect();
 })();
 </script>
 </body>

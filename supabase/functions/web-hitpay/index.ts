@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-30c";
+const VERSION = "2026-10-30d";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -221,12 +221,12 @@ async function loadOwn(b: any) {
 async function pay(req: Request, b: any) {
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
   if (limited("pay:" + ip, 20, 10 * 60000)) throw new UserError("操作太频繁，请稍后再试");
-  const o = await loadOwn(b);
+  const [o, S] = await Promise.all([loadOwn(b), site()]);   // 同时读订单和网站设定，省一点时间
   if (o.status !== "pending") throw new UserError(o.status === "paid" ? "这张订单已经付款了" : "这张订单已取消");
   if (Date.now() - Date.parse(o.created_at) > 30 * 60000) throw new UserError("订单已过期，请重新下单");
   if (o.pay_id && o.pay_url) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 已经建过付款单（客人按了两次 / 回来继续付）
 
-  const S = await site(), oi = Number(b.oi), del = o.order_type === "delivery";
+  const oi = Number(b.oi), del = o.order_type === "delivery";
   const outlet = (S.outlets || [])[oi];
   if (!Number.isInteger(oi) || !outlet || String(outlet.name).slice(0, 80) !== o.outlet || (del && o.outlet_idx !== oi)) throw new UserError("分店资料不对");
   const all = S.payment && S.payment.gateway === "hitpay";   // 全部分店用 HitPay（hitpay:false 排除）；否则只有 hitpay:true 的分店
@@ -340,6 +340,13 @@ Deno.serve(async (req) => {
     if (req.headers.has("hitpay-signature")) return await webhook(req, raw);
     let b: any = {}; try { b = JSON.parse(raw || "{}"); } catch { /* */ }
     if (b.action === "pay") return json(req, await pay(req, b));
+    if (b.action === "warm") {   // 客人打开购物车/付款视窗时先「暖机」：先载好网站设定，外送单顺便叫醒 web-delyva，按「前往付款」时就快一点
+      const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
+      if (limited("warm:" + ip, 20, 10 * 60000)) return json(req, { ok: true });
+      await Promise.all([site().catch(() => null),
+        b.del ? fetch(`${SB_URL}/functions/v1/web-delyva`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` }, body: '{"action":"status"}' }).then((r) => r.text()).catch(() => null) : null]);
+      return json(req, { ok: true });
+    }
     if (b.action === "check") {
       const o = await loadOwn(b);
       if (o.status !== "pending" || limited("check:" + o.ref, 1, 4000)) return json(req, { status: o.status });
