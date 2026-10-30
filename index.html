@@ -268,20 +268,22 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .storysec.rv .spics .sp0{transform:translateY(-60px);transition-delay:.1s}
 .storysec.rv .spics .sp1{transform:translateX(-70px);transition-delay:.45s}
 .storysec.rv .spics .sp2{transform:translateX(70px);transition-delay:.7s}
-.storysec.rv.seen .stext,.storysec.rv.seen .spics figure{opacity:1;transform:none}
-.storysec.seen .spics img{animation:kenB 9s ease-in-out 1.6s infinite alternate}
-.storysec.seen .spics .sp1 img{animation-delay:2.4s}.storysec.seen .spics .sp2 img{animation-delay:3.1s}
+.storysec.rv .stext.seen,.storysec.rv .spics.seen figure{opacity:1;transform:none}
+.storysec .spics.seen img{animation:kenB 9s ease-in-out 1.6s infinite alternate}
+.storysec .spics.seen .sp1 img{animation-delay:2.4s}.storysec .spics.seen .sp2 img{animation-delay:3.1s}
 @keyframes kenB{from{transform:scale(1)}to{transform:scale(1.08)}}
-@media (prefers-reduced-motion:reduce){.storysec.rv .stext,.storysec.rv .spics figure{opacity:1;transform:none;transition:none}.storysec.seen .spics img{animation:none}}
+@media (prefers-reduced-motion:reduce){.storysec.rv .stext,.storysec.rv .spics figure{opacity:1;transform:none;transition:none}.storysec .spics.seen img{animation:none}}
 @media(max-width:860px){
   .sgrid{grid-template-columns:1fr;gap:22px}
   .stext h2{font-size:26px}
   .stext p{font-size:15.5px;line-height:1.75}
-  .spics{aspect-ratio:auto;height:210px;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:1fr;max-height:none}
-  .spics .sp0{grid-column:auto}
+  /* 手机：三张照片放在故事文字上面（2026-10-30 业主），跟电脑一样：上面横幅鱼头、下面啦啦+猪脚，照样从上/左/右滑进来 */
+  .spics{order:-1;aspect-ratio:auto;height:auto;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;max-height:none;gap:8px}
+  .spics .sp0{grid-column:1/3;aspect-ratio:16/9}
+  .spics .sp1,.spics .sp2{aspect-ratio:1/1}
   .spics figure{border-width:3px}
 }
-@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 4px}.spoints span{font-size:22px}.spoints b{font-size:13px}.spoints small{display:none}.spics{height:150px}}
+@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 4px}.spoints span{font-size:22px}.spoints b{font-size:13px}.spoints small{display:none}}
 
 /* ===== 招牌推荐（菜单最上面）：电脑 5 张一排，手机左右滑 ===== */
 #featured:empty{display:none}
@@ -1451,9 +1453,11 @@ const motionOK = () => ("IntersectionObserver" in window) && !(window.matchMedia
 /* 本店故事卡片：第一次进画面时从右边滑进来。#about 本身不会重绘（只换里面的文字），所以只设一次 */
 function revealStory(){
   const el=$("about"); if(!el||!motionOK()) return;
-  el.classList.add("rv");   /* 文字从左、照片从右滑进来 */
-  const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); requestAnimationFrame(()=>el.classList.add("seen")); } },{threshold:0.15});
-  io.observe(el);
+  el.classList.add("rv");   /* 文字、照片各自进画面时才播（手机照片在上面、文字在下面） */
+  const kids=[$("storyCard"),$("storyPics")].filter(Boolean), show=xs=>requestAnimationFrame(()=>xs.forEach(x=>x.classList.add("seen")));
+  if(!matchMedia("(max-width:860px)").matches){   /* 电脑：照旧整区一起播 */
+    const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); show(kids); } },{threshold:0.15}); io.observe(el); return; }
+  kids.forEach(x=>{ const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); show([x]); } },{threshold:0.3}); io.observe(x); });
 }
 /* 菜单分类标题：每个分类第一次滚进画面时滑进来，只播一次（renderMenu 每次加购物车都会重绘，所以用 catSeen 记住） */
 const catSeen=new Set(); let catIO=null;
