@@ -146,12 +146,13 @@ async function boot(){
 async function load(){
   const since=new Date(Date.now()-3*24*3600*1000).toISOString();
   const q=c=>sb.from("web_orders").select(c).gte("created_at",since).order("created_at",{ascending:false}).limit(300);
-  let {data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:""):COLS);
+  let {data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:"")+(hasPayCols?COLS_PAY:""):COLS);
+  if(error&&hasPayCols&&/pay_|paid_|column|42703/i.test(error.message+error.code)){ hasPayCols=false; ({data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:""):COLS)); }   /* 还没跑 hitpay.sql */
   if(error&&hasDoneCols&&/completed_|column|42703/i.test(error.message+error.code)){ hasDoneCols=false; ({data, error} = await q(hasCourierCols?COLS+COLS_DEL:COLS)); }   /* 还没跑新版 delivery.sql（第 6 部分） */
   if(error&&hasCourierCols&&/column|42703/i.test(error.message+error.code)){ hasCourierCols=false; ({data, error} = await q(COLS)); }   /* 还没跑 delivery.sql */
   if(error){ if($("list")) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
-  const fresh = data.filter(o=>o.status==="pending" && !seen.has(o.id));
-  data.forEach(o=>seen.add(o.id));
+  const fresh = data.filter(o=>alertable(o) && !seen.has(o.id));
+  data.forEach(o=>{ if(alertable(o)) seen.add(o.id); });
   orders=data;
   if(!first && fresh.length){ beep(); document.title="🔔 新订单 · "+(S.name||""); setTimeout(()=>document.title=(S.name||"")+" · 店员后台",8000); }
   render(first?[]:fresh.map(o=>o.id)); first=false;
@@ -160,7 +161,21 @@ async function load(){
 const COLS="id,ref,outlet,order_type,customer_name,customer_phone,amount,message,status,created_at,confirmed_at,confirmed_by";
 const COLS_DEL=",outlet_idx,dest,courier_order_id,courier_tracking,courier_service,courier_fee,courier_status,courier_rider,courier_error,courier_updated_at";
 const COLS_DONE=",completed_at,completed_by";
-let hasCourierCols=true, hasDoneCols=true, dcfg=null, busy=new Set();
+let hasCourierCols=true, hasDoneCols=true, hasPayCols=true, dcfg=null, busy=new Set();
+/* HitPay 网上付款（2026-10-30）：客人在 HitPay 付款后，web-hitpay 自动把订单改成已收款（confirmed_by = HitPay） */
+const COLS_PAY=",pay_provider,pay_status,pay_method,pay_fees,paid_amount,paid_at";
+const isHp = o => o.pay_provider==="hitpay";
+const hpUnpaid = o => isHp(o) && o.status==="pending";
+/* 要响铃的单：一般单（QR 转账）一进来就响；HitPay 单要等客人付款成功才响（还没付的不响，免得厨房先做） */
+const alertable = o => isHp(o) ? o.status==="paid" : o.status==="pending";
+const PAYM={card:"信用卡/借记卡",fpx:"FPX 网银",touch_n_go:"Touch 'n Go",grabpay:"GrabPay",grabpay_direct:"GrabPay",shopee_pay:"ShopeePay",duitnow:"DuitNow",paynow_online:"PayNow",grabpay_paylater:"Grab PayLater",shopback_paylater:"ShopBack PayLater"};
+function payHTML(o){
+  if(!isHp(o)) return "";
+  if(o.status==="pending") return `<div class="cour"><b>💳 HitPay：客人还没付款</b> <span class="mut">${o.pay_status&&o.pay_status!=="pending"?"（"+esc(o.pay_status)+"）":""}付款成功会自动变成「已收款」并响铃；不要先准备。超过 30 分钟没付可以按取消。</span></div>`;
+  const warn = o.pay_status&&/^paid_|mismatch/.test(o.pay_status);
+  return `<div class="cour"><b>💳 HitPay 已付款</b> · ${esc(PAYM[o.pay_method]||o.pay_method||"")}${o.paid_amount!=null?` · ${money(o.paid_amount)}`:""}${o.pay_fees!=null?` <span class="mut">（手续费 ${money(o.pay_fees)}）</span>`:""}
+    ${warn?`<div class="err" style="margin-top:6px">⚠️ HitPay 显示客人已付款，但订单状态是「${esc(o.status==="rejected"?"已拒绝":o.status)}」或金额对不上（${esc(o.pay_status)}），请到 HitPay 后台核对，需要时退款。</div>`:""}</div>`;
+}
 /* 已完成：店员按了「完成」，或 Delyva 通知已送达（700/1000） */
 const isDone = o => o.status==="paid" && (!!o.completed_at || o.courier_status===700 || o.courier_status===1000);
 const tabOf = o => isDone(o) ? "done" : o.status;
@@ -210,12 +225,14 @@ function render(newIds){
   $("list").innerHTML = rows.length? rows.map(o=>{
     const old = o.status==="pending" && (Date.now()-new Date(o.created_at))>30*60000;
     return `<div class="ord ${o.status}${newIds.includes(o.id)?" new":""}">
-      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${isDone(o)?"done":o.status}">${isDone(o)?"已完成":o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${old?`<span class="tag old">超过 30 分钟</span>`:""}
+      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${isDone(o)?"done":hpUnpaid(o)?"rejected":o.status}">${isDone(o)?"已完成":hpUnpaid(o)?"等客人付款":o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${isHp(o)?`<span class="tag done">HitPay</span>`:""}${old?`<span class="tag old">超过 30 分钟</span>`:""}
         <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外送":"🛍️ 自取"}</div>
         <div class="meta">👤 <b>${esc(o.customer_name||"")}</b> · 📞 <a href="tel:${esc(String(o.customer_phone||"").replace(/[^\d+]/g,""))}">${esc(o.customer_phone||"")}</a></div></div>
         <div class="amt">${money(o.amount)}</div></div>
       <details ${o.status==="pending"?"open":""}><summary>订单内容</summary><pre>${esc(o.message)}</pre></details>
-      ${o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
+      ${payHTML(o)}
+      ${hpUnpaid(o)?`<div class="acts"><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 取消（客人没付款）</button></div>`
+        :o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
         :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}${isDone(o)?` · 完成：${esc(o.completed_by||"Delyva")}${o.completed_at?" · "+hhmm(o.completed_at):""}`:""}</div>`}
       ${o.status==="paid"&&hasDoneCols&&!isDone(o)?`<div class="acts"><button class="btn ok sm" data-done="1" data-id="${o.id}" data-ref="${esc(o.ref)}" data-del="${o.order_type==="delivery"?1:""}">✅ ${o.order_type==="delivery"?"标记完成（已送达）":"完成（客人已取餐）"}</button></div>`:""}
       ${isDone(o)&&o.completed_at&&o.completed_by&&o.completed_by!=="Delyva"&&o.courier_status!==700&&o.courier_status!==1000?`<div class="acts"><button class="btn alt sm" data-done="0" data-id="${o.id}" data-ref="${esc(o.ref)}">↩ 撤回完成</button></div>`:""}
@@ -280,7 +297,7 @@ async function loadSummary(){
   if(!/^\d{4}-\d{2}$/.test(sumMonth)) return;
   const [y,m]=sumMonth.split("-").map(Number), nx=m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,"0")}`;
   const from=`${sumMonth}-01T00:00:00+08:00`, to=`${nx}-01T00:00:00+08:00`;
-  const cols=COLS+(hasCourierCols?",courier_order_id,courier_status,courier_fee":"")+(hasDoneCols?COLS_DONE:"");
+  const cols=COLS+(hasCourierCols?",courier_order_id,courier_status,courier_fee":"")+(hasDoneCols?COLS_DONE:"")+(hasPayCols?",pay_provider,pay_fees":"");
   $("sbody").innerHTML=`<div class="empty">读取中…</div>`;
   const all=[];
   for(let i=0;i<20000;i+=1000){
@@ -304,11 +321,12 @@ function parseMsg(msg){
 }
 function sumData(){
   const rows=sumRows.filter(o=>!sumOutlet||o.outlet===sumOutlet), paid=rows.filter(o=>o.status==="paid");
-  const D={rows,paid,rev:0,sst:0,fee:0,disc:0,cost:0,done:0,pend:rows.filter(o=>o.status==="pending").length,rej:rows.filter(o=>o.status==="rejected").length,
+  const D={rows,paid,rev:0,sst:0,fee:0,disc:0,cost:0,done:0,hp:0,hpFees:0,pend:rows.filter(o=>o.status==="pending").length,rej:rows.filter(o=>o.status==="rejected").length,
     type:{pickup:[0,0],delivery:[0,0]},outlet:{},day:{},items:{}};
   paid.forEach(o=>{ const a=+o.amount||0, p=parseMsg(o.message), t=o.order_type==="delivery"?"delivery":"pickup";
     D.rev+=a; D.sst+=p.sst; D.fee+=p.fee; D.disc+=p.disc; if(isDone(o)) D.done++;
     if(o.courier_order_id&&o.courier_status!==900) D.cost+=+o.courier_fee||0;
+    if(o.pay_provider==="hitpay"){ D.hp++; D.hpFees+=+o.pay_fees||0; }
     D.type[t][0]++; D.type[t][1]+=a;
     const ou=D.outlet[o.outlet||"-"]=D.outlet[o.outlet||"-"]||[0,0]; ou[0]++; ou[1]+=a;
     const dy=D.day[klDay(o.created_at)]=D.day[klDay(o.created_at)]||[0,0]; dy[0]++; dy[1]+=a;
@@ -326,7 +344,8 @@ function drawSummary(){
       ${kpi("营业额（已收款）",money(D.rev),`${n} 张订单`)}${kpi("平均每单",money(n?D.rev/n:0))}
       ${kpi("已完成",D.done,`还没完成 ${n-D.done}`)}${kpi("待确认 / 已拒绝",`${D.pend} / ${D.rej}`)}
       ${kpi("SST（含在营业额里）",money(D.sst))}${kpi("向客人收的运费",money(D.fee))}
-      ${kpi("Delyva 骑手成本",money(D.cost),"已取消的不算")}${kpi("优惠折扣",money(D.disc))}</div>
+      ${kpi("Delyva 骑手成本",money(D.cost),"已取消的不算")}${kpi("优惠折扣",money(D.disc))}
+      ${D.hp?kpi("HitPay 手续费",money(D.hpFees),`${D.hp} 张网上付款，店家吸收`):""}</div>
     <div class="sumsec"><h3>自取 / 外送</h3>${tbl(["类型","订单","营业额"],[["🛍️ 自取",D.type.pickup[0],money(D.type.pickup[1])],["🛵 外送",D.type.delivery[0],money(D.type.delivery[1])]])}</div>
     ${sumOutlet?"":`<div class="sumsec"><h3>按分店</h3>${tbl(["分店","订单","营业额"],Object.entries(D.outlet).sort((a,b)=>b[1][1]-a[1][1]).map(([k,v])=>[esc(k),v[0],money(v[1])]))}</div>`}
     <div class="sumsec"><h3>热卖 Top 15</h3>${top.length?tbl(["菜品","份数","金额"],top.map(([k,v])=>[esc(k),v[0],money(v[1])])):`<div class="live">没有菜品资料</div>`}</div>

@@ -69,8 +69,11 @@ window.SITE = {
      新分店：在 Google Maps 长按分店位置，最上面「3.1234, 101.6789」前面是 lat、后面是 lng。没填会改用地址自动查（geo.js）。 */
   /* delivery: true = 这间分店有外送（2026-10-26 业主：先开 OKR 两间 + Kelana Jaya 三间外送，其他只开自取）。
      全部分店都没写 delivery 时 = 每间都送。 */
+  /* hitpay（2026-10-30）：true = 这间分店用 HitPay 网上付款（FPX/卡/电子钱包，付款后自动确认，不用店员核对）；
+     "test" = 只有网址加 ?hptest=1 才用 HitPay（测试用，一般客人照旧用 QR）；没写 = 照旧用 QR。
+     HitPay 的 key 放在 Supabase 的 web-hitpay Secrets，不放这里。 */
   outlets: [
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, hitpay: "test", name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",

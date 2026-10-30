@@ -21,13 +21,14 @@
 //   WEB_DELYVA_PICKUP_MIN    下单后几分钟让骑手来取，默认 15
 //
 // 店员（admin.html，带登录）：POST {action:"dispatch"|"cancel"|"setup_webhook"|"status", id?}
+// web-hitpay（同一个项目，带 service role）：HitPay 付款成功后自动 dispatch；算运费时重新 quote（不算客人的限次）
 // 客人（官网购物车，不用登录）：POST {action:"quote", idx, lat, lng, address, unit, items} → Delyva 运费报价
 //   （只回传运费和服务名；有输入检查、限次、10 分钟快取；选服务的规则跟叫骑手一样，所以报价 = 之后叫车的价钱）
 // Delyva webhook：POST（header X-Delyvax-Hmac-Sha256 / X-Delyvax-Event）
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-28h";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-30a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -87,7 +88,10 @@ async function patchOrder(id: number, patch: Record<string, unknown>) {
 const trackUrl = (no: unknown) => no ? `https://${DCODE}.delyva.app/customer/strack?trackingNo=${encodeURIComponent(String(no))}` : null;
 
 // ---------- 店员登录检查 ----------
+const isInternal = (req: Request) => !!SRK && sameKey(req.headers.get("authorization") || "", `Bearer ${SRK}`);   // web-hitpay 用 service role 呼叫（付款成功自动叫骑手、重新报价）
+const sameKey = (a: string, b: string) => { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
 async function staffEmail(req: Request): Promise<string | null> {
+  if (isInternal(req)) return "HitPay（系统自动）";
   const auth = req.headers.get("authorization") || "";
   if (!/^Bearer\s+ey/.test(auth)) return null;            // 只认登录后的 JWT，不认 publishable key
   const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: ANON || SRK, Authorization: auth } });
@@ -198,7 +202,7 @@ async function publicQuote(req: Request, b: any) {
   const c = qCache.get(key);
   if (c && Date.now() - c.at < 10 * 60000) return c.body;
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
-  if (qLimited(ip)) return { ok: false, error: "too many" };
+  if (!isInternal(req) && qLimited(ip)) return { ok: false, error: "too many" };
   const out = (await db(`web_outlets?idx=eq.${idx}&select=*`))[0];
   if (!out || !out.delivery) return { ok: false, error: "outlet" };
   const { pick } = await quoteFor(out, { lat, lng, address, unit }, weight);
