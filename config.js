@@ -107,8 +107,8 @@ window.SITE = {
     { icon: "🥣", t: "酱料自家熬制", tEn: "House-made sauces", d: "老味道，外面吃不到", dEn: "Our family recipes" },
     { icon: "🥬", t: "食材每日新鲜", tEn: "Fresh every day", d: "每天一早采办", dEn: "Bought every morning" },
   ],
-  /* 本店故事旁边的照片（用 3 张：第一张横幅大图（只看下半部的菜），下面两张小方图）。有店内/门面照片后可以换掉 */
-  storyImages: ["images/menu/A031.jpg", "images/menu/A001.jpg", "images/menu/A034.jpg"],
+  /* 本店故事旁边的照片（用 3 张：第一张横幅大图（只看下半部的菜，从上面滑下来），下面左边一张（从左边进来）、右边一张（从右边进来））。有店内/门面照片后可以换掉 */
+  storyImages: ["images/menu/A001.jpg", "images/menu/A021.jpg", "images/menu/A034.jpg"],
 
   /* 环境照片：放进 images/ 文件夹，写文件名。留空数组则不显示这一块 */
   gallery: [                              // TODO 放店内/门面照片
@@ -398,8 +398,18 @@ window.SITE = {
 
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
-    /* 菜单最上面「招牌推荐」：写菜的编号（id），按顺序显示；没照片/时价的不显示。删掉这一行 = 自动用有「招牌」标签的菜 */
-    featured: ["A001", "A021", "A034", "A057", "A031", "A043", "A008", "A038", "A029", "R007"],
+    /* 菜单最上面「招牌推荐」：写菜的编号（id），按顺序显示；没照片/时价的不显示。删掉这一行 = 自动用有「招牌」标签的菜。
+       要加角标就写成 { id: "A001", badge: "明记六宝", badgeEn: "MK Six" } */
+    featured: [
+      { id: "A001", badge: "明记六宝", badgeEn: "MK Six" },   // 招牌蒸松鱼头
+      { id: "A021", badge: "明记六宝", badgeEn: "MK Six" },   // 招牌蒸啦啦
+      { id: "A034", badge: "明记六宝", badgeEn: "MK Six" },   // 卤猪脚
+      { id: "A043", badge: "明记六宝", badgeEn: "MK Six" },   // 南乳炸鸡
+      { id: "A038", badge: "明记六宝", badgeEn: "MK Six" },   // 冬菜蒸猪肉
+      { id: "A057", badge: "明记六宝", badgeEn: "MK Six" },   // 招牌豆腐
+      "A008",   // 招牌蒸金凤鱼
+      "R005",   // 咕咾肉饭
+    ],
     voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
     /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
