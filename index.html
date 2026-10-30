@@ -402,6 +402,10 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .cphours div.today{background:#FFFBF0;font-weight:800}
 .cpbtn{width:100%;margin-top:2px}
 .cplink{background:none;border:0;color:var(--mut);font:inherit;font-size:14px;padding:6px;cursor:pointer;text-decoration:underline}
+.zzz{font-family:var(--serif);font-weight:900;color:var(--a);font-size:30px;line-height:1;display:inline-flex;align-items:flex-end;transform:translate(1px,2px)}
+.zzz i,.zzz b{font-style:normal;font-weight:900;display:inline-block}
+.zzz i{font-size:22px;transform:translateY(-10px)}
+.zzz b{font-size:16px;transform:translateY(-20px)}
 .cpmoon{animation:cpBob 3s ease-in-out .6s infinite}
 @keyframes cpBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @media (prefers-reduced-motion:reduce){.cpmoon{animation:none}}
@@ -831,9 +835,8 @@ function showClosedPop(after){
   if(PFD()){ const ds=delOpenState();   /* 网上点餐（自取+外送）已截单：不给预约，只能继续看菜单 */
     const w=DEL().windows, wkend=[0,6].includes(new Date().getDay()), row=(lb,v,on)=>Array.isArray(v)?`<div class="${on?"today":""}"><span>${esc(lb)}</span><span>${esc(v.map(x=>x.join("–")).join(" · "))}</span></div>`:"";
     $("opick").innerHTML=`<div class="psbox closedpop" role="dialog" aria-modal="true">
-      <div class="cphead"><div class="cpmoon" aria-hidden="true">🌙</div><b class="cpt">${esc(t("ocTitle"))}</b></div>
+      <div class="cphead"><div class="cpmoon" aria-hidden="true"><span class="zzz">Z<i>z</i><b>z</b></span></div><b class="cpt">${esc(t("ocTitle"))}</b></div>
       <div class="cpbody">
-        <p class="cpb">${esc(ds.last?t("ocLead").replace("{l}",ds.last):t("ocLead2"))}</p>
         ${ds.nextHM?`<div class="cpnext">⏰ ${esc(t("ocNextChip").replace("{n}",ds.nextHM))}</div>`:""}
         <div class="cphours"><b>${esc(t("ocHours"))}</b>${row(t("wkday"),w.weekday,!wkend)}${row(t("wkend"),w.weekend,wkend)}</div>
         <button type="button" class="btn cpbtn" id="cpBrowse">${esc(t("cpBrowse"))}</button>
@@ -843,7 +846,7 @@ function showClosedPop(after){
     $("cpBrowse").onclick=()=>{ $("opick").classList.remove("show"); $("opick").innerHTML=""; if(!drawerOpen&&!lbOpen) document.body.style.overflow=""; };
     return; }
   $("opick").innerHTML=`<div class="psbox closedpop" role="dialog" aria-modal="true">
-    <div class="cphead"><div class="cpmoon" aria-hidden="true">🌙</div><b class="cpt">${esc(t("cpTitle").replace("{o}",name))}</b></div>
+    <div class="cphead"><div class="cpmoon" aria-hidden="true"><span class="zzz">Z<i>z</i><b>z</b></span></div><b class="cpt">${esc(t("cpTitle").replace("{o}",name))}</b></div>
     <div class="cpbody">
     <p class="cpb">${esc(t("cpBody"))}${nx?(lang==="en"?" ":"")+esc(t("cpNext").replace("{n}",nx)):""}</p>
     <button type="button" class="btn cpbtn" id="cpPick">🛍️ ${esc(t("cpPickup"))}</button>
