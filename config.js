@@ -410,6 +410,7 @@ window.SITE = {
       "A008",   // 招牌蒸金凤鱼
       "R005",   // 咕咾肉饭
     ],
+    pickupFollowsDelivery: true,   // 网上自取跟外送同一个接单时段（delivery.windows）：过了最后点餐时间，自取也不接、不能预约（2026-10-30 业主）
     voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
     /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
