@@ -15,7 +15,7 @@
 //   绝不相信网页传来的「已付款」或金额：只认 HitPay API 查到的结果。
 //
 // Secrets（Edge Functions → Secrets，只有这里读得到，绝不放网页/仓库/聊天）：
-//   WEB_HITPAY_API_KEY              HitPay 后台 Settings → API Keys 的 API Key（所有分店共用的账号）
+//   WEB_HITPAY_API_KEY              HitPay 后台 Settings → API Keys 的 API Key（共用账号：没有自己账号的分店都用它收款）
 //   WEB_HITPAY_WEBHOOK_SALT         HitPay 后台 Developers → Webhook Endpoints 里，这个 webhook 的 Salt
 //   WEB_HITPAY_API_KEY_<分店序号>    某间分店用自己的 HitPay 账号时才填（例如 OKR = 0 → WEB_HITPAY_API_KEY_0）
 //   WEB_HITPAY_WEBHOOK_SALT_<分店序号> 同上，那个账号的 webhook salt
@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-30a";
+const VERSION = "2026-10-30b";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -226,7 +226,8 @@ async function pay(req: Request, b: any) {
   const S = await site(), oi = Number(b.oi), del = o.order_type === "delivery";
   const outlet = (S.outlets || [])[oi];
   if (!Number.isInteger(oi) || !outlet || String(outlet.name).slice(0, 80) !== o.outlet || (del && o.outlet_idx !== oi)) throw new UserError("分店资料不对");
-  if (!outlet.hitpay) throw new UserError("这间分店还没开网上付款");
+  const all = S.payment && S.payment.gateway === "hitpay";   // 全部分店用 HitPay（hitpay:false 排除）；否则只有 hitpay:true 的分店
+  if (all ? outlet.hitpay === false : outlet.hitpay !== true) throw new UserError("这间分店还没开网上付款");
   const acct = account(oi);
   if (!acct) throw new Error("还没设定 HitPay API key（WEB_HITPAY_API_KEY）");
 

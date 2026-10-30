@@ -1696,19 +1696,18 @@ function renderDrawer(){
 /* ---------- 付款（DuitNow QR / 银行转账） ----------
  * config.js 的 payment；分店可用 outlets[i].payment 覆盖。没填 qr 也没填 accountNo 就不显示。 */
 let payMode = null;
-/* 测试模式：网址加 ?paytest=1 才用假 QR/户口（给业主自己测付款流程，客人看不到） */
-const PAY_TEST = /[?&]paytest=1\b/.test(location.search);
 /* HitPay 网上付款（2026-10-30）：config.js 分店写 hitpay:true + 有后台 → 这间分店改用 HitPay（FPX/卡/电子钱包，付款后自动确认），其他分店照旧用 QR */
-/* 测试：分店写 hitpay:"test" 时，只有网址加 ?hptest=1 才走 HitPay（同一个分页记住），一般客人照旧用 QR */
-const HP_TEST = (()=>{ try{ if(/[?&]hptest=1\b/.test(location.search)) sessionStorage.setItem("hptest","1"); return sessionStorage.getItem("hptest")==="1"; }catch(e){ return /[?&]hptest=1\b/.test(location.search); } })();
-const hpOn = oi => { if(!PB()||oi===undefined||oi===null||oi==="") return false; const o=outlets()[+oi]; return !!o && (o.hitpay===true || (o.hitpay==="test" && HP_TEST)); };
+/* payment.gateway="hitpay"（2026-10-30 业主：全部分店都用 HitPay，不用 QR）→ 每间分店都用 HitPay，写 hitpay:false 的排除；
+   没设 gateway 时只有写 hitpay:true 的分店用（以后复制给别的店用）。没有后台（backend）就不能网上付款。 */
+const HP_ALL = () => !!(S.payment && S.payment.gateway==="hitpay");
+const hpOn = oi => { if(!PB()||oi===undefined||oi===null||oi==="") return false; const o=outlets()[+oi]; return !!o && (HP_ALL() ? o.hitpay!==false : o.hitpay===true); };
 const HP_URL_RE = /^https:\/\/securecheckout\.(sandbox\.)?hit-pay\.com\//;
 function payInfo(oi){
   if(hpOn(oi)) return {hitpay:true, allowPayAtCounter:false};
+  if(HP_ALL()) return null;   /* 全部用 HitPay：这间不能用（没有后台/被排除）就暂停网上点餐，不退回 QR */
   const o = (oi!==undefined&&oi!==""&&outlets()[+oi]) || null;
   const p = Object.assign({}, S.payment||{}, (o&&o.payment)||{});
   if(p.qr||p.accountNo) return p;
-  if(PAY_TEST) return {qr:"images/test-tng-qr.jpg",allowPayAtCounter:(S.payment&&S.payment.allowPayAtCounter)!==false,note:"🧪 测试模式：Touch 'n Go eWallet（CHONG YOU XIAN）。付款后勾选「我已完成付款」，订单会发到 WhatsApp。"};
   return null;
 }
 function sendLabel(oi){ return payInfo(oi)&&payMode==="now" ? `💳 ${esc(t("checkoutPay"))}` : `💬 ${esc(t("checkout"))}`; }

@@ -69,11 +69,10 @@ window.SITE = {
      新分店：在 Google Maps 长按分店位置，最上面「3.1234, 101.6789」前面是 lat、后面是 lng。没填会改用地址自动查（geo.js）。 */
   /* delivery: true = 这间分店有外送（2026-10-26 业主：先开 OKR 两间 + Kelana Jaya 三间外送，其他只开自取）。
      全部分店都没写 delivery 时 = 每间都送。 */
-  /* hitpay（2026-10-30）：true = 这间分店用 HitPay 网上付款（FPX/卡/电子钱包，付款后自动确认，不用店员核对）；
-     "test" = 只有网址加 ?hptest=1 才用 HitPay（测试用，一般客人照旧用 QR）；没写 = 照旧用 QR。
-     HitPay 的 key 放在 Supabase 的 web-hitpay Secrets，不放这里。 */
+  /* hitpay（2026-10-30）：payment.gateway = "hitpay" 时全部分店都用 HitPay；某间写 hitpay: false 就排除（那间暂停网上点餐）。
+     HitPay 的 key 放在 Supabase 的 web-hitpay Secrets，不放这里（分店没有自己的账号就用共用账号）。 */
   outlets: [
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, hitpay: "test", name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
@@ -327,6 +326,10 @@ window.SITE = {
    * qr 和 accountNo 都空着 = 结账不显示付款区块。
    * 某分店用不同户口：在 outlets 那间加 payment: { qr: "...", accountNo: "..." } 覆盖。 */
   payment: {
+    /* 2026-10-30 业主：全部分店都用 HitPay 网上付款（测试和正式都是），不再用 QR 转账。
+       某间分店要排除就在那间写 hitpay: false。HitPay 的 key 在 Supabase web-hitpay 的 Secrets。
+       下面 qr/bank 和各分店的 payment（QR 图）现在不会显示，留着以后要退回 QR 才用。 */
+    gateway: "hitpay",
     qr: "",                 // TODO 明记的 DuitNow QR 图片
     bankName: "",           // TODO 例如 "Maybank"
     accountName: "",        // TODO 例如 "MENG KEE RESTAURANT SDN BHD"
