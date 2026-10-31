@@ -271,12 +271,13 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .spoints{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .spoints:empty{display:none}
 .spoints li{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);padding:12px 10px;text-align:center;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
-.spoints li{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:14px 8px}
-.spoints .spi{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(180,35,42,.09);color:var(--p);border-radius:var(--rs)}
-.spoints .spi svg{width:24px;height:24px}
+.spoints li{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:26px 6px 22px;transition:transform .25s,box-shadow .25s}
+.spoints li:hover{transform:translateY(-3px);box-shadow:3px 8px 0 rgba(180,35,42,.12)}
+.spoints .spi{flex:none;width:68px;height:68px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#d3333b,#8f1a21);color:#fff;border-radius:var(--r);box-shadow:0 6px 14px rgba(143,26,33,.28),inset 0 0 0 3px rgba(255,255,255,.14)}
+.spoints .spi svg{width:36px;height:36px;stroke-width:1.7}
 .spoints b{margin-top:0}
-.spoints b{display:block;font-size:14.5px;margin-top:4px}
-.spoints small{display:block;color:var(--mut);font-size:12.5px;line-height:1.4;margin-top:2px}
+.spoints b{display:block;font-size:17px;margin-top:2px;letter-spacing:.5px}
+.spoints small{display:block;color:var(--mut);font-size:13px;line-height:1.4;margin-top:2px}
 .spics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.1fr 1fr;gap:10px;aspect-ratio:1/1;max-height:470px}
 .spics[hidden]{display:none}
 .spics figure{margin:0;overflow:hidden;border:4px solid #fff;box-shadow:4px 4px 0 rgba(180,35,42,.14);background:#eee}
@@ -305,7 +306,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
   .spics .sp1,.spics .sp2{aspect-ratio:1/1}
   .spics figure{border-width:3px}
 }
-@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 8px}.spoints .spi{width:38px;height:38px}.spoints b{font-size:13px}.spoints small{display:none}}
+@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:16px 6px 14px;gap:8px}.spoints .spi{width:46px;height:46px}.spoints .spi svg{width:26px;height:26px}.spoints b{font-size:13.5px}.spoints small{display:none}}
 
 /* ===== 招牌推荐（菜单最上面）：电脑 5 张一排，手机左右滑 ===== */
 #featured:empty{display:none}
