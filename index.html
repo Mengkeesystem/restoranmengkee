@@ -271,7 +271,10 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
 .spoints{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .spoints:empty{display:none}
 .spoints li{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);padding:12px 10px;text-align:center;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
-.spoints span{display:block;font-size:26px;line-height:1.2}
+.spoints li{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:14px 8px}
+.spoints .spi{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(180,35,42,.09);color:var(--p);border-radius:var(--rs)}
+.spoints .spi svg{width:24px;height:24px}
+.spoints b{margin-top:0}
 .spoints b{display:block;font-size:14.5px;margin-top:4px}
 .spoints small{display:block;color:var(--mut);font-size:12.5px;line-height:1.4;margin-top:2px}
 .spics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.1fr 1fr;gap:10px;aspect-ratio:1/1;max-height:470px}
@@ -302,7 +305,7 @@ h2::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:3px;bac
   .spics .sp1,.spics .sp2{aspect-ratio:1/1}
   .spics figure{border-width:3px}
 }
-@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 4px}.spoints span{font-size:22px}.spoints b{font-size:13px}.spoints small{display:none}}
+@media(max-width:480px){.spoints{gap:6px}.spoints li{padding:10px 8px}.spoints .spi{width:38px;height:38px}.spoints b{font-size:13px}.spoints small{display:none}}
 
 /* ===== 招牌推荐（菜单最上面）：电脑 5 张一排，手机左右滑 ===== */
 #featured:empty{display:none}
@@ -1745,7 +1748,7 @@ function renderBooking(){
 function renderAbout(){
   $("story").innerHTML = (L(S,"story")||[]).map(p=>`<p>${esc(p)}</p>`).join("");
   $("storyTag").textContent = L(S,"storyTag")||""; $("storyTag").hidden = !L(S,"storyTag");
-  $("storyPts").innerHTML = (Array.isArray(S.storyPoints)?S.storyPoints:[]).map(x=>`<li><span>${esc(x.icon||"")}</span><b>${esc(L(x,"t"))}</b>${L(x,"d")?`<small>${esc(L(x,"d"))}</small>`:""}</li>`).join("");
+  $("storyPts").innerHTML = (Array.isArray(S.storyPoints)?S.storyPoints:[]).map(x=>`<li><span class="spi">${SP_SVG[x.icon]||esc(x.icon||"")}</span><div><b>${esc(L(x,"t"))}</b>${L(x,"d")?`<small>${esc(L(x,"d"))}</small>`:""}</div></li>`).join("");
   const pics=(Array.isArray(S.storyImages)?S.storyImages:[]).filter(x=>typeof x==="string").slice(0,4);
   $("storyPics").innerHTML = pics.map((src,i)=>`<figure class="sp${i}"><img src="${esc(src)}" alt="" loading="lazy"></figure>`).join(""); $("storyPics").hidden=!pics.length;
   $("gallery").innerHTML = (S.gallery||[]).map(g=>`<figure><img src="${esc(g.src)}" alt="${esc(g.caption||"")}" loading="lazy">${g.caption?`<figcaption>${esc(g.caption)}</figcaption>`:""}</figure>`).join("");
@@ -1983,6 +1986,11 @@ function hpPreconnect(){   /* 先跟后台和 HitPay 付款页建好连线（只
 }
 /* 付款方式组别（config payment.methods）：key 只认字母，客人选的会传给后台，HitPay 付款页只显示那几种 */
 /* 付款方式的线条图标（2026-10-31 业主：要现代化，不用 emoji）；config methods 的 icon 写 qr/wallet/bank/card */
+const SP_SVG = {
+  flame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 3.2-2.2 4.8-3.6 7.2A6.2 6.2 0 0 0 12 21a6.2 6.2 0 0 0 6-6.3c0-2.6-1.4-4.2-2.6-5.7-.4 1.4-1.2 2.2-2.2 2.6C13.6 8.4 13.3 5.4 12 3z"/></svg>',
+  bowl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 21h8"/><path d="M9 7c0-1.5 1-1.5 1-3M14 7c0-1.5 1-1.5 1-3"/></svg>',
+  leaf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C4 10 9 4 20 4c0 11-6 16-15 15z"/><path d="M5 19c3-5 6-8 10-10"/></svg>'
+};
 const PM_SVG = {
   qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M6 6.5h1M17 6.5h1M6 17.5h1M14 14h2.5v2.5M21 14v3M14 19.5V21h3M18.5 18.5H21V21"/></svg>',
   wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4h-12A2.5 2.5 0 0 0 3 6.5v11A2.5 2.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V9a1.5 1.5 0 0 0-1.5-1.5H5.5A2.5 2.5 0 0 1 3 5"/><path d="M16 13.75h.01"/><path d="M15 11.5h6v4.5h-6a2.25 2.25 0 0 1 0-4.5z"/></svg>',

@@ -103,9 +103,9 @@ window.SITE = {
   storyTag: "SINCE 2005",          // 本店故事标题上面的小标签（留空不显示）
   /* 本店故事下面三个特色（图标 + 短句）；留空数组不显示 */
   storyPoints: [
-    { icon: "🔥", t: "现点现炒", tEn: "Wok-fried to order", d: "一锅一铲，热腾腾上桌", dEn: "Straight from the wok" },
-    { icon: "🥣", t: "酱料自家熬制", tEn: "House-made sauces", d: "老味道，外面吃不到", dEn: "Our family recipes" },
-    { icon: "🥬", t: "食材每日新鲜", tEn: "Fresh every day", d: "每天一早采办", dEn: "Bought every morning" },
+    { icon: "flame", t: "现点现炒", tEn: "Wok-fried to order", d: "一锅一铲，热腾腾上桌", dEn: "Straight from the wok" },
+    { icon: "bowl", t: "酱料自家熬制", tEn: "House-made sauces", d: "老味道，外面吃不到", dEn: "Our family recipes" },
+    { icon: "leaf", t: "食材每日新鲜", tEn: "Fresh every day", d: "每天一早采办", dEn: "Bought every morning" },
   ],
   /* 本店故事旁边的照片（用 3 张：第一张横幅大图（只看下半部的菜，从上面滑下来），下面左边一张（从左边进来）、右边一张（从右边进来））。有店内/门面照片后可以换掉 */
   storyImages: ["images/menu/A001.jpg", "images/menu/A021.jpg", "images/menu/A034.jpg"],

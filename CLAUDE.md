@@ -204,6 +204,7 @@
   - 菜单上方 SST 说明拿掉「OKR（Scott Garden 对面）分店免收 SST」（config `priceNote`），Scott Garden 照样不收 SST（`sst:false` 没动）。
   - 测试 e2e.mjs 下单前要先勾 `#od_agree`。
 - **购物车付款说明简化 + 付款方式图标现代化（2026-10-31 业主）**：购物车「付款方式 · 网上付款」那段拿掉「按下单并付款后会前往 HitPay 安全付款页（…）」和 DuitNow/电子钱包等小标签，只留一句 `payMulti`「支持 DuitNow、电子钱包、网上银行及信用卡等多种付款方式」+「自取和外送都需要先付款，付款后订单才会送出。」。「付款详情」的「＝」角标从黑色改成明记红 `var(--p)`。付款视窗「选择付款方式」的图标从 emoji 换成自画线条 SVG（`PM_SVG` qr/wallet/bank/card，`pmIcon()`；config `payment.methods[].icon` 填这四个名字，不认得就当文字显示）：浅红底方块+红色图标，推荐的 DuitNow 是红底白图标，信用卡那行小字不加底。
+- **本店故事三个特色卡片图标现代化（2026-10-31 业主）**：`storyPoints[].icon` 从 emoji 改成名字 flame/bowl/leaf（`SP_SVG` 自画线条 SVG，不认得的名字当文字显示）；卡片 = 浅红底方块图标 + 宋体标题 + 小字，上下排、置中，保留金色顶线。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
