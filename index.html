@@ -744,6 +744,52 @@ footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padd
 .fline{width:56px;height:1px;background:rgba(242,180,23,.5);margin:18px auto 14px}
 .fcopy{color:#9d8a78;font-size:12.5px}
 .fcopy a{color:#CDBBA8;text-decoration:none}.fcopy a:hover{color:var(--a)}
+
+/* ===== 2026-10-31 现代风格：弹窗（订单进度/付款/我的订单…）+ 购物车 ===== */
+.psbox{box-shadow:0 24px 60px rgba(0,0,0,.45);padding:18px 20px 20px;gap:14px}
+.pshead{padding-bottom:12px;border-bottom:1px solid var(--line)}
+.pshead b{font-family:var(--serif);font-size:19px;letter-spacing:1.5px;color:var(--dk)}
+.lbx.dark{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:rgba(180,35,42,.09);color:var(--p);border:0;border-radius:var(--rs);min-height:0;padding:0;transition:background .2s,color .2s}
+.lbx.dark:hover{background:var(--p);color:#fff}
+.psamt{background:linear-gradient(135deg,#2A1A14,#3a1d17);border:0;border-left:4px solid var(--a);color:#CDBBA8;font-size:13px;letter-spacing:1px;padding:14px 16px;align-items:center}
+.psamt b{color:var(--a);font-family:var(--serif);font-size:24px;letter-spacing:1.5px}
+.tksteps{gap:0;padding:2px 2px 0}
+.tksteps li{position:relative;gap:14px;padding:7px 0;font-size:15px}
+.tksteps li span{width:28px;height:28px;flex:0 0 28px;border-width:2px;background:#fff;z-index:1;font-size:13px}
+.tksteps li:not(:last-child)::after{content:"";position:absolute;left:13px;top:35px;bottom:-7px;width:2px;background:var(--line)}
+.tksteps li.done:not(:last-child)::after{background:var(--ok)}
+.tksteps li.on span{border-color:var(--a);background:#FFF6DB;color:var(--dk);box-shadow:0 0 0 4px rgba(242,180,23,.22)}
+.tksteps li.on{color:var(--dk);font-weight:800}
+.pswait{border:1px solid var(--line);border-left:4px solid var(--a);background:#fff;padding:14px;box-shadow:2px 2px 0 rgba(180,35,42,.08)}
+.pswait.bad{border-color:var(--line);border-left-color:var(--p);background:#FDF6F6}
+.pswait.good{border-color:var(--line);border-left-color:var(--ok);background:#F6FBF8}
+.tketa{background:#fff;border:1px solid var(--line);border-left:4px solid var(--ok);box-shadow:2px 2px 0 rgba(31,138,76,.08);margin:0}
+.tketa span{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(31,138,76,.1);border-radius:var(--rs);font-size:20px;flex:none}
+.tketa b{font-family:var(--serif);letter-spacing:.5px}
+.tkrider{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);padding:12px 14px}
+.psbox .btn.psgo{min-height:50px;letter-spacing:1px}
+.psbox .btn.alt.psgo{border-width:1px}
+.pssteps li span{border-radius:var(--rs)}
+.trkchip{box-shadow:0 8px 24px rgba(0,0,0,.3)}
+/* 购物车 */
+.drawer{border-top:3px solid var(--a);padding-top:20px}
+@media(min-width:760px){.drawer{box-shadow:0 24px 60px rgba(0,0,0,.4)}}
+.drawer>h3:first-child{font-family:var(--serif);font-size:22px;letter-spacing:2px;color:var(--dk);padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--line);position:relative}
+.drawer>h3:first-child::after{content:"";position:absolute;left:0;bottom:-1px;width:48px;height:3px;background:var(--a)}
+.x{background:rgba(180,35,42,.09);color:var(--p);transition:background .2s,color .2s}
+.x:hover{background:var(--p);color:#fff}
+.otype{gap:0;border:1px solid var(--line);background:#fff;padding:4px;box-shadow:2px 2px 0 rgba(180,35,42,.06)}
+.otype button{border:0;background:transparent;color:var(--mut);min-height:44px;letter-spacing:1px;transition:background .2s,color .2s}
+.otype button.on{background:var(--p);color:#fff;box-shadow:0 4px 10px rgba(180,35,42,.25)}
+.osec{border-left:1px solid var(--line);border-top:3px solid var(--a);padding:16px;box-shadow:3px 3px 0 rgba(180,35,42,.08)}
+.osec .osh{font-size:16px;letter-spacing:1px}
+.osec .osh::before{width:26px;height:26px;background:rgba(180,35,42,.09);color:var(--p);font-weight:800}
+.osec.sumbox .osh::before{background:rgba(180,35,42,.09);color:var(--p)}
+.osec .cl .cimg{border-radius:var(--rs);box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.sumbox .tot:last-of-type{border-top:1px dashed var(--line);margin-top:10px;padding-top:12px;align-items:baseline}
+.sumbox .tot:last-of-type span:last-child{font-family:var(--serif);font-size:24px;color:var(--p);letter-spacing:1px}
+.cfoot{border-top:3px solid var(--a);box-shadow:0 -10px 24px rgba(0,0,0,.1)}
+.cfoot .btn{min-height:52px;letter-spacing:1px;box-shadow:0 6px 14px rgba(180,35,42,.28)}
 </style>
 </head>
 <body>
