@@ -88,10 +88,19 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .cnote .cn1{font-size:16px;font-weight:700;color:#7A2E00;margin-top:2px}
 .cnote .cn2{font-size:14px;margin-top:2px}
 .hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
+.m86h{margin:18px 0 8px;font-size:16px;color:var(--p);border-left:4px solid var(--a);padding-left:8px}
+.m86grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.m86i{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-left:4px solid #1F8A4C;padding:10px 12px}
+.m86i.isoff{border-left-color:var(--p);background:#FDF6F6}
+.m86b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.m86s{display:inline-block;margin-top:3px;font-size:12px;font-weight:800;padding:1px 8px;border-radius:2px}
+.m86s.on{background:#EEF8F1;color:#14532D}.m86s.off{background:#F9E3E3;color:var(--p)}.m86s.part{background:#FFF6DA;color:#7A4B00}
+.m86t{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2A1A14;color:#fff;padding:12px 18px;font-weight:700;max-width:90%;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.m86t.show{opacity:1}
+#m86View .bar label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 </style>
 </head>
 <body>
-<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
+<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="m86Btn" hidden>🍽️ 菜单开关</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
 <div class="wrap" id="app"></div>
 
 <script>
@@ -161,11 +170,12 @@ async function boot(){
   const outs=S.outlets||[], mine=role==="admin"?outs:outs.filter((o,i)=>myOutlets.includes(i));
   $("hUser").innerHTML=`<span class="role ${role==="admin"?"":"mgr"}">${role==="admin"?"管理员 · 全部分店":"分店经理 · "+esc(mine.map(o=>o.name).join("、")||"未指定")}</span>${esc(me.email)}`; $("logoutBtn").hidden=false;
   $("staffBtn").hidden=role!=="admin"; $("staffBtn").onclick=()=>setView(view==="staff"?"orders":"staff");
+  $("m86Btn").hidden=false; $("m86Btn").onclick=()=>setView(view==="m86"?"orders":"m86");
   if(role==="manager"&&mine.length===1){ outletF=mine[0].name; sumOutlet=mine[0].name; }
-  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
+  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
   app.innerHTML = `<div id="ordView"><div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
     <div class="bar"><select id="of">${mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:""}${mine.map(o=>`<option ${o.name===outletF?"selected":""}>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
-    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div>`;
+    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div><div id="m86View" hidden></div>`;
   $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="summary"?"orders":"summary");
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
   /* Delyva 连线状态：显示在提示音按钮旁边，方便排查（还没部署 web-delyva 就当没有外送功能） */
@@ -176,7 +186,7 @@ async function boot(){
     try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
   $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
   await load(); timer=setInterval(load,5000);
-  if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff");
+  if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#menu86") setView("m86");
 }
 
 async function load(){
@@ -315,13 +325,63 @@ function klDay(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString
 function klHM(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(11,16); }
 function setView(v){
   if(v==="staff"&&role!=="admin") v="orders";
-  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary"; $("staffView").hidden=v!=="staff";
+  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary"; $("staffView").hidden=v!=="staff"; $("m86View").hidden=v!=="m86";
+  $("m86Btn").textContent=v==="m86"?"📋 回到订单":"🍽️ 菜单开关";
   $("viewBtn").textContent=v==="summary"?"📋 回到订单":"📊 每月总结";
   $("staffBtn").textContent=v==="staff"?"📋 回到订单":"👥 店员";
-  history.replaceState(null,"",v==="summary"?"#summary":v==="staff"?"#staff":location.pathname+location.search);
+  history.replaceState(null,"",v==="summary"?"#summary":v==="staff"?"#staff":v==="m86"?"#menu86":location.pathname+location.search);
+  if(v==="m86") m86Load();
   if(v==="staff") staffLoad();
   if(v==="summary"){ if(!sumMonth) sumMonth=klMonth(); renderSummaryShell(); loadSummary(); }
 }
+/* ---------- 菜单开关 86（2026-10-31）：某道菜没有了 → 关掉；有了 → 打开。按分店分开（经理只能管自己的分店）。客人的网页每分钟更新一次 ---------- */
+let m86Rows=null, m86Oi=null, m86Q="", m86OnlyOff=false;
+async function m86Load(){
+  const v=$("m86View"); if(!m86Rows) v.innerHTML=`<div class="empty">读取中…</div>`;
+  const {data,error}=await sb.rpc("web_menu_86_staff");
+  if(error){ v.innerHTML=`<div class="err">读不到菜单开关：${esc(/web_menu_86|PGRST202|function/i.test(error.message)?"数据库还没跑 menu86.sql（请老板到 Supabase SQL Editor 跑一次）":error.message)}</div>`; return; }
+  m86Rows=(Array.isArray(data)?data:[]).filter(x=>x&&typeof x==="object"); m86Draw();
+}
+function m86Draw(){
+  const outs=S.outlets||[], v=$("m86View");
+  const mineIdx = role==="admin" ? outs.map((o,i)=>i) : outs.map((o,i)=>i).filter(i=>myOutlets.includes(i));
+  if(m86Oi===null) m86Oi = role==="admin" ? -1 : (mineIdx[0]===undefined?-2:mineIdx[0]);
+  if(m86Oi===-2){ v.innerHTML=`<div class="empty">这个账号还没有指定负责的分店，请老板在「👥 店员」页设定。</div>`; return; }
+  const offOf=(oi,id)=>m86Rows.some(r=>r.oi===oi&&r.item===id&&r.off===true);
+  const offCount=id=>outs.reduce((n,o,i)=>n+(offOf(i,id)?1:0),0);
+  const all=m86Oi===-1, q=m86Q.trim().toLowerCase();
+  const items=[]; (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>items.push({c,it})));
+  const isOff=it=>all?offCount(it.id)>0:offOf(m86Oi,it.id);
+  const totalOff=items.filter(x=>isOff(x.it)).length;
+  const cats=(S.menu||[]).map(c=>{ const list=(c.items||[]).filter(it=>(!q||String(it.name+" "+(it.nameEn||"")+" "+(it.code||it.id)).toLowerCase().includes(q))&&(!m86OnlyOff||isOff(it)));
+    if(!list.length) return "";
+    return `<h3 class="m86h">${esc(c.cat)}</h3><div class="m86grid">${list.map(it=>{
+      const off=isOff(it), n=all?offCount(it.id):0;
+      const state=all?(n===0?"":n===outs.length?`<span class="m86s off">全部分店售完</span>`:`<span class="m86s part">${n}/${outs.length} 间售完</span>`):(off?`<span class="m86s off">已 86 · 售完</span>`:`<span class="m86s on">有货</span>`);
+      const btns=all?`<button class="btn sm" data-set="1" data-id="${esc(it.id)}">🔴 全部售完</button><button class="btn alt sm" data-set="0" data-id="${esc(it.id)}"${n===0?" disabled":""}>🟢 全部恢复</button>`
+        :`<button class="btn sm ${off?"alt":""}" data-set="${off?0:1}" data-id="${esc(it.id)}">${off?"🟢 恢复有货":"🔴 售完（86）"}</button>`;
+      return `<div class="m86i${off?" isoff":""}"><div><b>${esc(it.name)}</b><span class="mut"> ${esc(it.code||it.id)}</span><div>${state}</div></div><div class="m86b">${btns}</div></div>`; }).join("")}</div>`; }).join("");
+  v.innerHTML=`<div class="hint">🍽️ <b>某道菜卖完了 → 按「售完（86）」</b>，客人那边就点不了，还会看到一句轻松的话；有货了再按「恢复有货」，客人会看到「回来啦」。客人的网页一般一分钟内更新。<b>按分店分开</b>，只影响你选的那间店。</div>
+    <div class="bar"><select id="m86o">${role==="admin"?`<option value="-1" ${all?"selected":""}>全部分店（一次设定全部）</option>`:""}${mineIdx.map(i=>`<option value="${i}" ${m86Oi===i?"selected":""}>${esc(outs[i].name)}</option>`).join("")}</select>
+      <input id="m86q" type="search" placeholder="搜菜名或编号" value="${esc(m86Q)}" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit">
+      <label style="font-weight:700"><input type="checkbox" id="m86f" ${m86OnlyOff?"checked":""}> 只看售完的（${totalOff}）</label></div>
+    ${cats||`<div class="empty">${totalOff?"没有符合的菜":"现在没有任何菜被关掉 👍"}</div>`}`;
+  $("m86o").onchange=e=>{ m86Oi=Number(e.target.value); m86Draw(); };
+  $("m86q").oninput=e=>{ m86Q=e.target.value; const p=e.target.selectionStart; m86Draw(); const n=$("m86q"); n.focus(); try{ n.setSelectionRange(p,p); }catch(x){} };
+  $("m86f").onchange=e=>{ m86OnlyOff=e.target.checked; m86Draw(); };
+  v.querySelectorAll("button[data-set]").forEach(b=>b.onclick=async()=>{
+    const off=b.dataset.set==="1", id=b.dataset.id, it=items.find(x=>x.it.id===id), nm=it?it.it.name:id;
+    if(all&&off&&!confirm(`把「${nm}」在全部 ${outs.length} 间分店都设成售完？`)) return;
+    b.disabled=true;
+    const {error}=await sb.rpc("web_menu_86_set",{p_oi:m86Oi,p_item:id,p_off:off});
+    if(error){ alert("设定失败："+error.message); b.disabled=false; return; }
+    const now=new Date().toISOString();
+    (m86Oi===-1?outs.map((o,i)=>i):[m86Oi]).forEach(oi=>{ const r=m86Rows.find(x=>x.oi===oi&&x.item===id); if(r){ r.off=off; r.at=now; } else m86Rows.push({oi,item:id,off,at:now,by:me.email}); });
+    m86Draw(); m86Toast(off?`🔴 「${nm}」已设成售完，客人会看到「被抢光啦」之类的话`:`🟢 「${nm}」恢复有货，客人会看到「回来啦」`);
+  });
+}
+let m86T=null;
+function m86Toast(t){ let e=$("m86t"); if(!e){ e=document.createElement("div"); e.id="m86t"; e.className="m86t"; document.body.appendChild(e); } e.textContent=t; e.classList.add("show"); clearTimeout(m86T); m86T=setTimeout(()=>e.classList.remove("show"),3500); }
 /* ---------- 店员管理（只有管理员看得到；数据库函数也只准管理员用） ---------- */
 let staffRows=null, staffEdit=null;
 async function staffLoad(){

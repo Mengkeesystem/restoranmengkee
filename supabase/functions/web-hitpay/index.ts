@@ -29,13 +29,14 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-31c";
+const VERSION = "2026-10-31d";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
 const HP_BASE = env("WEB_HITPAY_BASE", "https://api.hit-pay.com").replace(/\/$/, "");
 const HP_CUR = env("WEB_HITPAY_CURRENCY", "MYR").toUpperCase();
 const SITE_URL = env("WEB_SITE_URL", "https://restoranmengkee.com.my").replace(/\/$/, "");
+const PENDING_MS = 10 * 60000;   // 下单后 10 分钟没付款就自动取消（2026-10-31 业主）；服务器多给 30 秒~1 分钟缓冲，等 webhook / 正在付款的客人
 const FEE_TOL = Math.max(0, Number(env("WEB_HITPAY_FEE_TOLERANCE", "1")) || 0);
 const ORIGINS = ["https://mengkeesystem.github.io", "https://restoranmengkee.com.my", "https://www.restoranmengkee.com.my"];
 
@@ -134,6 +135,15 @@ const keyOf = (id: string, si: number, oi: number, mods: number[], nh: string) =
 const cleanNote = (s: unknown, max: number) => String(s || "").replace(/[\[\]=|<>•·\r\n\t]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 
 /* 用购物车重算整张单：回传金额明细 + 订单讯息的「标题/分店/菜品/金额」那一段（中文，跟网页 buildMsg 同格式） */
+/* 菜单开关 86（web_menu_86，supabase/menu86.sql）：这间分店关掉的菜不能下单（客人网页也挡，这里是服务器这一关）。表还没建就当没有（不挡） */
+const off86Cache = new Map<number, { at: number; set: Set<string> }>();
+async function off86(oi: number): Promise<Set<string>> {
+  const c = off86Cache.get(oi); if (c && Date.now() - c.at < 15000) return c.set;
+  let set = new Set<string>();
+  try { const rows = await db(`web_menu_86?oi=eq.${oi}&off=eq.true&select=item`); set = new Set((rows || []).map((r: any) => String(r.item))); }
+  catch (e) { console.log(`off86 read failed (跑过 menu86.sql 吗？): ${String((e as Error).message).slice(0, 120)}`); }
+  off86Cache.set(oi, { at: Date.now(), set }); return set;
+}
 async function priceOrder(S: any, a: { cart: unknown; notes: unknown; voucher: unknown; del: boolean; oi: number; fee: number | null; feeTag: string }) {
   const B = priceBook(S), outlet = (S.outlets || [])[a.oi];
   if (!outlet) throw new UserError("分店不对");
@@ -141,6 +151,7 @@ async function priceOrder(S: any, a: { cart: unknown; notes: unknown; voucher: u
   const notes: Record<string, unknown> = a.notes && typeof a.notes === "object" && !Array.isArray(a.notes) ? a.notes as Record<string, unknown> : {};
   const entries = Object.entries(a.cart as Record<string, unknown>);
   if (!entries.length || entries.length > 60) throw new UserError("购物车是空的");
+  const offSet = await off86(a.oi);
   const lines: string[] = []; let sub = 0, box = 0, count = 0;
   for (const [k, qv] of entries) {
     const [id, siS, oiS, mS, nh = ""] = k.split("|"), it = B.items[id], si = Number(siS) || 0, oo = Number(oiS) || 0, q = Number(qv);
@@ -150,6 +161,7 @@ async function priceOrder(S: any, a: { cart: unknown; notes: unknown; voucher: u
       && Number.isInteger(q) && q >= 1 && q <= 99 && (it.prices ? si < it.prices.length : si === 0) && (it.options ? oo < it.options.length : oo === 0)
       && mods.every((x) => Number.isInteger(x) && x >= 0 && x < os.length) && new Set(mods).size === mods.length
       && (!nh || (note.length > 0 && noteHash(note) === nh));
+    if (ok && offSet.has(id)) throw new UserError(`「${it.name}」刚刚售完了，请把它从购物车拿掉再下单`);
     if (!ok) throw new UserError("购物车里有菜品资料不对（可能菜单刚更新），请重新整理网页再下单");
     const p = a.del ? B.delPrice(B.unit(it, si)) : B.unit(it, si);
     sub += p * q; box += B.boxOf(it) * q; count += q;
@@ -238,7 +250,7 @@ async function pay(req: Request, b: any) {
   if (limited("pay:" + ip, 20, 10 * 60000)) throw new UserError("操作太频繁，请稍后再试");
   const [o, S] = await Promise.all([loadOwn(b), site()]);   // 同时读订单和网站设定，省一点时间
   if (o.status !== "pending") throw new UserError(o.status === "paid" ? "这张订单已经付款了" : "这张订单已取消");
-  if (Date.now() - Date.parse(o.created_at) > 30 * 60000) throw new UserError("订单已过期，请重新下单");
+  if (Date.now() - Date.parse(o.created_at) > PENDING_MS + 30000) throw new UserError("订单超过 10 分钟没有付款，已经过期，请重新下单");
   if (o.pay_id && o.pay_url) {   // 已经建过付款单（客人按了两次 / 回来继续付）
     if (!b.repay) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
     return await repay(o, S, b);   // 回来「继续付款」时想换付款方式（2026-10-31）
@@ -305,7 +317,6 @@ async function pay(req: Request, b: any) {
 }
 
 // ---------- 待付款订单：换付款方式 / 取消 / 逾期清理（2026-10-31 业主：客人按了下单付款但没付，要能继续付或取消） ----------
-const PENDING_MS = 30 * 60000;
 /* 把 HitPay 上这张付款单作废（客人不能再用旧网址付款）。成功回 true；HitPay 不让删（例如正在付款中）回 false */
 async function dropRequest(o: any): Promise<boolean> {
   try {
@@ -318,6 +329,14 @@ async function repay(o: any, S: any, b: any) {
   const r = await confirmFromHitPay(o, "repay");   // 先看看是不是其实已经付了
   if (r.status === "paid") return { ok: true, paid: true };
   if (r.pay === "mismatch") throw new UserError("付款资料需要人工核对，请联系店家");
+  if (o.order_type === "delivery") {   // 外送运费跟着实时报价（2026-10-31）：继续付款时再问一次 Delyva，比下单时高出容许范围就不让付，要重新下单
+    const fm = String(o.message || "").match(/运费:\s*RM\s*([\d.]+)/), claimed = fm ? Number(fm[1]) : null;
+    if (claimed !== null && Number.isFinite(claimed)) {
+      const q = await delyvaFee(o, String(b.qaddr || "").slice(0, 300));
+      if (!q) throw new UserError("暂时拿不到外送运费，请稍后再试，或取消订单后重新下单");
+      if (q.fee - claimed > FEE_TOL + 1e-9) throw new UserError(`外送运费有变动（现在是 ${money(S, q.fee)}），请取消这笔订单后重新下单`);
+    }
+  }
   const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
   if (!codes.length) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
@@ -355,12 +374,12 @@ async function cancelOwn(req: Request, b: any) {
   console.log(`cancel ${o.ref} by customer`);
   return { ok: true };
 }
-/* 超过 30 分钟还没付的单：作废付款单 + 订单设成已拒绝（后台就不会一直挂着「等客人付款」）。每次最多处理 5 张 */
+/* 超过 10 分钟还没付的单：作废付款单 + 订单设成已拒绝（后台就不会一直挂着「等客人付款」）。每次最多处理 5 张 */
 let lastSweep = 0;
 async function sweepStale() {
-  if (Date.now() - lastSweep < 5 * 60000) return; lastSweep = Date.now();
+  if (Date.now() - lastSweep < 50000) return; lastSweep = Date.now();
   try {
-    const from = new Date(Date.now() - 3 * 86400000).toISOString(), to = new Date(Date.now() - (PENDING_MS + 5 * 60000)).toISOString();
+    const from = new Date(Date.now() - 3 * 86400000).toISOString(), to = new Date(Date.now() - (PENDING_MS + 60000)).toISOString();
     const rows = await db(`web_orders?status=eq.pending&created_at=gte.${from}&created_at=lt.${to}&select=*&order=created_at.asc&limit=5`);
     for (const o of rows || []) {
       if (o.pay_provider === "hitpay" && o.pay_id) {
@@ -444,6 +463,7 @@ Deno.serve(async (req) => {
     let b: any = {}; try { b = JSON.parse(raw || "{}"); } catch { /* */ }
     if (b.action === "pay") return json(req, await pay(req, b));
     if (b.action === "cancel") return json(req, await cancelOwn(req, b));
+    if (b.action === "sweep") { await sweepStale(); return json(req, { ok: true }); }   // 定时清理逾期没付款的单（supabase/cron-sweep.sql 每分钟叫一次；任何人叫都只会作废「超过 11 分钟没付」的单）
     if (b.action === "warm") {   // 客人打开购物车/付款视窗时先「暖机」：先载好网站设定，外送单顺便叫醒 web-delyva，按「前往付款」时就快一点
       const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
       if (limited("warm:" + ip, 20, 10 * 60000)) return json(req, { ok: true });
@@ -456,7 +476,7 @@ Deno.serve(async (req) => {
       const o = await loadOwn(b);
       if (o.status !== "pending" || limited("check:" + o.ref, 1, 4000)) return json(req, { status: o.status });
       const res = await confirmFromHitPay(o, "check");
-      if (res.status === "pending" && Date.now() - Date.parse(o.created_at) > PENDING_MS + 5 * 60000 && res.pay !== "mismatch") {   // 逾期没付：作废
+      if (res.status === "pending" && Date.now() - Date.parse(o.created_at) > PENDING_MS + 60000 && res.pay !== "mismatch") {   // 逾期没付：作废
         await dropRequest(o);
         await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：逾期未付款", pay_status: "expired" }, "&status=eq.pending");
         return json(req, { status: "rejected", pay: "expired" });

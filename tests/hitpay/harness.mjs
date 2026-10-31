@@ -10,6 +10,7 @@ function match(o,f){ return Object.entries(f).every(([k,v])=>{ const m=v.match(/
 const realFetch=globalThis.fetch;
 export const mockFetch=async(u,init={})=>{ u=String(u); const m=(init.method||"GET").toUpperCase();
   if(u.startsWith("https://restoranmengkee.com.my/config.js")) return new Response(CFG,{status:200});
+  if(u.includes("/rest/v1/web_menu_86")){ const f=q(u); DB.m86=DB.m86||[]; return J(DB.m86.filter(o=>match(o,f)).map(o=>({item:o.item}))); }   // 菜单开关 86
   if(u.includes("/rest/v1/web_orders")){ const f=q(u);
     if(m==="GET") return J(DB.orders.filter(o=>match(o,f)));
     if(m==="PATCH"){ const p=JSON.parse(init.body); const rows=DB.orders.filter(o=>match(o,f)); rows.forEach(o=>Object.assign(o,p)); return J(rows); } }

@@ -171,7 +171,7 @@ window.SITE = {
    * 改了退款规则（例如几小时内投诉、几天退款）记得同步改这里，并更新 updated 日期。 */
   policies: {
     "legalName": "TCY Food Management Sdn Bhd (1333819-V)",
-    "updated": "2026-10-31",
+    "updated": "2026-11-01",
     "refund": {
       "title": "退款及取消政策",
       "titleEn": "Refund & Cancellation Policy",
@@ -244,10 +244,10 @@ window.SITE = {
           "h": "订位",
           "hEn": "Table bookings",
           "p": [
-            "网上订位不收订金。如需更改或取消订位，请通过 WhatsApp 通知我们。"
+            "网上订位不收订金。如需更改或取消订位，请至少提早 1 小时通过 WhatsApp 通知我们。"
           ],
           "pEn": [
-            "Online table bookings do not require a deposit. Please let us know on WhatsApp if you need to change or cancel."
+            "Online table bookings do not require a deposit. If you need to change or cancel, please let us know on WhatsApp at least 1 hour in advance."
           ]
         }
       ]
@@ -411,6 +411,14 @@ window.SITE = {
 
   /* ---------- 网上点餐(自取) ---------- */
   ordering: {
+    /* 菜单开关 86（2026-10-31）：员工在后台关掉某道菜（售完）/ 重新开启时，客人看到的话。每道菜按编号固定挑一句（不会一直跳）。
+     * 想改就直接改这里（中文 off/back，英文 offEn/backEn），不要冒犯客人就好；写空数组 [] = 用程序里的默认句子。 */
+    out86: {
+      off: ["被抢光啦，连厨师都舍不得 🥹", "今天太受欢迎，它先下班休息了 😴", "刚刚卖完！下次请早点来找它～", "它去度假了，先点别的陪陪你好吗？🏝️", "厨房说：这道菜今天「毕业」了 🎓"],
+      offEn: ["Snapped up! Even the chef is sad 🥹", "Too popular today — it clocked off early 😴", "Just sold out! Come earlier next time~", "It's on holiday — maybe try something else? 🏝️", "The kitchen says it has “graduated” for today 🎓"],
+      back: ["它回来啦！🎉", "补货成功，欢迎点我～", "厨师说：这次存货够你吃！"],
+      backEn: ["It's back! 🎉", "Restocked — order me~", "The chef says: plenty this time!"],
+    },
     /* 菜单最上面「招牌推荐」：写菜的编号（id），按顺序显示；没照片/时价的不显示。删掉这一行 = 自动用有「招牌」标签的菜。
        要加角标就写成 { id: "A001", badge: "明记六宝", badgeEn: "MK Six" } */
     featured: [
