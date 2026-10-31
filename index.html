@@ -2287,7 +2287,7 @@ async function myRcpt(ref){
   const wrap=(txt,font,maxW)=>{ x.font=font; const out=[]; let cur=""; for(const ch of Array.from(String(txt))){ if(x.measureText(cur+ch).width>maxW&&cur){ out.push(cur); cur=ch.trim()?ch:""; } else cur+=ch; } if(cur) out.push(cur); return out.length?out:[""]; };
   const F=(sz,w)=>`${w||400} ${sz}px ${sans}`;
   const when=new Date(o.at), dt=isNaN(when)?"":when.toLocaleString(lang==="en"?"en-MY":"zh-CN",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
-  const legal=(S.policies&&S.policies.legalName)||"", oo=outlets().find(z=>z.name===o.outlet);
+  const oo=outlets().find(z=>z.name===o.outlet), legal=(oo&&oo.legalName)||(S.policies&&S.policies.legalName)||"";
   const ops=[];   /* 先排版算高度，再画 */
   let y=P;
   const add=(fn,h)=>{ ops.push([fn,y]); y+=h; };

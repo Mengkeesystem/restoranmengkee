@@ -167,10 +167,10 @@ window.SITE = {
 
 
   /* ---------- 退款政策 & 隐私说明（policy.html 显示；网站页脚、购物车有链接）----------
-   * 2026-10-26 为申请付款网关而写。legalName：填公司正式名称 + SSM 号（例如 "XXX Sdn Bhd (2020XXXXXXXX)"），付款网关审核常要看；留空就不显示。
+   * 2026-10-26 为申请付款网关而写。legalName：填公司正式名称 + SSM 号（例如 "XXX Sdn Bhd (2020XXXXXXXX)"），付款网关审核常要看；留空就不显示。分店若有自己的公司（不同 SSM），在 outlets 那间分店加 legalName 就会盖过这里（目前只影响电子收据；退款政策页面和页脚永远显示这里的）。
    * 改了退款规则（例如几小时内投诉、几天退款）记得同步改这里，并更新 updated 日期。 */
   policies: {
-    "legalName": "",
+    "legalName": "TCY Food Management Sdn Bhd (1333819-V)",
     "updated": "2026-10-31",
     "refund": {
       "title": "退款及取消政策",
