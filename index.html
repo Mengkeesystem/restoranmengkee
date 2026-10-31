@@ -829,6 +829,8 @@ footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padd
 .fadd{width:40px;height:40px}
 @media(max-width:400px){.custft .btn{font-size:14.5px;white-space:nowrap;padding:12px 6px}}
 @media(max-width:560px){.mnav{width:40px;height:56px}}
+.errfield{border-color:var(--p)!important;border-left-color:var(--p)!important;box-shadow:0 0 0 3px rgba(180,35,42,.2)!important;animation:errShake .35s ease}
+@keyframes errShake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 </style>
 </head>
 <body>
@@ -2051,7 +2053,11 @@ function renderDrawer(){
     if(isClosedNow()&&isDel()){ showClosedPop(); return; }   /* 打烊时随便看、加菜、看外送价都可以，按下单才挡（外送）；自取照常可预约明天以后 */
     if(isClosedNow()&&$("od_date")&&$("od_date").value===ymd(new Date())){ $("od_err").textContent=t("cpTodayNo"); return; }
     const err = !Object.keys(cart).length?t("needItems"):(S.policies&&!odAgree)?t("needAgree"):allFar?t("farNone").replace("{max}",delRadius()):(oi==="")?t("needOutlet"):(isDel()&&outlets().length&&!delOK(oi))?t("delNotHere").replace("{o}",delOutletNames()):!name?t("needName"):!phoneOk(phone)?t("needPhone"):(isDel()&&!delOpenState().ok)?delClosedMsg(delOpenState()):(isDel()&&!mapFail&&!delGeo)?t("needConfirmAddr"):(isDel()&&delGeo&&geoKm(oi)==null&&!allFar)?t(routeBusy?"routeCalc":"routeFail"):(isDel()&&addr.length<8)?t("needAddr"):(isDel()&&delFar!=null)?t("geoTooFar").replace("{km}",delFar.toFixed(1)).replace("{max}",delRadius()):(isDel()&&!delZoneObj())?t("pickZone"):(isDel()&&delZoneObj().perKm&&!delAuto)?t("needGeoKm"):(isDel()&&dqState()==="busy")?t("dqCalc"):(isDel()&&dqBlocked())?t("dqFail"):(isDel()&&D.minOrder&&net<D.minOrder)?t("delMin").replace("{x}",money(D.minOrder)):(!isDel()&&(!date||!time))?t("needTime"):"";
-    $("od_err").textContent=err; if(err) return;
+    $("od_err").textContent=err;
+    if(err){ /* 有问题的栏位：滚到中间 + 红框闪一下（购物车很长，底下的红字旁边看不到栏位） */
+      const fm={[t("needName")]:"od_name",[t("needPhone")]:"od_phone",[t("needOutlet")]:"od_outlet",[t("needAddr")]:"od_addr",[t("needConfirmAddr")]:"od_addr",[t("needTime")]:"od_time",[t("cpTodayNo")]:"od_date"};
+      const el=fm[err]&&$(fm[err]); if(el){ try{ el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} el.classList.add("errfield"); setTimeout(()=>el.classList.remove("errfield"),2600); }
+      return; }
     store.set("site_guest",{name,phone,outlet:oi,addr}); saveOdDraft();
     const pi=payInfo(oi);
     const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)}${custLabel(k,true)} x${q} = ${money(priceFor(it,si)*q)}`;});
