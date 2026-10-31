@@ -115,6 +115,7 @@ nav.links a:hover{background:#F6EADB}
 @media(max-width:900px){.olist{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.olist{grid-template-columns:1fr}}
 .olist.one{grid-template-columns:minmax(0,340px);justify-content:center}
+@media(min-width:561px){.olist.one{justify-content:start}}
 .outlet{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 14px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px}
 .outlet h3{margin:0;font-size:17px;color:var(--p)}
 /* 手机：只显示前 3 间，其余按箭头展开 */
@@ -694,6 +695,38 @@ footer a{color:#fff}
 .item h4{letter-spacing:.3px}
 .item .tt{background:rgba(242,180,23,.1);color:#7a5a2a;padding:3px 8px;border-radius:var(--rs);display:inline-block;align-self:flex-start}
 .fcard{border-top:3px solid var(--a)}
+
+/* ===== 2026-10-31 现代风格：订位 + 门店地址 ===== */
+.region{display:flex;align-items:center;justify-content:flex-start;gap:12px;text-align:left;letter-spacing:.5px;font-family:var(--serif);font-size:21px;margin:34px 0 16px}
+.region::before{content:"";width:4px;height:22px;background:var(--a)}
+.region small{display:inline-block;margin:0;background:rgba(180,35,42,.08);color:var(--p);padding:2px 10px;border-radius:var(--rs);font-size:12.5px;font-weight:700}
+.region.rv,.region.rv.seen{letter-spacing:.5px}
+#outlets h2,#outlets .sub{text-align:center}
+.outlet{text-align:left;align-items:stretch;gap:8px;padding:18px 16px 16px;border-top:3px solid var(--a);border-left:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10);transition:transform .2s,box-shadow .2s}
+.outlet:hover{transform:translateY(-3px);box-shadow:4px 7px 0 rgba(180,35,42,.16)}
+.outlet .otop{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.oi{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(180,35,42,.09);color:var(--p);border-radius:var(--rs)}
+.oi svg{width:24px;height:24px}
+.outlet h3{font-size:17px;line-height:1.3}
+.outlet .osvc{align-self:flex-start;margin:0}
+.outlet .ln,.outlet .ad{display:flex;gap:8px;align-items:flex-start;text-align:left;line-height:1.5}
+.outlet .ln i,.outlet .ad i{flex:none;width:16px;height:16px;margin-top:3px;color:var(--p);display:block}
+.outlet .ln i svg,.outlet .ad i svg{width:16px;height:16px}
+.outlet .acts{justify-content:flex-start;border-top:1px dashed var(--line);margin-top:auto;padding-top:12px}
+.outlet .acts a{border:1px solid var(--line);background:#fff;color:var(--tx);font-weight:700;border-radius:var(--rs)}
+.outlet .acts a:hover{border-color:var(--p);color:var(--p)}
+.outlet .acts a.wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.4);color:#1a8a46}
+/* booking */
+#booking{background:#fff!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.bookcard{border-top:3px solid var(--a);box-shadow:3px 3px 0 rgba(180,35,42,.10);padding:26px 24px 24px;background:var(--bg)}
+.bkhead{display:none}
+.bookcard .form{gap:16px}
+.bookcard .form label{font-size:12.5px;letter-spacing:1px;color:var(--mut);text-transform:uppercase;margin-bottom:6px}
+.bookcard .form input,.bookcard .form select{border:1px solid var(--line);background:#fff;min-height:48px;transition:border-color .2s,box-shadow .2s}
+.bookcard .form input:focus,.bookcard .form select:focus{outline:0;border-color:var(--p);box-shadow:0 0 0 3px rgba(180,35,42,.12)}
+.bookcard .form .note{margin-top:6px}
+#bk_send{width:100%;min-height:54px;font-size:16px;letter-spacing:1px}
+@media(max-width:560px){.bookcard{padding:20px 14px}}
 </style>
 </head>
 <body>
@@ -714,7 +747,7 @@ footer a{color:#fff}
   <section id="gallerySec" style="background:#FBF1E4" hidden><div class="wrap"><div class="gal" id="gallery"></div></div></section>
   <section id="promos" hidden><div class="wrap"><h2 data-t="promosT"></h2><p class="sub" data-t="promosS"></p><div id="voucherBox"></div><div class="promos" id="promoList"></div></div></section>
   <section id="menu"><div class="wrap"><h2 data-t="menuT"></h2><p class="sub" data-t="menuS"></p><p class="sstnote" id="menuSst" hidden></p><div id="featured"></div><div id="menuPhotos"></div><div class="cats" id="cats"></div><div id="menuList"></div></div></section>
-  <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card"><div class="form" id="bookForm"></div></div></div></section>
+  <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card bookcard"><div class="form" id="bookForm"></div></div></div></section>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
     <div><h2 data-t="hoursT"></h2><table class="hrs" id="hours"></table></div>
@@ -1081,14 +1114,14 @@ function renderOutlets(){
   const os=outlets(); $("outlets").hidden=!os.length; if(!os.length) return;
   const groups=[]; os.forEach(o=>{ let g=groups.find(x=>x.region===(o.region||"")); if(!g){g={region:o.region||"",regionEn:o.regionEn,items:[]};groups.push(g);} g.items.push(o); });
   const SHOW=3;  // 手机版每个区域只显示前 3 间，其余按箭头展开（每区各自独立）
-  $("outletList").innerHTML = groups.map(g=>{ const many=g.items.length>SHOW; return `<div class="ogrp">${g.region?`<h3 class="region">❖ ${esc(L(g,"region"))} ❖<small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
+  $("outletList").innerHTML = groups.map(g=>{ const many=g.items.length>SHOW; return `<div class="ogrp">${g.region?`<h3 class="region"><span>${esc(L(g,"region"))}</span><small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
     <div class="olist${g.items.length===1?" one":""}">${g.items.map((o,k)=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet${k>=SHOW?" more":""}">
-      <h3>${esc(outletLabel(o))}</h3>
+      <div class="otop"><span class="oi">${SP_SVG.pin}</span><h3>${esc(outletLabel(o))}</h3></div>
       ${delOutletsOn()&&DEL()?`<div class="osvc${o.delivery===true?" del":""}">${o.delivery===true?"🛵 "+esc(t("svcDel")):"🛍️ "+esc(t("pickupOnly"))}</div>`:""}
-      ${o.hours?`<div class="ln">🕐 ${esc(o.hours)}</div>`:""}
-      ${o.phone?`<div class="ln">📞 ${esc(o.phone)}</div>`:""}
-      <div class="ad">📍 ${esc(o.address)}</div>
-      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">📍 Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze||(hasLL(o)?`https://waze.com/ul?ll=${o.lat},${o.lng}&navigate=yes`:"")))}" target="_blank" rel="noopener">🚗 Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}</div>
+      ${o.hours?`<div class="ln"><i>${SP_SVG.clockS}</i>${esc(o.hours)}</div>`:""}
+      ${o.phone?`<div class="ln"><i>${SP_SVG.phone}</i>${esc(o.phone)}</div>`:""}
+      <div class="ad"><i>${SP_SVG.pin}</i>${esc(o.address)}</div>
+      <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze||(hasLL(o)?`https://waze.com/ul?ll=${o.lat},${o.lng}&navigate=yes`:"")))}" target="_blank" rel="noopener">Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp</a>`:""}</div>
     </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
   document.querySelectorAll("#outletList .omore").forEach(b=>b.addEventListener("click",()=>toggleOutlets(b)));
   revealOutlets();
@@ -2012,6 +2045,11 @@ function hpPreconnect(){   /* 先跟后台和 HitPay 付款页建好连线（只
 /* 付款方式组别（config payment.methods）：key 只认字母，客人选的会传给后台，HitPay 付款页只显示那几种 */
 /* 付款方式的线条图标（2026-10-31 业主：要现代化，不用 emoji）；config methods 的 icon 写 qr/wallet/bank/card */
 const SP_SVG = {
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
+  clockS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  cal2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>',
   gift:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8c-2-4-6-3.5-5 0M12 8c2-4 6-3.5 5 0"/></svg>',
