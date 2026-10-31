@@ -1,0 +1,11 @@
+import {ENV,call,addOrder,HP,sign} from "./harness.mjs";
+const ok=(c,m)=>console.log((c?"✅ ":"❌ ")+m);
+ENV.WEB_HITPAY_API_KEY_0="okrkey"; ENV.WEB_HITPAY_WEBHOOK_SALT_0="okrsalt";
+const tail="\n\n姓名: x";
+const a=addOrder({ref:"MK1030-2001",outlet:"OKR",order_type:"pickup",customer_phone:"0123",amount:80.56,message:"x"+tail});
+await call({action:"pay",ref:a.ref,token:a.token,oi:0,cart:{"A001|0|0":2}}); ok(HP.calls.at(-1).key==="okrkey"&&a.pay_acct==="0","OKR → 用 OKR 自己的账号");
+const b=addOrder({ref:"MK1030-2002",outlet:"Kelana Jaya (PJ)",order_type:"pickup",customer_phone:"0123",amount:80.56,message:"x"+tail});
+await call({action:"pay",ref:b.ref,token:b.token,oi:2,cart:{"A001|0|0":2}}); ok(HP.calls.at(-1).key==="hpkey"&&b.pay_acct==="d","PJ → 用共用账号");
+Object.assign(HP.reqs[a.pay_id],{status:"completed",amount:"80.56",currency:"MYR"}); const raw=JSON.stringify({id:a.pay_id});
+let r=await call(raw,{"hitpay-signature":sign(raw,"whsalt")},"?a=d"); ok(a.status==="pending","OKR 的单用共用账号的 salt/网址 → 不认");
+r=await call(raw,{"hitpay-signature":sign(raw,"okrsalt")},"?a=0"); ok(a.status==="paid"&&HP.calls.at(-1).key==="okrkey","OKR 的单用 OKR 的 salt → 已收款，查证也用 OKR 的 key");

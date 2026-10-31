@@ -3,6 +3,50 @@
 本仓库是 **明记家乡小食店** 的对外官方网站（客人看的），**不是** ERP。ERP 在另一个仓库，两者完全分开：
 网站不连 Supabase、不需要登录、不存任何客人资料。
 
+## 🔑 交接总览（2026-10-31 写；换 Claude 账号/新对话时**先读这一段**，下面的长文是按日期追加的历史记录）
+> ⚠️ 下面很多章节标题还写「待办」「未启用」，其实**已经做完/已启用**——以这个总览为准；细节要查再往下翻。仓库是**公开**的：绝不能写入 service_role、API Key/Secret/Salt、业主邮箱、Customer ID（这些只放 Supabase Secrets）。
+
+### 这是什么
+- **明记家乡小食店**对外官网（客人看的），仓库 `Mengkeesystem/restoranmengkee`（GitHub Pages，**直接推 `main` 就上线**，不开分支不开 PR），域名 **https://restoranmengkee.com.my**（Exabytes DNS）。纯静态：`index.html`（程序）+ `config.js`（全部内容）+ `images/`；员工后台 `admin.html`（PWA，可安装成 App）；退款/隐私页 `policy.html`；`check.html` 只转到后台每月总结。
+- 业主同时有 ERP（`Mengkeesystem/ERP-testing-1.0` 是明记的、`BeefHouse_ERP_1.0` 是牛室的）。**官网只用明记 ERP 的 Supabase 项目（`kmcdokwiyetlmsrdlgqw`）里 `web_*` 开头的东西，绝不碰牛室的项目**。官网以后可能复制给牛室（见最底「复制给牛室」）。
+- 公司：**TCY Food Management Sdn Bhd (1333819-V)**（OKR 的公司，已填 `policies.legalName`；其他分店不同公司，见下面「分店 HitPay」）。11 间分店（雪隆 10 + 芙蓉 1），3 间做外送（OKR、OKR Scott Garden 对面、Kelana Jaya PJ），其余只限自取。
+
+### 怎么跟业主合作（很重要）
+- **全部用中文回复**，白话、短句；先说结果再说细节；不要堆术语。业主常给手机截图，照图改。
+- 改完 **一定先用 Playwright 在 393 宽（手机）+ 1280 宽（电脑）截图自己看**，再推；下单相关改动要跑 `tests/`（见 tests/README.md）。
+- 流程：`git pull -q origin main` → 改 → 测 → 更新本文件（按日期追加一条，说明改了什么、为什么）→ `git add -A && git commit`（**中文提交信息**，结尾加系统给的 Co-Authored-By / Claude-Session 两行）→ `git push origin main`。
+- **改了 Edge Function（`supabase/functions/*`）**：要告诉业主重新部署，给他固定到该 commit 的 raw 链接（`https://raw.githubusercontent.com/Mengkeesystem/restoranmengkee/<commit>/supabase/functions/<名>/index.ts`），并说明函数里 `VERSION` 要变成什么。**改了 `supabase/*.sql`**：业主要去 Supabase SQL Editor 手动跑，只推 GitHub 不会同步。
+- 业主不要的东西（别再加回来）：月亮图案（打烊用 Zzz）、客人看到「Delyva」字样、QR 付款/WhatsApp 下单流程、圆角药丸（设计风格 = 红金棱角 `--r:3px`）。
+- 改 CSS 的习惯：近期的现代风格都是**追加在 `index.html` 的 `</style>` 前面**（带日期注释的几大段），同一元件有旧规则时注意特异性（例如 `.bookcard .form input` 比 `.form input` 高，要各写一份）。
+
+### 现在线上有什么（都已实测）
+网上点餐（自取+外送）→ 服务器重算金额 → **HitPay** 付款（只显示 DuitNow/电子钱包/FPX/卡，DuitNow 优先；手续费店家吸收）→ webhook/查单确认 → 外送单**自动叫 Delyva 骑手** → 客人看订单进度（6 步，含预计送达）/「我的订单」/下载收据 → 员工后台（待确认/已收款/已完成/已拒绝、客人备注、付款方式/运费/手续费、每月总结+CSV、店员管理，分店经理只看自己分店）。另有：订位（转 WhatsApp，周末/公共假期不收）、多分店选择、Google 地图选送餐位置 + Google 路线路程 + Delyva 实时运费、打包盒/客制化备注、优惠码（哈希）、SST（Scott Garden 不收）、截单时段（服务器也挡）、版本/PWA、全站现代风格（手机/电脑已完整复查）。
+
+### 后端部件和状态（最后确认时间：2026-10-31）
+- **Supabase 项目** `kmcdokwiyetlmsrdlgqw`（明记 ERP 的，Pro 方案）。业主**已跑**：`schema.sql`、`delivery.sql`、`hitpay.sql`、`outlet-phones.sql`（3 间外送分店电话，已核对）。`staff.sql`（店员角色/分店经理只看自己分店）— 代码和后台都已按它写好，业主在 10-31 要求「做成 App + 分店经理」后依指示执行；**新账号接手时请让业主在后台「👥 店员」页确认能打开，打不开 = 没跑**。
+- **Edge Functions**（都要**关 Verify JWT**）：`web-hitpay`（VERSION 2026-10-31b）、`web-delyva`（VERSION 2026-10-31a）。业主回报过「部署好了」；可从员工后台页头看当前部署的版本是否对得上。
+- **Secrets（只写名字，值在 Supabase，绝不进仓库）**：`WEB_HITPAY_API_KEY` `WEB_HITPAY_WEBHOOK_SALT`（共用=OKR 的 HitPay 账号；分店自己的加 `_<序号>`）、`WEB_HITPAY_BASE`/`WEB_HITPAY_CURRENCY`（测试才设，正式 = 不设）、`WEB_SITE_URL`、`WEB_DELYVA_API_KEY` `WEB_DELYVA_CUSTOMER_ID` `WEB_DELYVA_COMPANY_CODE`（现在是 **trydx 测试账号**）`WEB_DELYVA_API_SECRET`（**还没有**）`WEB_DELYVA_SENDER_PHONE`，可选 `WEB_DELYVA_SORT/ONLY/EXCLUDE/MAXFEE/SERVICE`。
+- **Google Cloud**：一把 API key 填在 `config.js`（限制网址 + 4 个 API：Maps JavaScript / Places New / Geocoding / Routes）。
+- **HitPay**：马来西亚商家账号已通过，目前只有 OKR 一个正式账号。
+
+### 业主「上线前清单」状态（2026-10-31 业主给的 8 项）
+| # | 事项 | 状态 |
+|---|---|---|
+| 1 | Delyva 换正式账号 + API Secret | ⏳ 业主说「过后先」。要拿到正式 key/Customer ID/company code 覆盖 Secrets、补 **API Secret**（没有的话送达不会自动完成，正式账号会拒收 webhook）、再按一次「设定 Delyva 通知」 |
+| 2 | Scott Garden、PJ 开自己的 HitPay | ⏳ 过后。开好后加 `WEB_HITPAY_API_KEY_1/_2` + 各自 webhook（`?a=1`/`?a=2`）；并把那间分店的 `legalName` 加进 config、改 policy.html/页脚显示（见「公司名/SSM」那条） |
+| 3 | 换掉示例优惠活动（4 个是示例） | ⏳ 过后，等业主给真实活动（改 `config.js` 的 `promos`，可写 `icon: "clock/tag/gift/calendar"`） |
+| 4 | 公司正式名称和 SSM 号 | ✅ 已填 |
+| 5 | 更新隐私说明 | ✅ 已改成现在的做法 |
+| 6 | 3 间外送分店电话 | ✅ 11 间电话已进 config、3 间 SQL 已跑 |
+| 7 | 11 间店员都装好后台 App | ⏳ 业主的事（后台加店员：👥 店员页；iPhone 用 Safari 加到主画面） |
+| 8 | GitHub 账号双重验证 | ✅ 业主确认已开 |
+
+### 其他还没做/可能要做
+分店 WhatsApp 号码（业主只给了电话，没确认是不是 WhatsApp，没加）；真实照片（A010 等几道菜图糊/没图、白饭炒饭没图）；A007/A017 菜没放、A069 价钱暂估；Facebook 专页名；店内照片 `gallery`；LHDN e-Invoice（现在收据不是电子发票）；Shopee/Grab PayLater 等 HitPay 审核通过后可加进 `payment.methods`；牛室官网（照这套复制，见最底）。
+
+### 测试
+`tests/README.md`：`tests/hitpay/`（t1 要 31 个 ✅；e2e 金额网页/后台一致）、`tests/ui/`（手机/电脑巡检截图脚本）。一个 Bash 调用结束后本地 http.server 可能被杀，要在**同一条命令**里启动再测。
+
 ## 架构（2026-10-15 建立）
 - 纯静态：`index.html`（程序）+ `config.js`（全部内容，`window.SITE = {...}`）+ `images/`。无构建步骤，GitHub Pages 直接上线。
 - **内容与程序分离是刻意的设计**：换店 = 换 `config.js` + `images/`，`index.html` 不改。新增功能时要守住这条——任何店名、颜色、文字、链接都放 `config.js`，不要写死在 `index.html`。

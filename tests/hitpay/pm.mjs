@@ -1,0 +1,12 @@
+import {call,addOrder,HP} from "./harness.mjs";
+const ok=(c,m)=>console.log((c?"✅ ":"❌ ")+m);
+const tail="\n\n姓名: 测试\n电话: 0123456789";
+const mk=(n)=>addOrder({ref:"MK1031-400"+n,outlet:"OKR",order_type:"pickup",customer_phone:"012345678"+n,amount:80.56,message:"x"+tail});
+let o=mk(1); console.log(JSON.stringify((await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{"A001|0|0":2},pm:"duitnow"})).body));
+let body=HP.calls.at(-1).body; ok(/payment_methods%5B%5D=duitnow/.test(body)&&o.pay_url,"选 DuitNow → 只带 duitnow："+body.match(/payment_methods[^&]*/g));
+o=mk(2); await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{"A001|0|0":2},pm:"ewallet"});
+body=HP.calls.at(-1).body; ok((body.match(/payment_methods/g)||[]).length===3,"选电子钱包 → 3 种："+body.match(/payment_methods[^&]*/g).join(" "));
+o=mk(3); await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{"A001|0|0":2},pm:"evil&x=1"});
+body=HP.calls.at(-1).body; ok(!/payment_methods/.test(body)&&o.pay_url,"不认识的组别 → 不限方式（照常付款）");
+o=mk(4); await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{"A001|0|0":2}});
+ok(!/payment_methods/.test(HP.calls.at(-1).body),"没选 → 不限方式");

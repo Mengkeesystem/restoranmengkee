@@ -1,0 +1,11 @@
+import fs from "node:fs"; import path from "node:path"; import { createRequire } from "node:module";
+const {chromium}=createRequire(import.meta.url)("playwright"); const R="/home/user/restoranmengkee";
+const b=await chromium.launch(); const p=await (await b.newContext({viewport:{width:393,height:852},timezoneId:"Asia/Kuala_Lumpur"})).newPage();
+await p.clock.setFixedTime(new Date("2026-10-29T12:30:00+08:00")); const errs=[]; p.on("pageerror",e=>errs.push(e.message));
+await p.route("https://restoranmengkee.com.my/**",r=>{ let u=new URL(r.request().url()).pathname; if(u==="/") u="/index.html"; const f=path.join(R,decodeURIComponent(u)); fs.existsSync(f)?r.fulfill({path:f}):r.fulfill({status:404,body:""}); });
+await p.goto("https://restoranmengkee.com.my/"); await p.evaluate(()=>{ localStorage.setItem("site_otype",'"pickup"'); localStorage.setItem("site_outlet",'"0"'); localStorage.setItem("site_cart",JSON.stringify({"A001|0|0":1})); });
+await p.reload(); await p.waitForTimeout(600); await p.click("#cartBtn"); await p.waitForTimeout(800);
+const hint=await p.$eval(".paybox",e=>e.innerText.replace(/\s+/g," ")).catch(()=>"");
+await p.fill("#od_name","x"); await p.fill("#od_phone","0123456789"); await p.click("#od_send"); await p.waitForTimeout(400);
+const ps=await p.$eval("#paystep",e=>e.innerText.replace(/\s+/g," "));
+console.log((/扫码付款/.test(ps)&&!/HitPay/.test(ps+hint)?"✅":"❌")+" 一般网址：OKR 照旧显示 QR 付款："+ps.slice(0,80)); console.log(errs.length?"❌ "+errs:"✅ 没有 JS 错误"); await b.close();
