@@ -219,6 +219,7 @@
 - **电脑版复查（2026-10-31 业主要求）**：1024/1280/1440/1920 宽逐项测，无横向溢出、无破图、无 JS 错误，各区块/菜单展开/购物车（自取+外送）/下单都正常。找到 1 个小问题并修了：购物车很长，按「下单并付款」没填姓名/电话/分店/时间时，红字只出现在底部下单栏、栏位在上面看不到 → 现在会自动滚到有问题的栏位（放中间）+ 红框抖一下 2.6 秒（`.errfield`，对应 `needName/needPhone/needOutlet/needAddr/needConfirmAddr/needTime/cpTodayNo`）。
 - **隐私说明更新（2026-10-31，业主上线清单第 5 项）**：`policies.privacy`「与谁分享」改成现在的做法——本店订单系统（云端数据库、只有授权员工按分店看）、WhatsApp 只剩订位和联系、配送平台（不写 Delyva 名字）、付款平台 HitPay（银行卡/网银资料只给 HitPay 和银行、我们不看不存）、地图只写 Google 地图（OpenStreetMap 已拿掉）；「收集什么」加订单备注、付款方式；`updated` 改 2026-10-31。⚠️ 以后换付款平台/配送平台/地图，这段要再改。**`legalName` 还没填**（清单第 4 项，等业主给公司正式名称 + SSM 号）。
 - **公司名/SSM 已填（2026-10-31，业主上线清单第 4 项）**：`policies.legalName` = 「TCY Food Management Sdn Bhd (1333819-V)」（业主说这是 **OKR** 的公司）。目前所有分店的网上付款都进 OKR 的 HitPay 户口，所以暂时全站（退款政策/隐私说明页面、页脚、电子收据）统一显示这个名字。以后 Scott Garden / PJ 开自己的 HitPay、公司不同时：在 `config.js` 那间分店加 `legalName: "…(SSM)"`——`myRcpt()` 已支持分店盖过全站（电子收据按订单分店显示），但 policy.html 页面和页脚仍只显示全站那个，到时要一起改。业主说清单其余项（Delyva 正式账号、其他分店 HitPay、换示例优惠、分店电话、店员装 App）「过后先」。
+- **11 间分店电话（2026-10-31 业主给 docx，上线清单第 6 项）**：`config.js` 每间分店加 `phone`；门店地址卡片的电话改成可点的 `tel:` 链接（`a.tel`，手机点一下就拨号）。**给 Delyva 骑手取餐联络用的 3 间外送分店电话要在 Supabase 另跑一次** `supabase/outlet-phones.sql`（`update web_outlets set phone … where idx=0/1/2`，可重复跑；web-delyva 取餐电话优先用 `web_outlets.phone`，没填才用 `WEB_DELYVA_SENDER_PHONE`）。分店的 WhatsApp 号码没加（业主只给了电话，不确定是不是 WhatsApp；要的话在分店加 `whatsapp` 栏）。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）

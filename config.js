@@ -72,21 +72,21 @@ window.SITE = {
   /* hitpay（2026-10-30）：payment.gateway = "hitpay" 时全部分店都用 HitPay；某间写 hitpay: false 就排除（那间暂停网上点餐）。
      HitPay 的 key 放在 Supabase 的 web-hitpay Secrets，不放这里（分店没有自己的账号就用共用账号）。 */
   outlets: [
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", phone: "017-2408981", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", phone: "018-6692638", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       payment: { qr: "images/pay/scott-duitnow.png", accountName: "RESTORAN MENG KEE SCOTT" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
+    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", phone: "018-7678897", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
       payment: { qr: "images/pay/pj-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "MK KELANA SB" } },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", lat: 3.0423, lng: 101.5835, address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", lat: 3.0163, lng: 101.4332, address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", lat: 2.9972, lng: 101.5312, address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", lat: 3.1251, lng: 101.4646, address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
-    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", lat: 2.6953, lng: 101.9067, address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", phone: "016-3932002", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", phone: "010-2700814", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", phone: "012-3058213", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", phone: "012-7136816", lat: 3.0423, lng: 101.5835, address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", phone: "016-3492011", lat: 3.0163, lng: 101.4332, address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", phone: "017-3755344", lat: 2.9972, lng: 101.5312, address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
+    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", phone: "017-8193918", lat: 3.1251, lng: 101.4646, address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
+    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", phone: "010-2699325", lat: 2.6953, lng: 101.9067, address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
   ],
 
   /* ---------- 品牌故事 ---------- */

@@ -831,6 +831,7 @@ footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padd
 @media(max-width:560px){.mnav{width:40px;height:56px}}
 .errfield{border-color:var(--p)!important;border-left-color:var(--p)!important;box-shadow:0 0 0 3px rgba(180,35,42,.2)!important;animation:errShake .35s ease}
 @keyframes errShake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.outlet .ln a.tel{color:inherit;text-decoration:none;font-weight:600}.outlet .ln a.tel:hover{color:var(--p);text-decoration:underline}
 </style>
 </head>
 <body>
@@ -1223,7 +1224,7 @@ function renderOutlets(){
       <div class="otop"><span class="oi">${SP_SVG.pin}</span><h3>${esc(outletLabel(o))}</h3></div>
       ${delOutletsOn()&&DEL()?`<div class="osvc${o.delivery===true?" del":""}">${o.delivery===true?"🛵 "+esc(t("svcDel")):"🛍️ "+esc(t("pickupOnly"))}</div>`:""}
       ${o.hours?`<div class="ln"><i>${SP_SVG.clockS}</i>${esc(o.hours)}</div>`:""}
-      ${o.phone?`<div class="ln"><i>${SP_SVG.phone}</i>${esc(o.phone)}</div>`:""}
+      ${o.phone?`<div class="ln"><i>${SP_SVG.phone}</i><a class="tel" href="tel:${esc(String(o.phone).replace(/[^\d+]/g,""))}">${esc(o.phone)}</a></div>`:""}
       <div class="ad"><i>${SP_SVG.pin}</i>${esc(o.address)}</div>
       <div class="acts"><a class="btn alt" href="${esc(outletMap(o))}" target="_blank" rel="noopener">Google Maps</a><a class="btn alt waze" href="${esc(wazeLink(o.address,o.waze||(hasLL(o)?`https://waze.com/ul?ll=${o.lat},${o.lng}&navigate=yes`:"")))}" target="_blank" rel="noopener">Waze</a>${wa?`<a class="btn wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp</a>`:""}</div>
     </div>`;}).join("")}</div>${many?`<button type="button" class="omore" aria-expanded="false" data-n="${g.items.length}"><span class="lbl">${esc(t("allOutlets").replace("{n}",g.items.length))}</span> <span class="arr">▾</span></button>`:""}</div>`;}).join("");
