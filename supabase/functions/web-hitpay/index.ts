@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-31a";
+const VERSION = "2026-10-31b";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -61,14 +61,16 @@ function account(oi: number | null) {
 }
 const accountById = (a: string) => a === "d" ? account(null) : /^\d{1,2}$/.test(a) && env(`WEB_HITPAY_API_KEY_${a}`) ? account(Number(a)) : null;
 
-async function hp(acct: { key: string }, method: string, path: string, form?: Record<string, string>) {
+const formBody = (f: Record<string, string | string[]>) => { const u = new URLSearchParams();
+  for (const [k, v] of Object.entries(f)) (Array.isArray(v) ? v : [v]).forEach((x) => u.append(k, x)); return u.toString(); };
+async function hp(acct: { key: string }, method: string, path: string, form?: Record<string, string | string[]>) {
   let r: Response;
   try {
     r = await fetch(HP_BASE + path, {
       method,
       headers: { "X-BUSINESS-API-KEY": acct.key, "X-Requested-With": "XMLHttpRequest", Accept: "application/json",
         ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}) },
-      body: form ? new URLSearchParams(form).toString() : undefined,
+      body: form ? formBody(form) : undefined,
     });
   } catch { throw new Error("HitPay 连不上"); }
   let j: any = null;
@@ -275,11 +277,20 @@ async function pay(req: Request, b: any) {
   if (del && o.dest && Number(o.dest.items) !== P.count) throw new UserError("订单份数对不上，请重新下单");
 
   const message = `${P.head}\n\n${tailOf(String(o.message))}\n付款方式: HitPay 网上付款 · 参考号 ${o.ref}`.slice(0, 5900);
-  const reqHp = await hp(acct, "POST", "/v1/payment-requests", {
+  const form: Record<string, string | string[]> = {
     amount: P.total.toFixed(2), currency: HP_CUR, reference_number: o.ref,
     purpose: `Restoran Meng Kee ${o.ref}`.slice(0, 100), name: String(o.customer_name || "").slice(0, 60),
     redirect_url: `${SITE_URL}/?hp=${encodeURIComponent(o.ref)}`, allow_repeated_payments: "false", send_email: "false",
-  });
+  };
+  // 客人在网站选的付款方式（2026-10-31：先推 DuitNow 等手续费低的）：只认 config.js payment.methods 里的组别，代码只准字母/底线
+  const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
+  const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
+  let reqHp: any;
+  if (codes.length) {
+    try { reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
+    catch (e) { console.log(`pay ${o.ref} methods ${codes.join(",")} refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }   // 账号没开这个方式：改成全部方式
+  }
+  if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
   const url = String(reqHp?.url || ""), id = String(reqHp?.id || "");
   if (!HPID_RE.test(id) || !hpUrlOk(url)) {
     let host = ""; try { host = new URL(url).hostname; } catch { /* */ }

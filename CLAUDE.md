@@ -189,6 +189,12 @@
   - 客人端文字：运费报价中「正在计算运费…」、报不到价「暂时算不到运费…」；购物车运费、订单讯息「运费: RM x」不再写「(Delyva · 服务名)」（`delFeeTag`/`delFeeMsgTag` 报价成功回空字串，空就不加括号）；web-hitpay 重写讯息时 feeTag 也空（运费跟客人看到的不同时只写 Logs）。⚠️ 客人按「📍 查看骑手位置」打开的是 Delyva 自己的追踪页（trydx/公司代码.delyva.app），那页会显示 Delyva，我们控制不了。
   - **paid_pending 误报**：业主实测外送单 MK1031-6686 已付款、已送达，后台却显示「HitPay 显示客人已付款，但订单状态是 paid…（paid_pending）」。原因：HitPay webhook 和客人网页的 check 同时确认，一边先设成 paid，另一边条件更新没改到，却拿手上旧的 `o.status`（pending）写了 `pay_status=paid_pending`。修：没改到时**重新读一次订单**，只有真的是 rejected 才标 `paid_rejected`，已经 paid 就不动。admin.html 的警告也改成只在 `mismatch` 或（`paid_*` 且订单不是 paid）时显示，所以那张旧单的误报刷新后就消失。已用模拟同时确认测过。
   - 业主要重新部署 web-hitpay（不用跑 SQL）。
+- **后台看客人备注 + 付款方式/手续费栏 + 完成提示自动淡出 + 先推 DuitNow（2026-10-31 业主，web-hitpay 2026-10-31b）**：
+  - admin.html 每张单在「订单内容」上面多一个黄框「📝 客人备注」（`custNotes`/`notesHTML`）：整单的「备注 / 配送说明（Remarks / Delivery instructions）」大字 + 每道菜的口味要求（讯息里菜名后 `[ ]` 那段）。CSV 多「备注」栏。
+  - 每月总结订单列表在「金额」和「状态」中间加「付款 · 运费 · 手续费」：例如「DuitNow · 运费 RM 5.00 · 手续费 RM 0.58 (1.2%)」（`payCell`；运费 = 向客人收的运费、从讯息「运费:」那行读；% = 手续费 ÷ 订单金额）；CSV 多「付款方式 / 手续费 / 手续费%」。订单卡片的手续费也带 %。总结读的栏位加了 `pay_method`。
+  - 客人左下角「订单已完成」提示：完成后 1 分钟自己用 3 秒淡出（`.trkchip.fade`、`trkFadeT`），然后不再追踪；进度视窗开着就等关掉再算。
+  - **付款方式选择**（HitPay 付款页的排序我们改不了，但建付款单时可以用 `payment_methods[]` 限定只显示哪几种）：config `payment.methods` 组别（DuitNow QR = `duitnow`，大按钮 + 「推荐」；电子钱包 = `touch_n_go`/`grabpay_direct`/`shopee_pay`；FPX = `fpx`；信用卡/借记卡 = `card` 放最下面小字）。付款视窗改成「选择付款方式」列表，按哪个就带 `pm` 给 web-hitpay，服务器只认 config 里的组别，HitPay 付款页就只显示那几种；HitPay 不接受（账号没开那个方式）就自动改成全部方式，客人照样能付（Logs 会写）。同一张单只建一次付款单，所以「继续付款」还是同一种方式。
+  - 业主要重新部署 web-hitpay（不用跑 SQL）。⚠️ 确认 HitPay 后台 Payment Methods 有开 DuitNow，不然选 DuitNow 会退回显示全部方式。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
