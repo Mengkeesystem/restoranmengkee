@@ -465,7 +465,7 @@ window.SITE = {
       note: "",
       noteEn: "",
     },
-    priceNote: "以上价格未含 6% 服务税（SST），结账时另计；OKR（Scott Garden 对面）分店免收 SST。", priceNoteEn: "Prices exclude 6% SST, which is added at checkout. No SST is charged at OKR (opposite Scott Garden).",   // 2026-10-28 业主
+    priceNote: "以上价格未含 6% 服务税（SST），结账时另计。", priceNoteEn: "Prices exclude 6% SST, which is added at checkout.",   // 2026-10-28 业主
     /* 打包盒（2026-10-26 业主）：自取、外送每份都加，一律 RM1；鱼类（松鱼头/金凤鱼/鱼类）分类设 box: 3；单道菜可用 box 覆盖（如加咸鱼 box: 0） */
     packaging: { fee: 1, label: "打包盒", labelEn: "Takeaway box" },
     /* 客人按「+」时跳出的客制化选项（2026-10-26 业主）；分类写 customize: false 就不跳（饮料） */
