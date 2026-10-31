@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-31d";
+const VERSION = "2026-10-31e";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -302,7 +302,7 @@ async function pay(req: Request, b: any) {
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
   let reqHp: any;
   if (codes.length) {
-    try { reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
+    try { if (codes.length) reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
     catch (e) { console.log(`pay ${o.ref} methods ${codes.join(",")} refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }   // 账号没开这个方式：改成全部方式
   }
   if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
@@ -326,6 +326,7 @@ async function dropRequest(o: any): Promise<boolean> {
   } catch (e) { console.log(`drop ${o.ref} ${o.pay_id} failed: ${String((e as Error).message).slice(0, 160)}`); return false; }
 }
 async function repay(o: any, S: any, b: any) {
+  b = { ...b };
   const r = await confirmFromHitPay(o, "repay");   // 先看看是不是其实已经付了
   if (r.status === "paid") return { ok: true, paid: true };
   if (r.pay === "mismatch") throw new UserError("付款资料需要人工核对，请联系店家");
@@ -335,20 +336,29 @@ async function repay(o: any, S: any, b: any) {
       const q = await delyvaFee(o, String(b.qaddr || "").slice(0, 300));
       if (!q) throw new UserError("暂时拿不到外送运费，请稍后再试，或取消订单后重新下单");
       if (q.fee - claimed > FEE_TOL + 1e-9) throw new UserError(`外送运费有变动（现在是 ${money(S, q.fee)}），请取消这笔订单后重新下单`);
+      if (q.fee - claimed > 0.005) {   // 涨得不多（容许范围内）→ 金额跟着 Delyva 新运费；变便宜 → 照原金额收
+        const diff = r2(q.fee - claimed), newAmt = r2(Number(o.amount) + diff);
+        if (o.pay_id && !(await dropRequest(o))) throw new UserError("运费有变动但旧付款单暂时作废不了，请稍后再试，或取消订单后重新下单");
+        let msg = String(o.message || "").replace(/运费:\s*RM\s*[\d.]+/, `运费: ${money(S, q.fee)}`).replace(/合计:\s*RM\s*[\d.]+/, `合计: ${money(S, newAmt)}`);
+        await patch(o.id, { amount: newAmt, message: msg }, "&status=eq.pending");
+        o = { ...o, amount: newAmt, message: msg };
+        console.log(`repay ${o.ref} fee ${claimed} -> ${q.fee}, amount -> ${newAmt}`);
+        b = { ...b, __forceNew: true };
+      }
     }
   }
   const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
-  if (!codes.length) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
+  if (!codes.length && !b.__forceNew) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
   const acct = accountById(String(o.pay_acct || "")); if (!acct) throw new Error("找不到这张单的 HitPay 账号设定");
-  if (!(await dropRequest(o))) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 旧付款单作废不了：照旧用旧的，免得重复付款
+  if (!b.__forceNew && !(await dropRequest(o))) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 旧付款单作废不了：照旧用旧的，免得重复付款
   const form: Record<string, string | string[]> = {
     amount: Number(o.amount).toFixed(2), currency: HP_CUR, reference_number: o.ref,
     purpose: `Restoran Meng Kee ${o.ref}`.slice(0, 100), name: String(o.customer_name || "").slice(0, 60),
     redirect_url: `${SITE_URL}/?hp=${encodeURIComponent(o.ref)}`, allow_repeated_payments: "false", send_email: "false",
   };
   let reqHp: any;
-  try { reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
+  try { if (codes.length) reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
   catch (e) { console.log(`repay ${o.ref} methods refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }
   if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
   const url = String(reqHp?.url || ""), id = String(reqHp?.id || "");

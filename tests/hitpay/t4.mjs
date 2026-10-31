@@ -36,6 +36,8 @@ DV.fee=9.5; let d1=del("MK1031-3011","9.50");
 // 手动给它一张付款单，模拟已经走过第一次 pay
 const id0=crypto.randomUUID(); HP.reqs[id0]={id:id0,status:"pending",amount:"49.78",url:"https://securecheckout.hit-pay.com/payment-request/@mk/"+id0+"/checkout"}; Object.assign(d1,{pay_provider:"hitpay",pay_acct:"d",pay_id:id0,pay_url:HP.reqs[id0].url,pay_status:"pending"});
 r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===200&&r.body.url,"外送：运费没变 → 继续付款可以");
-DV.fee=10.3; r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===200,"外送：运费涨 RM0.80（容许内）→ 可以");
+DV.fee=10.3; r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===200&&Math.abs(r.body.amount-50.58)<0.01&&Math.abs(Number(d1.amount)-50.58)<0.01&&/运费: RM 10\.30/.test(d1.message)&&/合计: RM 50\.58/.test(d1.message)&&!HP.reqs[id0]?.url?.includes("zzz")&&Object.values(HP.reqs).some(x=>Number(x.amount)===50.58),"外送：运费涨 RM0.80（容许内）→ 订单金额跟着变 50.58、讯息同步、新付款单金额 50.58");
+DV.fee=9.0; r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===200&&Math.abs(Number(d1.amount)-50.58)<0.01,"外送：运费变便宜 → 照原金额收（不变）");
+DV.fee=9.5; d1.message=d1.message.replace("RM 10.30","RM 9.50");
 DV.fee=11.0; r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===400&&/运费有变动/.test(r.body.error)&&/RM ?11/.test(r.body.error),"外送：运费涨 RM1.50 → 不让付，说现价，要重新下单："+(r.body.error||""));
 DV.ok=false; r=await call({action:"pay",ref:d1.ref,token:d1.token,oi:0,cart:{},pm:"fpx",repay:true}); ok(r.status===400&&/拿不到.*运费/.test(r.body.error),"外送：报不到价 → 不让付"); DV.ok=true;
