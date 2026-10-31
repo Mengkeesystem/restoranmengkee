@@ -6,6 +6,14 @@
 <meta name="robots" content="noindex,nofollow">
 <title>店员后台 · 付款确认</title>
 <link rel="icon" href="images/logo.png">
+<!-- 员工后台做成可安装的 App（2026-10-31）：Android「安装 App」、iPhone「加到主画面」 -->
+<link rel="manifest" href="admin.webmanifest">
+<meta name="theme-color" content="#B4232A">
+<link rel="apple-touch-icon" href="images/app-apple-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="明记后台">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
@@ -63,11 +71,24 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .sumsec{margin-bottom:16px}.sumsec h3{margin:0 0 8px;font-size:16px;color:var(--p)}
 .tbl{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.tbl th,.tbl td{border:1px solid var(--line);padding:6px 8px;text-align:left}.tbl th{background:#FFF6DA}.tbl td.n{text-align:right;white-space:nowrap}
 .tblw{overflow-x:auto}
+.role{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;margin-right:6px;border:1px solid var(--a);background:#FFF6DA;color:#7A4B00}
+.role.mgr{border-color:var(--line);background:#F3ECE4;color:var(--dk)}
+.stf{display:grid;gap:8px}
+.stf .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);padding:10px 12px}
+.stf .row b{flex:1 1 220px;word-break:break-all}
+.stf .row .outs{flex:1 1 100%;font-size:13px;color:var(--mut)}
+.ochk{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin:6px 0 10px}
+.ochk label{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;border:1px solid var(--line);padding:6px 8px;background:#fff;margin:0}
+.ochk input{width:auto;margin:0}
+.ibox{position:fixed;inset:0;z-index:50;background:rgba(20,11,8,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.ibox>div{background:#fff;max-width:380px;width:100%;border-top:4px solid var(--a);padding:18px;box-shadow:6px 6px 0 rgba(0,0,0,.3)}
+.ibox ol{padding-left:20px;margin:8px 0 14px;line-height:1.8}
+@media(max-width:560px){header{flex-wrap:wrap;padding:8px 12px;gap:6px}header b{font-size:15px}header img{height:30px}}
 .hint{background:#FFF6DA;border:1px solid var(--a);padding:10px 12px;font-size:14px;margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
+<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
 <div class="wrap" id="app"></div>
 
 <script>
@@ -81,12 +102,16 @@ const app = $("app");
 document.title = (S.name||"") + " · 店员后台";
 $("hTitle").textContent = (S.name||"") + " · 付款确认";
 
+if(!navigator.onLine && (!window.SITE || !window.supabase)){
+  app.innerHTML = `<div class="card" style="text-align:center"><h2 style="margin-top:0;color:var(--p)">📶 没有网络</h2><p>员工后台要连线才看得到订单。请打开 Wi-Fi 或流量后再开一次。</p><button class="btn" onclick="location.reload()">🔄 重新连线</button></div>`;
+  return;
+}
 if(!B.supabaseUrl || !B.supabaseAnonKey || !window.supabase){
   app.innerHTML = `<div class="card"><h2 style="margin-top:0;color:var(--p)">后台还没设定</h2><p>请先照 README「付款确认小后台」的步骤建好 Supabase 项目，并把网址和 anon key 填进 <code>config.js</code> 的 <code>backend</code>。</p></div>`;
   return;
 }
 const sb = window.supabase.createClient(B.supabaseUrl, B.supabaseAnonKey);
-let me=null, tab="pending", outletF="", orders=[], seen=new Set(), first=true, timer=null;
+let me=null, role="admin", myOutlets=[], tab="pending", outletF="", orders=[], seen=new Set(), first=true, timer=null;
 
 /* 提示音（新订单） */
 /* 新订单提示音：清脆的「叮～当」两声（像小铃铛，不刺耳）。
@@ -125,22 +150,30 @@ async function boot(){
   me=session.user;
   const {data:ok, error} = await sb.rpc("is_web_staff");
   if(error||!ok){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
-  $("hUser").textContent=me.email; $("logoutBtn").hidden=false;
-  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; loginView(); };
+  /* 角色（2026-10-31，staff.sql）：admin 看全部分店；manager 只看自己的分店（数据库 RLS 本来就挡着，这里只是让画面对得上）。还没跑 staff.sql 就当 admin */
+  { const r=await sb.rpc("web_staff_me"); const v=r.data;
+    if(!r.error&&v&&typeof v==="object"){ role=v.role==="manager"?"manager":"admin"; myOutlets=Array.isArray(v.outlets)?v.outlets.map(Number).filter(Number.isInteger):[]; }
+    else if(!r.error&&!v){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
+    else { role="admin"; myOutlets=[]; } }
+  const outs=S.outlets||[], mine=role==="admin"?outs:outs.filter((o,i)=>myOutlets.includes(i));
+  $("hUser").innerHTML=`<span class="role ${role==="admin"?"":"mgr"}">${role==="admin"?"管理员 · 全部分店":"分店经理 · "+esc(mine.map(o=>o.name).join("、")||"未指定")}</span>${esc(me.email)}`; $("logoutBtn").hidden=false;
+  $("staffBtn").hidden=role!=="admin"; $("staffBtn").onclick=()=>setView(view==="staff"?"orders":"staff");
+  if(role==="manager"&&mine.length===1){ outletF=mine[0].name; sumOutlet=mine[0].name; }
+  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
   app.innerHTML = `<div id="ordView"><div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
-    <div class="bar"><select id="of"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
-    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div>`;
-  $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="orders"?"summary":"orders");
+    <div class="bar"><select id="of">${mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:""}${mine.map(o=>`<option ${o.name===outletF?"selected":""}>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
+    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div>`;
+  $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="summary"?"orders":"summary");
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
   /* Delyva 连线状态：显示在提示音按钮旁边，方便排查（还没部署 web-delyva 就当没有外送功能） */
-  fn("status").then(r=>{ dcfg=r; if(r&&r.configured) $("dvBtn").hidden=false;
+  fn("status").then(r=>{ dcfg=r; if(r&&r.configured&&role==="admin") $("dvBtn").hidden=false;
       $("dvSt").textContent = r&&r.configured ? `🛵 Delyva 已连接（${r.company||"-"}${r.secret?"":"，未设 API Secret"} · 程序版本 ${r.version||"旧版"}）` : "🛵 Delyva：还没填 API Key / Customer ID"; render(); })
     .catch(e=>{ dcfg=null; $("dvSt").textContent="🛵 Delyva 未连接："+String(e.message||e).slice(0,80); });
   $("dvBtn").onclick=async()=>{ if(!confirm("在 Delyva 登记状态通知网址？（只需要做一次，换 key 后再做一次）")) return;
     try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
   $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
   await load(); timer=setInterval(load,5000);
-  if(location.hash==="#summary") setView("summary");
+  if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff");
 }
 
 async function load(){
@@ -277,14 +310,59 @@ function klMonth(d){ const k=new Date((d?new Date(d):new Date()).getTime()+8*360
 function klDay(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(0,10); }
 function klHM(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(11,16); }
 function setView(v){
-  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary";
-  $("viewBtn").textContent=v==="orders"?"📊 每月总结":"📋 回到订单";
-  history.replaceState(null,"",v==="summary"?"#summary":location.pathname+location.search);
+  if(v==="staff"&&role!=="admin") v="orders";
+  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary"; $("staffView").hidden=v!=="staff";
+  $("viewBtn").textContent=v==="summary"?"📋 回到订单":"📊 每月总结";
+  $("staffBtn").textContent=v==="staff"?"📋 回到订单":"👥 店员";
+  history.replaceState(null,"",v==="summary"?"#summary":v==="staff"?"#staff":location.pathname+location.search);
+  if(v==="staff") staffLoad();
   if(v==="summary"){ if(!sumMonth) sumMonth=klMonth(); renderSummaryShell(); loadSummary(); }
+}
+/* ---------- 店员管理（只有管理员看得到；数据库函数也只准管理员用） ---------- */
+let staffRows=null, staffEdit=null;
+async function staffLoad(){
+  const v=$("staffView"); v.innerHTML=`<div class="empty">读取中…</div>`;
+  const {data,error}=await sb.rpc("web_staff_list");
+  if(error){ v.innerHTML=`<div class="err">读不到店员名单：${esc(/web_staff_list|PGRST202|function/i.test(error.message)?"数据库还没跑 staff.sql":error.message)}</div>`; return; }
+  staffRows=(data||[]).filter(x=>x&&typeof x==="object"); staffDraw();
+}
+function staffDraw(){
+  const outs=S.outlets||[], v=$("staffView"), e=staffEdit;
+  const oname=list=>(list||[]).map(i=>outs[i]?outs[i].name:"#"+i).join("、");
+  v.innerHTML=`<div class="hint">👥 <b>管理员</b>看得到全部分店的订单和每月总结，也能在这里加人；<b>分店经理</b>只看得到自己分店的订单和销售。
+      新经理要先有登录账号（可以直接用他的明记 ERP 账号；没有的话在 Supabase → Authentication → Add user 建一个），再在这里加他的邮箱。</div>
+    <div class="card"><h3 style="margin-top:0">${e&&e.old?"修改店员":"➕ 加店员"}</h3>
+      <label>邮箱（他登录用的）</label><input id="sf_em" type="email" value="${esc(e?e.email:"")}" ${e&&e.old?"readonly":""} placeholder="manager@example.com">
+      <label>角色</label><select id="sf_role"><option value="manager" ${!e||e.role==="manager"?"selected":""}>分店经理（只看自己的分店）</option><option value="admin" ${e&&e.role==="admin"?"selected":""}>管理员（看全部分店）</option></select>
+      <div id="sf_outs" ${e&&e.role==="admin"?"hidden":""}><label>负责的分店（可以多选）</label><div class="ochk">${outs.map((o,i)=>`<label><input type="checkbox" value="${i}" ${e&&(e.outlets||[]).includes(i)?"checked":""}> ${esc(o.name)}</label>`).join("")}</div></div>
+      <label>备注（选填，例如名字）</label><input id="sf_note" maxlength="80" value="${esc(e?e.note||"":"")}" placeholder="例如：阿明 OKR 经理">
+      <div class="err" id="sf_err"></div>
+      <div class="bar"><button class="btn" id="sf_save">💾 保存</button>${e?`<button class="btn alt" id="sf_cancel">取消</button>`:""}</div></div>
+    <h3>现在的店员（${staffRows.length}）</h3>
+    <div class="stf">${staffRows.map(r=>`<div class="row"><b>${esc(r.email)}${r.me?" <span class='live'>(你)</span>":""}</b><span class="role ${r.role==="admin"?"":"mgr"}">${r.role==="admin"?"管理员":"分店经理"}</span>
+      ${r.me?"":`<button class="btn alt sm" data-ed="${esc(r.email)}">修改</button><button class="btn alt sm" data-del="${esc(r.email)}" style="color:var(--p)">移除</button>`}
+      <div class="outs">${r.role==="admin"?"全部分店":"分店："+esc(oname(r.outlets)||"—")}${r.note?" · "+esc(r.note):""}</div></div>`).join("")}</div>`;
+  $("sf_role").onchange=ev=>{ $("sf_outs").hidden=ev.target.value==="admin"; };
+  if($("sf_cancel")) $("sf_cancel").onclick=()=>{ staffEdit=null; staffDraw(); };
+  v.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>{ const r=staffRows.find(x=>x.email===b.dataset.ed); if(!r) return;
+    staffEdit={old:true,email:r.email,role:r.role,outlets:(r.outlets||[]).map(Number),note:r.note||""}; staffDraw(); window.scrollTo({top:0,behavior:"smooth"}); });
+  v.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{ if(!confirm(`移除 ${b.dataset.del}？\n他之后就不能再登录员工后台。`)) return;
+    const {error}=await sb.rpc("web_staff_delete",{p_email:b.dataset.del}); if(error){ alert("移除失败："+error.message); return; } staffEdit=null; staffLoad(); });
+  $("sf_save").onclick=async()=>{
+    const em=$("sf_em").value.trim().toLowerCase(), rl=$("sf_role").value, os=[...v.querySelectorAll(".ochk input:checked")].map(x=>+x.value), note=$("sf_note").value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ $("sf_err").textContent="请填正确的邮箱"; return; }
+    if(rl==="manager"&&!os.length){ $("sf_err").textContent="分店经理要至少选一间分店"; return; }
+    if(rl==="admin"&&!confirm(`把 ${em} 设成「管理员」？\n管理员看得到全部分店的销售，也能加/改/移除店员。`)) return;
+    $("sf_save").disabled=true;
+    const {error}=await sb.rpc("web_staff_save",{p_email:em,p_role:rl,p_outlets:os,p_note:note});
+    $("sf_save").disabled=false;
+    if(error){ $("sf_err").textContent="保存失败："+(/yourself/.test(error.message)?"不能修改自己的账号":error.message); return; }
+    staffEdit=null; staffLoad(); };
 }
 function renderSummaryShell(){
   $("sumView").innerHTML=`<div class="bar"><input type="month" id="smon" value="${esc(sumMonth)}" style="width:auto">
-      <select id="sout"><option value="">全部分店</option>${(S.outlets||[]).map(o=>`<option ${o.name===sumOutlet?"selected":""}>${esc(o.name)}</option>`).join("")}</select>
+      <select id="sout">${(()=>{ const outs=S.outlets||[], mine=role==="admin"?outs:outs.filter((o,i)=>myOutlets.includes(i));
+        return (mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:"")+mine.map(o=>`<option ${o.name===sumOutlet?"selected":""}>${esc(o.name)}</option>`).join(""); })()}</select>
       <button class="btn alt sm" id="sref">🔄 刷新</button><button class="btn sm" id="scsv">⬇ 导出 CSV</button></div>
     <div class="live" style="margin-bottom:10px">按吉隆坡时间的下单日期分月。营业额 = 已收款（含已完成）的订单金额；待确认、已拒绝的不算。随时打开都是最新的，不用等月底。</div>
     <div id="sbody"><div class="empty">读取中…</div></div>`;
@@ -364,6 +442,24 @@ function exportCsv(){
   a.href=u; a.download=`MengKee-${sumMonth}${sumOutlet?"-"+sumOutlet:""}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),30000);
 }
 
+/* ---------- 安装成 App（2026-10-31） ---------- */
+const standalone = () => (window.matchMedia&&matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true;
+let instEv=null;
+if("serviceWorker" in navigator) navigator.serviceWorker.register("admin-sw.js").catch(()=>{});
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); instEv=e; if(!standalone()) $("instBtn").hidden=false; });
+window.addEventListener("appinstalled",()=>{ $("instBtn").hidden=true; instEv=null; });
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+if(!standalone()&&isIOS) $("instBtn").hidden=false;   /* iPhone 没有安装按钮事件，按了显示步骤 */
+$("instBtn").onclick=async()=>{
+  if(instEv){ instEv.prompt(); try{ await instEv.userChoice; }catch(e){} instEv=null; $("instBtn").hidden=true; return; }
+  const d=document.createElement("div"); d.className="ibox";
+  d.innerHTML=`<div><h3 style="margin:0 0 6px;color:var(--p)">📲 安装员工后台 App</h3>
+    ${isIOS?`<b>iPhone / iPad（要用 Safari 打开）</b><ol><li>按下面的「分享」按钮 <b>⬆︎</b></li><li>往下找「<b>加到主画面</b>」</li><li>按右上角「<b>加入</b>」</li></ol>`
+      :`<b>Android（Chrome）</b><ol><li>按右上角「<b>⋮</b>」</li><li>选「<b>安装应用</b>」或「<b>加到主画面</b>」</li><li>按「<b>安装</b>」</li></ol>`}
+    <p class="live">装好后桌面会有「明记后台」的图标，点开就是全屏 App，不用再找网址。</p>
+    <button class="btn" style="width:100%">知道了</button></div>`;
+  d.onclick=ev=>{ if(ev.target===d||ev.target.tagName==="BUTTON") d.remove(); }; document.body.appendChild(d);
+};
 sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT") loginView(); });
 boot();
 })();

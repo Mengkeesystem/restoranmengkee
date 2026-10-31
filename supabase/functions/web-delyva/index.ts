@@ -28,7 +28,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-30a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-10-31a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -90,17 +90,28 @@ const trackUrl = (no: unknown) => no ? `https://${DCODE}.delyva.app/customer/str
 // ---------- 店员登录检查 ----------
 const isInternal = (req: Request) => !!SRK && sameKey(req.headers.get("authorization") || "", `Bearer ${SRK}`);   // web-hitpay 用 service role 呼叫（付款成功自动叫骑手、重新报价）
 const sameKey = (a: string, b: string) => { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
-async function staffEmail(req: Request): Promise<string | null> {
-  if (isInternal(req)) return "HitPay（系统自动）";
+// 店员身份 + 角色（2026-10-31：分店经理只能处理自己分店的单；还没跑 staff.sql 时全部当 admin）
+type Staff = { email: string; admin: boolean; outlets: number[] };
+async function staffInfo(req: Request): Promise<Staff | null> {
+  if (isInternal(req)) return { email: "HitPay（系统自动）", admin: true, outlets: [] };
   const auth = req.headers.get("authorization") || "";
-  if (!/^Bearer\s+ey/.test(auth)) return null;            // 只认登录后的 JWT，不认 publishable key
+  if (!/^Bearer\s+ey/.test(auth)) return null;
   const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: ANON || SRK, Authorization: auth } });
   if (!r.ok) return null;
   const u = await r.json();
   const email = String(u?.email || "").toLowerCase();
   if (!email) return null;
-  const staff: { email: string }[] = await db("web_staff?select=email");
-  return staff.some((s) => String(s.email).toLowerCase() === email) ? email : null;
+  let rows: any[];
+  try { rows = await db(`web_staff?select=email,role,outlets`); }
+  catch { rows = (await db(`web_staff?select=email`)).map((x: any) => ({ ...x, role: "admin" })); }
+  const s = rows.find((x) => String(x.email).toLowerCase() === email);
+  if (!s) return null;
+  return { email, admin: s.role !== "manager", outlets: Array.isArray(s.outlets) ? s.outlets.map(Number) : [] };
+}
+async function canTouch(st: Staff, id: number) {
+  if (st.admin) return true;
+  const o = await getOrder(id);
+  return !!o && Number.isInteger(o.outlet_idx) && st.outlets.includes(o.outlet_idx);
 }
 
 // ---------- Delyva ----------
@@ -339,10 +350,13 @@ Deno.serve(async (req) => {
     if (isHook) return await webhook(req, raw);
     let pb: any = {}; try { pb = JSON.parse(raw || "{}"); } catch { /* */ }
     if (pb && pb.action === "quote") return json(req, await publicQuote(req, pb));   // 客人报价不用登录
-    const by = await staffEmail(req);
-    if (!by) return json(req, { error: "请用店员账号登录" }, 401);
+    const st = await staffInfo(req);
+    if (!st) return json(req, { error: "请用店员账号登录" }, 401);
+    const by = st.email;
     let body: any = {}; try { body = JSON.parse(raw || "{}"); } catch { /* */ }
     const id = Number(body.id);
+    if (["dispatch", "cancel", "simulate"].includes(body.action) && !(await canTouch(st, id))) return json(req, { error: "这张单不是你负责的分店" }, 403);
+    if (body.action === "setup_webhook" && !st.admin) return json(req, { error: "只有管理员能设定" }, 403);
     if (body.action === "dispatch") return json(req, await dispatch(id, by));
     if (body.action === "cancel") return json(req, await cancel(id, by));
     if (body.action === "setup_webhook") return json(req, await setupWebhook());
