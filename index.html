@@ -673,6 +673,27 @@ footer a{color:#fff}
 .fab.show{display:inline-flex}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--dk);color:#fff;padding:10px 18px;border-radius:var(--rs);z-index:120;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
+
+/* ===== 2026-10-31 现代风格：区块分隔 + 菜单 ===== */
+#promos,#menu{position:relative}
+#promos{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+#promos::before,#menu::before{content:"";position:absolute;top:-6px;left:50%;width:11px;height:11px;margin-left:-5.5px;background:var(--a);transform:rotate(45deg);box-shadow:0 0 0 4px var(--bg)}
+#promos::before{box-shadow:0 0 0 4px #fff;display:none}
+#menu::before{box-shadow:0 0 0 4px var(--bg)}
+#promos .promo{background:var(--bg)}
+.storysec{border-bottom:1px solid var(--line)}
+.cats button{border-radius:var(--rs);background:#fff;box-shadow:0 1px 0 rgba(180,35,42,.08);transition:background .2s,color .2s,border-color .2s}
+.cats button:hover{border-color:var(--p);color:var(--p)}
+.cats button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.mcat{border-top:3px solid var(--a);border-left:1px solid var(--line)}
+.mname small{background:rgba(180,35,42,.08);color:var(--p);padding:1px 9px;border-radius:var(--rs);font-weight:700;font-size:12.5px}
+.chev{background:rgba(180,35,42,.09)}
+.item{transition:transform .2s,box-shadow .2s}
+.item:hover{transform:translateY(-2px)}
+.item .ph{background:rgba(180,35,42,.06)}
+.item h4{letter-spacing:.3px}
+.item .tt{background:rgba(242,180,23,.1);color:#7a5a2a;padding:3px 8px;border-radius:var(--rs);display:inline-block;align-self:flex-start}
+.fcard{border-top:3px solid var(--a)}
 </style>
 </head>
 <body>
