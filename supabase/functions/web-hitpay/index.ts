@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-30e";
+const VERSION = "2026-10-31a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -262,7 +262,8 @@ async function pay(req: Request, b: any) {
       const q = await delyvaFee(o, String(b.qaddr || "").slice(0, 300));
       if (!q) throw new UserError("暂时拿不到外送运费，请稍后再试，或改成到店自取");
       if (claimed < 0 || q.fee - claimed > FEE_TOL + 1e-9) throw new UserError(`外送运费有变动（现在是 ${money(S, q.fee)}），请重新下单`);
-      fee = claimed; feeTag = q.tag + (Math.abs(q.fee - claimed) > 0.005 ? ` · 现价 ${money(S, q.fee)}` : "");
+      fee = claimed; feeTag = "";   // 客人看得到这行（我的订单/收据），不写骑手公司名（2026-10-31 业主）
+      if (Math.abs(q.fee - claimed) > 0.005) console.log(`pay ${o.ref} fee: customer ${claimed} / now ${q.fee} (${q.tag})`);
     }
   }
   const P = await priceOrder(S, { cart: b.cart, notes: b.notes, voucher: b.voucher, del, oi, fee, feeTag });
@@ -310,9 +311,11 @@ async function confirmFromHitPay(o: any, via: string) {
   }
   const now = new Date().toISOString(), info = { pay_status: "completed", paid_at: now, paid_amount: amt, pay_method: method || null, pay_fees: fees || null };
   const rows = await patch(o.id, { ...info, status: "paid", confirmed_at: now, confirmed_by: "HitPay" }, "&status=eq.pending");
-  if (!rows?.length) {   // 已经处理过（webhook 和网页同时到），或店员先拒绝了
-    if (o.status !== "paid") await patch(o.id, { ...info, pay_status: `paid_${o.status}`.slice(0, 20) });
-    return { status: o.status === "paid" ? "paid" : o.status, pay: "completed" };
+  if (!rows?.length) {   // 没改到：webhook 和网页同时到、另一边已经设成已收款；或店员先拒绝了。重新读一次现在的状态再决定（不能用手上的旧资料）
+    const cur = await orderByRef(o.ref);
+    const st = String(cur?.status || o.status);
+    if (st === "rejected") await patch(o.id, { ...info, pay_status: "paid_rejected" });
+    return { status: st, pay: "completed" };
   }
   console.log(`paid ${o.ref} via ${via} ${amt} ${cur} ${method}`);
   if (o.order_type === "delivery") await autoDispatch(o.id);

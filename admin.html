@@ -205,7 +205,7 @@ const PAYM={card:"信用卡/借记卡",fpx:"FPX 网银",touch_n_go:"Touch 'n Go"
 function payHTML(o){
   if(!isHp(o)) return "";
   if(o.status==="pending") return `<div class="cour"><b>💳 HitPay：客人还没付款</b> <span class="mut">${o.pay_status&&o.pay_status!=="pending"?"（"+esc(o.pay_status)+"）":""}付款成功会自动变成「已收款」并响铃；不要先准备。超过 30 分钟没付可以按取消。</span></div>`;
-  const warn = o.pay_status&&/^paid_|mismatch/.test(o.pay_status);
+  const warn = o.pay_status==="mismatch" || (/^paid_/.test(o.pay_status||"") && o.status!=="paid");   /* 订单已经是已收款就不算问题（旧版 web-hitpay 同时确认时会误标 paid_pending） */
   return `<div class="cour"><b>💳 HitPay 已付款</b> · ${esc(PAYM[o.pay_method]||o.pay_method||"")}${o.paid_amount!=null?` · ${money(o.paid_amount)}`:""}${o.pay_fees!=null?` <span class="mut">（手续费 ${money(o.pay_fees)}）</span>`:""}
     ${warn?`<div class="err" style="margin-top:6px">⚠️ HitPay 显示客人已付款，但订单状态是「${esc(o.status==="rejected"?"已拒绝":o.status)}」或金额对不上（${esc(o.pay_status)}），请到 HitPay 后台核对，需要时退款。</div>`:""}</div>`;
 }

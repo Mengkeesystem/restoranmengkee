@@ -185,6 +185,10 @@
   - **web-delyva 2026-10-31a**：`staffInfo()` 取角色；经理只能对自己分店的单叫骑手/取消/模拟（别的分店 403，而且不会把错误写进那张单）；「设定 Delyva 通知」只有管理员。还没跑 staff.sql 时全部当管理员（照旧）。
   - **admin.html**：开页问 `web_staff_me`，页头显示「管理员 · 全部分店」或「分店经理 · OKR」；经理的分店筛选/每月总结只列自己的分店（只有一间就直接选好）；Delyva 设定按钮只给管理员。管理员多一个「👥 店员」页（`#staff`）：加店员（邮箱 + 角色 + 勾选分店 + 备注）、修改、移除；设成管理员会再确认一次。经理要先有 Supabase 登录账号（可直接用他的明记 ERP 账号，同一个项目；没有就 Authentication → Add user），再在这页加邮箱。
   - 业主要做：SQL Editor 跑 `staff.sql`、重新部署 web-delyva（不用改 Secrets）。
+- **客人看不到「Delyva」+ 修 paid_pending 误报（2026-10-31 业主，web-hitpay 2026-10-31a）**：
+  - 客人端文字：运费报价中「正在计算运费…」、报不到价「暂时算不到运费…」；购物车运费、订单讯息「运费: RM x」不再写「(Delyva · 服务名)」（`delFeeTag`/`delFeeMsgTag` 报价成功回空字串，空就不加括号）；web-hitpay 重写讯息时 feeTag 也空（运费跟客人看到的不同时只写 Logs）。⚠️ 客人按「📍 查看骑手位置」打开的是 Delyva 自己的追踪页（trydx/公司代码.delyva.app），那页会显示 Delyva，我们控制不了。
+  - **paid_pending 误报**：业主实测外送单 MK1031-6686 已付款、已送达，后台却显示「HitPay 显示客人已付款，但订单状态是 paid…（paid_pending）」。原因：HitPay webhook 和客人网页的 check 同时确认，一边先设成 paid，另一边条件更新没改到，却拿手上旧的 `o.status`（pending）写了 `pay_status=paid_pending`。修：没改到时**重新读一次订单**，只有真的是 rejected 才标 `paid_rejected`，已经 paid 就不动。admin.html 的警告也改成只在 `mismatch` 或（`paid_*` 且订单不是 paid）时显示，所以那张旧单的误报刷新后就消失。已用模拟同时确认测过。
+  - 业主要重新部署 web-hitpay（不用跑 SQL）。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）
