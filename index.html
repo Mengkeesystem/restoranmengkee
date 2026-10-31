@@ -115,7 +115,6 @@ nav.links a:hover{background:#F6EADB}
 @media(max-width:900px){.olist{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.olist{grid-template-columns:1fr}}
 .olist.one{grid-template-columns:minmax(0,340px);justify-content:center}
-@media(min-width:561px){.olist.one{justify-content:start}}
 .outlet{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 14px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px}
 .outlet h3{margin:0;font-size:17px;color:var(--p)}
 /* 手机：只显示前 3 间，其余按箭头展开 */
@@ -697,25 +696,22 @@ footer a{color:#fff}
 .fcard{border-top:3px solid var(--a)}
 
 /* ===== 2026-10-31 现代风格：订位 + 门店地址 ===== */
-.region{display:flex;align-items:center;justify-content:flex-start;gap:12px;text-align:left;letter-spacing:.5px;font-family:var(--serif);font-size:21px;margin:34px 0 16px}
-.region::before{content:"";width:4px;height:22px;background:var(--a)}
-.region small{display:inline-block;margin:0;background:rgba(180,35,42,.08);color:var(--p);padding:2px 10px;border-radius:var(--rs);font-size:12.5px;font-weight:700}
-.region.rv,.region.rv.seen{letter-spacing:.5px}
+.region small{display:block;width:fit-content;margin:8px auto 0;background:rgba(180,35,42,.08);color:var(--p);padding:2px 12px;border-radius:var(--rs);font-size:12.5px;font-weight:700;letter-spacing:0}
 #outlets h2,#outlets .sub{text-align:center}
-.outlet{text-align:left;align-items:stretch;gap:8px;padding:18px 16px 16px;border-top:3px solid var(--a);border-left:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10);transition:transform .2s,box-shadow .2s}
+.outlet{text-align:center;align-items:center;gap:8px;padding:20px 16px 16px;border-top:3px solid var(--a);border-left:1px solid var(--line);box-shadow:3px 3px 0 rgba(180,35,42,.10);transition:transform .2s,box-shadow .2s}
 .outlet:hover{transform:translateY(-3px);box-shadow:4px 7px 0 rgba(180,35,42,.16)}
-.outlet .otop{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.outlet .otop{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:2px}
 .oi{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(180,35,42,.09);color:var(--p);border-radius:var(--rs)}
 .oi svg{width:24px;height:24px}
 .outlet h3{font-size:17px;line-height:1.3}
-.outlet .osvc{align-self:flex-start;margin:0}
-.outlet .ln,.outlet .ad{display:flex;gap:8px;align-items:flex-start;text-align:left;line-height:1.5}
-.outlet .ln i,.outlet .ad i{flex:none;width:16px;height:16px;margin-top:3px;color:var(--p);display:block}
-.outlet .ln i svg,.outlet .ad i svg{width:16px;height:16px}
-.outlet .acts{justify-content:flex-start;border-top:1px dashed var(--line);margin-top:auto;padding-top:12px}
-.outlet .acts a{border:1px solid var(--line);background:#fff;color:var(--tx);font-weight:700;border-radius:var(--rs)}
-.outlet .acts a:hover{border-color:var(--p);color:var(--p)}
-.outlet .acts a.wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.4);color:#1a8a46}
+.outlet .osvc{margin:0}
+.outlet .ln,.outlet .ad{display:block;text-align:center;line-height:1.5}
+.outlet .ln i,.outlet .ad i{display:inline-block;width:15px;height:15px;margin:0 6px -2px 0;color:var(--p)}
+.outlet .ln i svg,.outlet .ad i svg{width:15px;height:15px;display:block}
+.outlet .acts{justify-content:center;border-top:1px dashed var(--line);margin-top:auto;padding-top:12px;width:100%}
+.outlet .acts a{border:1px solid var(--p);background:#fff;color:var(--p);font-weight:700;border-radius:var(--rs)}
+.outlet .acts a:hover{background:var(--p);color:#fff}
+.outlet .acts a.wa{background:#25D366;border-color:#25D366;color:#fff}
 /* booking */
 #booking{background:#fff!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .bookcard{border-top:3px solid var(--a);box-shadow:3px 3px 0 rgba(180,35,42,.10);padding:26px 24px 24px;background:var(--bg)}
@@ -727,6 +723,27 @@ footer a{color:#fff}
 .bookcard .form .note{margin-top:6px}
 #bk_send{width:100%;min-height:54px;font-size:16px;letter-spacing:1px}
 @media(max-width:560px){.bookcard{padding:20px 14px}}
+
+/* contact + footer */
+#contact{background:#FBF1E4!important;border-top:1px solid var(--line)}
+#contact .two{align-items:start}
+.cbox{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);box-shadow:3px 3px 0 rgba(180,35,42,.10);padding:22px 22px 20px}
+.chead{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.chead h2{margin:0;padding:0}.chead h2::after{display:none}
+table.hrs{width:100%;border-collapse:collapse}
+table.hrs td{padding:10px 8px;border-bottom:1px dashed var(--line)}
+table.hrs tr:last-child td{border-bottom:0}
+table.hrs td:first-child{color:var(--mut);font-weight:600;white-space:nowrap}
+table.hrs tr.today td{background:rgba(180,35,42,.07)}
+table.hrs tr.today td:first-child{border-left:3px solid var(--p);color:var(--p)}
+#contactInfo .btn.alt{background:#fff}
+footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padding:34px 0 calc(28px + env(safe-area-inset-bottom))}
+.flogo{width:56px;height:56px;margin:0 auto 12px;border:2px solid var(--a);border-radius:var(--rs)}
+.fname{font-family:var(--serif);font-size:20px;font-weight:800;color:var(--a);letter-spacing:2px}
+.finfo{color:#CDBBA8;margin-top:6px;font-size:13.5px}
+.fline{width:56px;height:1px;background:rgba(242,180,23,.5);margin:18px auto 14px}
+.fcopy{color:#9d8a78;font-size:12.5px}
+.fcopy a{color:#CDBBA8;text-decoration:none}.fcopy a:hover{color:var(--a)}
 </style>
 </head>
 <body>
@@ -750,8 +767,8 @@ footer a{color:#fff}
   <section id="booking" style="background:#FBF1E4"><div class="wrap"><h2 data-t="bookT"></h2><p class="sub" data-t="bookS"></p><div class="card bookcard"><div class="form" id="bookForm"></div></div></div></section>
   <section id="outlets" hidden><div class="wrap"><h2 data-t="outletsT" style="text-align:center"></h2><p class="sub" data-t="outletsS" style="text-align:center"></p><div id="outletList"></div></div></section>
   <section id="contact" style="background:#FBF1E4"><div class="wrap two">
-    <div><h2 data-t="hoursT"></h2><table class="hrs" id="hours"></table></div>
-    <div><h2 data-t="contactT"></h2><div id="contactInfo"></div></div>
+    <div class="cbox"><div class="chead"><span class="oi" id="hIc"></span><h2 data-t="hoursT"></h2></div><table class="hrs" id="hours"></table></div>
+    <div class="cbox"><div class="chead"><span class="oi" id="cIc"></span><h2 data-t="contactT"></h2></div><div id="contactInfo"></div></div>
   </div></section>
 </main>
 <footer><div class="wrap" id="foot"></div></footer>
@@ -1114,7 +1131,7 @@ function renderOutlets(){
   const os=outlets(); $("outlets").hidden=!os.length; if(!os.length) return;
   const groups=[]; os.forEach(o=>{ let g=groups.find(x=>x.region===(o.region||"")); if(!g){g={region:o.region||"",regionEn:o.regionEn,items:[]};groups.push(g);} g.items.push(o); });
   const SHOW=3;  // 手机版每个区域只显示前 3 间，其余按箭头展开（每区各自独立）
-  $("outletList").innerHTML = groups.map(g=>{ const many=g.items.length>SHOW; return `<div class="ogrp">${g.region?`<h3 class="region"><span>${esc(L(g,"region"))}</span><small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
+  $("outletList").innerHTML = groups.map(g=>{ const many=g.items.length>SHOW; return `<div class="ogrp">${g.region?`<h3 class="region"><span>❖ ${esc(L(g,"region"))} ❖</span><small>${g.items.length} ${lang==="en"?(g.items.length>1?"outlets":"outlet"):"间"}</small></h3>`:""}
     <div class="olist${g.items.length===1?" one":""}">${g.items.map((o,k)=>{const wa=o.whatsapp?String(o.whatsapp).replace(/\D/g,""):"";return `<div class="outlet${k>=SHOW?" more":""}">
       <div class="otop"><span class="oi">${SP_SVG.pin}</span><h3>${esc(outletLabel(o))}</h3></div>
       ${delOutletsOn()&&DEL()?`<div class="osvc${o.delivery===true?" del":""}">${o.delivery===true?"🛵 "+esc(t("svcDel")):"🛍️ "+esc(t("pickupOnly"))}</div>`:""}
@@ -1849,6 +1866,7 @@ function policyAgreeHTML(){
   return `<label class="agree"><input type="checkbox" id="od_agree" ${odAgree?"checked":""}><span>${lang==="en"?"I agree to the ":"我同意本店的"}${a("refund",P.refund)}${lang==="en"?" and ":"及"}${a("privacy",P.privacy)}</span></label>`;
 }
 function renderContact(){
+  $("hIc").innerHTML=SP_SVG.clockS; $("cIc").innerHTML=SP_SVG.phone;
   $("socTop").innerHTML = socTopHTML();
   const today=new Date().getDay(), order=[1,2,3,4,5,6,0];
   $("hours").innerHTML = order.map(d=>{const h=hoursOf(d);return `<tr class="${d===today?"today":""}"><td>${esc(t("days")[d])}</td><td>${h?h.map(x=>esc(x[0]+" – "+x[1])).join(", "):esc(t("rest"))}</td></tr>`;}).join("");
@@ -1863,7 +1881,7 @@ function renderContact(){
     </div>
     ${S.mapEmbed?`<iframe class="map" src="${esc(S.mapEmbed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="map"></iframe>`:""}
     ${soc.length||socIconsHTML()?`<h3 style="margin:22px 0 0">${esc(t("follow"))}</h3>${socIconsHTML()?`<div class="soc csoc">${socIconsHTML(true)}</div>`:""}${soc.length?`<div class="social">${soc.map(([k,lb,ic])=>`<a class="s-${k}" href="${esc(so[k])}" target="_blank" rel="noopener">${ic} ${esc(t(lb))}</a>`).join("")}</div>`:""}`:""}`;
-  $("foot").innerHTML = `<b>${esc(L(S,"name"))}</b>${S.address?" · "+esc(S.address):(outlets().length?" · "+outlets().length+(lang==="en"?" outlets":" 间分店"):"")}<br>${S.phone?esc(S.phone)+" · ":""}© ${new Date().getFullYear()}`+policyLinks("foot");
+  $("foot").innerHTML = `<img class="flogo" src="images/logo.png" alt=""><div class="fname">${esc(L(S,"name"))}</div><div class="finfo">${S.address?esc(S.address):(outlets().length?outlets().length+(lang==="en"?" outlets":" 间分店"):"")}${S.phone?(S.address||outlets().length?" · ":"")+esc(S.phone):""}</div><div class="fline"></div><div class="fcopy">© ${new Date().getFullYear()} ${esc(L(S,"name"))}${policyLinks("foot").replace(/^<br>/,"").replace(/^(.)/,' · $1')}</div>`;
 }
 
 /* ---------- 购物车抽屉 ---------- */
