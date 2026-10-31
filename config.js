@@ -171,7 +171,7 @@ window.SITE = {
    * 改了退款规则（例如几小时内投诉、几天退款）记得同步改这里，并更新 updated 日期。 */
   policies: {
     "legalName": "",
-    "updated": "2026-10-26",
+    "updated": "2026-10-31",
     "refund": {
       "title": "退款及取消政策",
       "titleEn": "Refund & Cancellation Policy",
@@ -260,10 +260,10 @@ window.SITE = {
           "h": "我们收集什么资料",
           "hEn": "What we collect",
           "p": [
-            "您下单或订位时填写的姓名、电话、送餐地址及地图位置、订单内容、优惠码、付款参考号及付款金额。"
+            "您下单或订位时填写的姓名、电话、送餐地址及地图位置、订单内容及备注、优惠码、付款参考号、付款方式及付款金额。"
           ],
           "pEn": [
-            "The name, phone number, delivery address and map location, order details, voucher code, payment reference and amount you provide when ordering or booking."
+            "The name, phone number, delivery address and map location, order details, voucher code, payment reference, payment method and amount you provide when ordering or booking."
           ]
         },
         {
@@ -282,16 +282,18 @@ window.SITE = {
           "h": "与谁分享",
           "hEn": "Who we share it with",
           "p": [
-            "WhatsApp：订单及订位内容通过您自己的 WhatsApp 发送给我们。",
-            "送餐骑手或配送公司：只提供送餐所需的姓名、电话及地址。",
-            "付款平台：处理付款所需的资料（如使用网上付款）。",
-            "地图服务：查找送餐位置时，您填写的地址会发送给 Google 地图及 OpenStreetMap 地图服务。"
+            "本店订单系统：您在网站下的订单会直接送到我们的订单系统（云端数据库），只有本店获授权的员工账号能查看，并按分店分开。",
+            "WhatsApp：网上订位的内容会通过您自己的 WhatsApp 发送给我们；联系店家或查询订单时也可能用到。",
+            "送餐骑手或配送平台：只提供送餐所需的姓名、电话及地址。",
+            "付款平台（HitPay）：网上付款由 HitPay 处理，付款时您输入的银行卡或网银资料只提供给 HitPay 及银行，我们不会看到，也不会保存。",
+            "地图服务：查找送餐位置、计算路程时，您填写的地址及地图位置会发送给 Google 地图服务。"
           ],
           "pEn": [
-            "WhatsApp: your order or booking is sent to us through your own WhatsApp.",
-            "Delivery riders or courier companies: only the name, phone number and address needed for delivery.",
-            "Payment providers: the details needed to process your payment (if you pay online).",
-            "Map services: when locating your delivery address, the address you enter is sent to Google Maps and the OpenStreetMap map service."
+            "Our order system: orders placed on this website go straight to our order system (a cloud database). Only authorised staff accounts of our outlets can view them, separated by outlet.",
+            "WhatsApp: table bookings are sent to us through your own WhatsApp; it may also be used when you contact us or ask about an order.",
+            "Delivery riders or delivery platforms: only the name, phone number and address needed for delivery.",
+            "Payment provider (HitPay): online payments are processed by HitPay. The card or online-banking details you enter go only to HitPay and your bank; we never see or store them.",
+            "Map services: when locating your delivery address and calculating the route, the address and map location you enter are sent to Google Maps."
           ]
         },
         {
