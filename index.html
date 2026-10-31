@@ -790,6 +790,39 @@ footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padd
 .sumbox .tot:last-of-type span:last-child{font-family:var(--serif);font-size:24px;color:var(--p);letter-spacing:1px}
 .cfoot{border-top:3px solid var(--a);box-shadow:0 -10px 24px rgba(0,0,0,.1)}
 .cfoot .btn{min-height:52px;letter-spacing:1px;box-shadow:0 6px 14px rgba(180,35,42,.28)}
+
+/* ===== 2026-10-31 输入框统一现代风格 + 地图不再盖住底部下单栏 + 打烊 Zzz 夜晚风格 ===== */
+.form input,.form select,.form textarea,.osec input,.osec select,.osec textarea,.pinwrap .msearch input{background-color:#FFFDF9;border:1px solid var(--line);border-left:3px solid rgba(242,180,23,.7);border-radius:var(--rs);padding:12px 14px;min-height:48px;color:var(--tx);transition:border-color .2s,box-shadow .2s,background-color .2s}
+.form textarea,.osec textarea{min-height:64px}
+.form input::placeholder,.osec input::placeholder,.osec textarea::placeholder,.form textarea::placeholder,.pinwrap .msearch input::placeholder{color:#B5A596}
+.form input:hover,.form select:hover,.osec input:hover,.osec select:hover{border-color:#D3BFA9;border-left-color:var(--a)}
+.form input:focus,.form select:focus,.form textarea:focus,.osec input:focus,.osec select:focus,.osec textarea:focus,.pinwrap .msearch input:focus{outline:0;background-color:#fff;border-color:var(--p);border-left-color:var(--p);box-shadow:0 0 0 3px rgba(180,35,42,.12)}
+.form select,.osec select{-webkit-appearance:none;appearance:none;padding-right:38px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none' stroke='%23B4232A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M1 1.5l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 14px center}
+.osec .cl select,.osec select.optsel{min-height:40px}
+.bookcard .form input,.bookcard .form select,.bookcard .form textarea{background-color:#FFFDF9;border:1px solid var(--line);border-left:3px solid rgba(242,180,23,.7);border-radius:var(--rs);padding:12px 14px}
+.bookcard .form input:hover,.bookcard .form select:hover{border-color:#D3BFA9;border-left-color:var(--a)}
+.bookcard .form input:focus,.bookcard .form select:focus,.bookcard .form textarea:focus{background-color:#fff;border-color:var(--p);border-left-color:var(--p);box-shadow:0 0 0 3px rgba(180,35,42,.12)}
+.bookcard .form select{-webkit-appearance:none;appearance:none;padding-right:38px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none' stroke='%23B4232A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M1 1.5l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 14px center}
+.pinwrap .msearch input{padding-left:14px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+/* 地图里面的搜索框/图钉/定位按钮不能盖到购物车底部固定的下单栏：地图自成一层，且在下单栏下面 */
+.pinwrap{isolation:isolate;z-index:0}
+.cfoot{z-index:20}
+/* 打烊/截单视窗：夜晚感 */
+.closedpop{box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.cphead{background:radial-gradient(circle at 18% 28%,rgba(242,180,23,.16),transparent 38%),linear-gradient(160deg,#120b1a 0%,#26121c 52%,#5a141b 100%);padding:28px 20px 22px;overflow:hidden}
+.cphead::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(1.5px 1.5px at 12% 22%,#F2B417 98%,transparent),radial-gradient(1px 1px at 28% 68%,#fff 98%,transparent),radial-gradient(1.5px 1.5px at 76% 18%,#fff 98%,transparent),radial-gradient(1px 1px at 88% 58%,#F2B417 98%,transparent),radial-gradient(1px 1px at 62% 80%,#fff 98%,transparent),radial-gradient(1.5px 1.5px at 40% 14%,#F2B417 98%,transparent);animation:cpStars 3.2s ease-in-out infinite alternate}
+@keyframes cpStars{from{opacity:.35}to{opacity:1}}
+.cpmoon{position:relative;z-index:1;background:rgba(10,6,16,.55);border:1px solid var(--a);box-shadow:0 0 0 4px rgba(242,180,23,.12),0 0 26px rgba(242,180,23,.25);animation:none;width:68px;height:68px}
+.cpt{position:relative;z-index:1;letter-spacing:3px;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.zzz{text-shadow:0 0 14px rgba(242,180,23,.6)}
+.zzz,.zzz i,.zzz b{animation:zFloat 2.5s ease-in-out infinite}
+.zzz i{animation-delay:.35s}.zzz b{animation-delay:.7s}
+@keyframes zFloat{0%{translate:0 3px;opacity:.3}45%{opacity:1}100%{translate:0 -8px;opacity:.25}}
+.cpnext{background:#1c1220;border:1px solid var(--a);color:var(--a);letter-spacing:.5px}
+.cphours b{background:#1c1220;color:var(--a)}
+.cphours div.today{background:rgba(242,180,23,.12)}
+@media (prefers-reduced-motion:reduce){.zzz,.zzz i,.zzz b,.cphead::before{animation:none}}
 </style>
 </head>
 <body>
