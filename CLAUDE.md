@@ -23,7 +23,7 @@
 网上点餐（自取+外送）→ 服务器重算金额 → **HitPay** 付款（只显示 DuitNow/电子钱包/FPX/卡，DuitNow 优先；手续费店家吸收）→ webhook/查单确认 → 外送单**自动叫 Delyva 骑手** → 客人看订单进度（6 步，含预计送达）/「我的订单」/下载收据 → 员工后台（待确认/已收款/已完成/已拒绝、客人备注、付款方式/运费/手续费、每月总结+CSV、店员管理，分店经理只看自己分店）。另有：订位（转 WhatsApp，周末/公共假期不收）、多分店选择、Google 地图选送餐位置 + Google 路线路程 + Delyva 实时运费、打包盒/客制化备注、优惠码（哈希）、SST（Scott Garden 不收）、截单时段（服务器也挡）、版本/PWA、全站现代风格（手机/电脑已完整复查）。
 
 ### 后端部件和状态（最后确认时间：2026-10-31）
-- **Supabase 项目** `kmcdokwiyetlmsrdlgqw`（明记 ERP 的，Pro 方案）。业主**已跑**：`schema.sql`、`delivery.sql`、`hitpay.sql`、`outlet-phones.sql`（3 间外送分店电话，已核对）。`staff.sql`（店员角色/分店经理只看自己分店）— 代码和后台都已按它写好，业主在 10-31 要求「做成 App + 分店经理」后依指示执行；**新账号接手时请让业主在后台「👥 店员」页确认能打开，打不开 = 没跑**。
+- **Supabase 项目** `kmcdokwiyetlmsrdlgqw`（明记 ERP 的，Pro 方案）。业主**已跑**：`schema.sql`、`delivery.sql`、`hitpay.sql`、`outlet-phones.sql`（3 间外送分店电话，已核对）。`staff.sql`（店员角色/分店经理只看自己分店）— **业主 2026-10-31 截图确认已跑**（「👥 店员」页能打开，业主自己是管理员·全部分店）。**目前还没加任何分店经理/店员**（业主说还没加；要加时：对方先有 Supabase 登录账号，再到后台「👥 店员」页填邮箱、选「分店经理」、勾分店、保存）。
 - **Edge Functions**（都要**关 Verify JWT**）：`web-hitpay`（VERSION 2026-10-31b）、`web-delyva`（VERSION 2026-10-31a）。业主回报过「部署好了」；可从员工后台页头看当前部署的版本是否对得上。
 - **Secrets（只写名字，值在 Supabase，绝不进仓库）**：`WEB_HITPAY_API_KEY` `WEB_HITPAY_WEBHOOK_SALT`（共用=OKR 的 HitPay 账号；分店自己的加 `_<序号>`）、`WEB_HITPAY_BASE`/`WEB_HITPAY_CURRENCY`（测试才设，正式 = 不设）、`WEB_SITE_URL`、`WEB_DELYVA_API_KEY` `WEB_DELYVA_CUSTOMER_ID` `WEB_DELYVA_COMPANY_CODE`（现在是 **trydx 测试账号**）`WEB_DELYVA_API_SECRET`（**还没有**）`WEB_DELYVA_SENDER_PHONE`，可选 `WEB_DELYVA_SORT/ONLY/EXCLUDE/MAXFEE/SERVICE`。
 - **Google Cloud**：一把 API key 填在 `config.js`（限制网址 + 4 个 API：Maps JavaScript / Places New / Geocoding / Routes）。
@@ -38,7 +38,7 @@
 | 4 | 公司正式名称和 SSM 号 | ✅ 已填 |
 | 5 | 更新隐私说明 | ✅ 已改成现在的做法 |
 | 6 | 3 间外送分店电话 | ✅ 11 间电话已进 config、3 间 SQL 已跑 |
-| 7 | 11 间店员都装好后台 App | ⏳ 业主的事（后台加店员：👥 店员页；iPhone 用 Safari 加到主画面） |
+| 7 | 11 间店员都装好后台 App | ⏳ 业主的事（店员页已能用，还没加任何经理）（后台加店员：👥 店员页；iPhone 用 Safari 加到主画面） |
 | 8 | GitHub 账号双重验证 | ✅ 业主确认已开 |
 
 ### 其他还没做/可能要做
