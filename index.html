@@ -206,7 +206,7 @@ nav.links a:hover{background:#F6EADB}
 .pm.best em{font-style:normal;background:var(--p);color:#fff;font-size:12px;font-weight:800;padding:3px 8px;flex:none}
 .pm.small{border:0;box-shadow:none;background:none;padding:4px 2px;justify-content:center;color:var(--mut)}
 .pm.small .pmi{font-size:16px}.pm.small .pmt{flex:none}.pm.small .pmt b{font-size:13.5px;font-weight:600;text-decoration:underline}
-.trkchip.fade{opacity:0;transition:opacity 3s ease}
+.trkchip.fade,#trkbox.fade{opacity:0;transition:opacity 3s ease}
 .tketa{display:flex;align-items:center;gap:10px;background:#EEF8F1;border:1px solid #BFE3CB;border-left:4px solid var(--ok);padding:10px 12px;margin:0 0 12px}
 .tketa span{font-size:24px}
 .tketa b{display:block;font-size:17px;color:#14532D}
@@ -2165,11 +2165,11 @@ function trkRender(){
   const c=cCode(), bad=!trk.done&&(trk.st==="rejected"||c===475||c===650||c===900||(trk.st==="pending"&&Date.now()-trk.t0>30*60*1000));
   const done=trkFinal()&&trk.st!=="rejected";
   chip.classList.toggle("show",!trkShow);
-  /* 订单完成后（2026-10-31 业主）：左下角提示 1 分钟后自己用 3 秒慢慢淡出、然后不再追踪；视窗开着就等关掉再算 */
-  if(done&&!bad){ if(!trkFadeT) trkFadeT=setTimeout(function fade(){ trkFadeT=null; if(!trk) return;
-      if(trkShow){ trkFadeT=setTimeout(fade,10000); return; }
-      const c=$("trkchip"); c.classList.add("fade"); trkFadeT=setTimeout(()=>{ trkFadeT=null; c.classList.remove("fade"); if(trk&&!trkShow) trkClear(); },3000); },60000); }
-  else if(trkFadeT){ clearTimeout(trkFadeT); trkFadeT=null; chip.classList.remove("fade"); }
+  /* 订单完成后（2026-10-31 业主）：30 秒后自己用 3 秒慢慢淡出、然后不再追踪；进度视窗开着也一起淡出关掉 */
+  if(done&&!bad){ if(!trkFadeT) trkFadeT=setTimeout(()=>{ trkFadeT=null; if(!trk) return;
+      const c=$("trkchip"), bx=$("trkbox"); c.classList.add("fade"); bx.classList.add("fade");
+      trkFadeT=setTimeout(()=>{ trkFadeT=null; c.classList.remove("fade"); bx.classList.remove("fade"); if(trk) trkClear(); },3000); },30000); }
+  else if(trkFadeT){ clearTimeout(trkFadeT); trkFadeT=null; chip.classList.remove("fade"); $("trkbox").classList.remove("fade"); }
   chip.innerHTML=`<button type="button" class="tkopen ${bad?"bad":done?"ok":""}" onclick="__site.trkOpen()"><b>${done?"✅":bad?"⚠️":"📦"} ${esc(trk.ref)}</b><span>${esc(trkStatusText())}</span></button><button type="button" class="tkx" aria-label="close" onclick="__site.trkClear()">✕</button>`;
   if(!trkShow) return;
   const del=trk.type==="delivery"&&!trk.fb;
