@@ -18,7 +18,7 @@ export const mockFetch=async(u,init={})=>{ u=String(u); const m=(init.method||"G
     if(b.action==="dispatch"){ DV.dispatch.push({id:b.id,auth:init.headers.Authorization}); return J({ok:true}); } }
   if(u.startsWith("https://api.hit-pay.com/v1/payment-requests")){ HP.calls.push({m,u,key:init.headers["X-BUSINESS-API-KEY"],body:init.body});
     if(m==="POST"){ const b=Object.fromEntries(new URLSearchParams(init.body)); const id=crypto.randomUUID(); HP.reqs[id]={id,...b,status:"pending",url:`https://securecheckout.hit-pay.com/payment-request/@mk/${id}/checkout`}; return J(HP.reqs[id]); }
-    const id=u.split("/").pop(); const r=HP.reqs[id]; return r?J(r):J({message:"not found"},404); }
+    const id=u.split("/").pop(); if(m==="DELETE"){ if(HP.noDelete) return J({message:"cannot delete"},422); const r0=HP.reqs[id]; if(!r0) return J({message:"not found"},404); r0.status="deleted"; HP.deleted=(HP.deleted||[]).concat(id); return J({success:true}); } const r=HP.reqs[id]; return r?J(r):J({message:"not found"},404); }
   throw new Error("unexpected fetch "+m+" "+u); };
 globalThis.fetch=mockFetch;
 await import("../../supabase/functions/web-hitpay/index.ts?"+Math.random());

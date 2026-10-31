@@ -24,7 +24,7 @@
 
 ### 后端部件和状态（最后确认时间：2026-10-31）
 - **Supabase 项目** `kmcdokwiyetlmsrdlgqw`（明记 ERP 的，Pro 方案）。业主**已跑**：`schema.sql`、`delivery.sql`、`hitpay.sql`、`outlet-phones.sql`（3 间外送分店电话，已核对）。`staff.sql`（店员角色/分店经理只看自己分店）— **业主 2026-10-31 截图确认已跑**（「👥 店员」页能打开，业主自己是管理员·全部分店）。**目前还没加任何分店经理/店员**（业主说还没加；要加时：对方先有 Supabase 登录账号，再到后台「👥 店员」页填邮箱、选「分店经理」、勾分店、保存）。
-- **Edge Functions**（都要**关 Verify JWT**）：`web-hitpay`（VERSION 2026-10-31b）、`web-delyva`（VERSION 2026-10-31a）。业主回报过「部署好了」；可从员工后台页头看当前部署的版本是否对得上。
+- **Edge Functions**（都要**关 Verify JWT**）：`web-hitpay`（VERSION 2026-10-31c，**待业主重新部署**；上一版 31b）、`web-delyva`（VERSION 2026-10-31a）。业主回报过「部署好了」；可从员工后台页头看当前部署的版本是否对得上。
 - **Secrets（只写名字，值在 Supabase，绝不进仓库）**：`WEB_HITPAY_API_KEY` `WEB_HITPAY_WEBHOOK_SALT`（共用=OKR 的 HitPay 账号；分店自己的加 `_<序号>`）、`WEB_HITPAY_BASE`/`WEB_HITPAY_CURRENCY`（测试才设，正式 = 不设）、`WEB_SITE_URL`、`WEB_DELYVA_API_KEY` `WEB_DELYVA_CUSTOMER_ID` `WEB_DELYVA_COMPANY_CODE`（现在是 **trydx 测试账号**）`WEB_DELYVA_API_SECRET`（**还没有**）`WEB_DELYVA_SENDER_PHONE`，可选 `WEB_DELYVA_SORT/ONLY/EXCLUDE/MAXFEE/SERVICE`。
 - **Google Cloud**：一把 API key 填在 `config.js`（限制网址 + 4 个 API：Maps JavaScript / Places New / Geocoding / Routes）。
 - **HitPay**：马来西亚商家账号已通过，目前只有 OKR 一个正式账号。
@@ -264,6 +264,13 @@
 - **隐私说明更新（2026-10-31，业主上线清单第 5 项）**：`policies.privacy`「与谁分享」改成现在的做法——本店订单系统（云端数据库、只有授权员工按分店看）、WhatsApp 只剩订位和联系、配送平台（不写 Delyva 名字）、付款平台 HitPay（银行卡/网银资料只给 HitPay 和银行、我们不看不存）、地图只写 Google 地图（OpenStreetMap 已拿掉）；「收集什么」加订单备注、付款方式；`updated` 改 2026-10-31。⚠️ 以后换付款平台/配送平台/地图，这段要再改。**`legalName` 还没填**（清单第 4 项，等业主给公司正式名称 + SSM 号）。
 - **公司名/SSM 已填（2026-10-31，业主上线清单第 4 项）**：`policies.legalName` = 「TCY Food Management Sdn Bhd (1333819-V)」（业主说这是 **OKR** 的公司）。目前所有分店的网上付款都进 OKR 的 HitPay 户口，所以暂时全站（退款政策/隐私说明页面、页脚、电子收据）统一显示这个名字。以后 Scott Garden / PJ 开自己的 HitPay、公司不同时：在 `config.js` 那间分店加 `legalName: "…(SSM)"`——`myRcpt()` 已支持分店盖过全站（电子收据按订单分店显示），但 policy.html 页面和页脚仍只显示全站那个，到时要一起改。业主说清单其余项（Delyva 正式账号、其他分店 HitPay、换示例优惠、分店电话、店员装 App）「过后先」。
 - **11 间分店电话（2026-10-31 业主给 docx，上线清单第 6 项）**：`config.js` 每间分店加 `phone`；门店地址卡片的电话改成可点的 `tel:` 链接（`a.tel`，手机点一下就拨号）。**给 Delyva 骑手取餐联络用的 3 间外送分店电话要在 Supabase 另跑一次** `supabase/outlet-phones.sql`（`update web_outlets set phone … where idx=0/1/2`，可重复跑；web-delyva 取餐电话优先用 `web_outlets.phone`，没填才用 `WEB_DELYVA_SENDER_PHONE`）。分店的 WhatsApp 号码没加（业主只给了电话，不确定是不是 WhatsApp；要的话在分店加 `whatsapp` 栏）。
+- **待付款订单：找得到、继续付款、取消、逾期自动作废（2026-10-31 业主：按了下单并付款却没付、关掉网页，回来找不到订单，后台还挂着一笔未付款）**。web-hitpay VERSION **2026-10-31c**（⚠️ 要业主重新部署；没部署前网页的「取消订单/换付款方式」会提示操作失败，其余照旧）：
+  - **根因**：订单建好后只在跳去 HitPay 前才记进 `site_last_order`；关得太快就没记；记了的也只剩左下角小小的一个 chip，很容易看不到；也没有取消。
+  - **网页**：订单一建好（`create_web_order` 成功）就马上记下（`startHitPay` 里先 `trkStart`，付款页回来后只补 payUrl，不重置 30 分钟计时）。`pendOrder()`/`pendAlive()` = `trk.hp && trk.st==="pending"`（30 分钟内为「有效」）。有待付款订单时：购物车最上面出现 `.pendcard`（参考号、金额、还剩几分钟，[💳 继续付款][取消订单]；逾期显示「已逾期」+[清除订单]）；购物车底部「下单并付款」变成金/棕色「⏳ 待付款 · 继续付款 RM x」（点了 = 继续付款，下面小字提示「要下新订单请先继续付款或取消」，不显示同意勾选）；浮动购物车按钮 `#fab` 和页头购物车角标变「⏳ 待付款 · 继续付款」；订单进度视窗和左下 chip（✕ 变成取消）也一样。**同一台装置同一时间只允许一张待付款订单**，付款成功/取消/逾期后卡片自动消失（`trkPoll` 状态变了会 `refreshCart()`）。
+  - **继续付款** = `pdPay()`：开付款视窗（DuitNow / 电子钱包 / FPX / 卡 那个选择画面），可以换方式，`payPending.repay=true`，调用 `web-hitpay {action:"pay", repay:true, pm}`，不再带购物车、不重算金额、不清空购物车，直接跳去新的 HitPay 付款页。
+  - **服务器**（`supabase/functions/web-hitpay/index.ts`）：`pay` 带 `repay` 且已有付款单 → `repay()`：先向 HitPay 查有没有其实已付（有 → `{paid:true}`）；再 `DELETE /v1/payment-requests/{旧id}` 把旧付款单作废，**作废成功才建新的**（新单金额=订单金额、同参考号、只限所选方式，HitPay 不接受就退回全部方式；删不掉就照旧用旧网址，免得重复付款）。`cancel`（客人取消）= `cancelOwn()`：已付款 → `{paid:true}` 不取消（走退款政策）；先 `confirmFromHitPay` 再确认一次，没付才作废付款单 + 订单设为 rejected（`confirmed_by`「客人取消（未付款）」、`pay_status=cancelled`）。**逾期**：`check` 发现超过 35 分钟没付 → 作废 + rejected（「系统：逾期未付款」，`pay_status=expired`）；`warm`（客人打开购物车时）顺便 `sweepStale()` 每 5 分钟最多清 5 张逾期单（近 3 天内、超过 35 分钟、没付的），所以后台不会一直挂着「等客人付款」。逾期前其实已付款的一律照收（不作废）。
+  - **测试**：`tests/hitpay/t3.mjs`（16 项）、`tests/ui/pending-flow.js`；t1（31）、e2e 照过。
+  - ⚠️ 已知：HitPay 的 `DELETE /v1/payment-requests/{id}` 只按官方文档接，沙箱没法连真 HitPay 验证；业主部署后要实测「按下单并付款 → 关掉 → 回来继续付款/取消」，看函数 Logs 有没有 `drop … failed`。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 
 ## 安全（2026-10-17 全面检查，业主要求「不能被 hack、客人不能改网页或付款」）

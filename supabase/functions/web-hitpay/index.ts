@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-31b";
+const VERSION = "2026-10-31c";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -239,7 +239,10 @@ async function pay(req: Request, b: any) {
   const [o, S] = await Promise.all([loadOwn(b), site()]);   // 同时读订单和网站设定，省一点时间
   if (o.status !== "pending") throw new UserError(o.status === "paid" ? "这张订单已经付款了" : "这张订单已取消");
   if (Date.now() - Date.parse(o.created_at) > 30 * 60000) throw new UserError("订单已过期，请重新下单");
-  if (o.pay_id && o.pay_url) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 已经建过付款单（客人按了两次 / 回来继续付）
+  if (o.pay_id && o.pay_url) {   // 已经建过付款单（客人按了两次 / 回来继续付）
+    if (!b.repay) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
+    return await repay(o, S, b);   // 回来「继续付款」时想换付款方式（2026-10-31）
+  }
 
   const oi = Number(b.oi), del = o.order_type === "delivery";
   if (!orderWindowOk(S, del, Date.parse(o.created_at) || Date.now())) {   // 截单后：订单直接作废，不建付款单
@@ -299,6 +302,75 @@ async function pay(req: Request, b: any) {
   await patch(o.id, { message, pay_provider: "hitpay", pay_acct: acct.id, pay_id: id, pay_url: url, pay_status: "pending" }, "&status=eq.pending");
   console.log(`pay ${o.ref} → HitPay ${id} ${P.total.toFixed(2)} ${HP_CUR}`);
   return { ok: true, url, amount: P.total };
+}
+
+// ---------- 待付款订单：换付款方式 / 取消 / 逾期清理（2026-10-31 业主：客人按了下单付款但没付，要能继续付或取消） ----------
+const PENDING_MS = 30 * 60000;
+/* 把 HitPay 上这张付款单作废（客人不能再用旧网址付款）。成功回 true；HitPay 不让删（例如正在付款中）回 false */
+async function dropRequest(o: any): Promise<boolean> {
+  try {
+    const acct = accountById(String(o.pay_acct || "")); if (!acct || !o.pay_id) return true;
+    await hp(acct, "DELETE", `/v1/payment-requests/${encodeURIComponent(o.pay_id)}`);
+    return true;
+  } catch (e) { console.log(`drop ${o.ref} ${o.pay_id} failed: ${String((e as Error).message).slice(0, 160)}`); return false; }
+}
+async function repay(o: any, S: any, b: any) {
+  const r = await confirmFromHitPay(o, "repay");   // 先看看是不是其实已经付了
+  if (r.status === "paid") return { ok: true, paid: true };
+  if (r.pay === "mismatch") throw new UserError("付款资料需要人工核对，请联系店家");
+  const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
+  const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
+  if (!codes.length) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
+  const acct = accountById(String(o.pay_acct || "")); if (!acct) throw new Error("找不到这张单的 HitPay 账号设定");
+  if (!(await dropRequest(o))) return { ok: true, url: o.pay_url, amount: Number(o.amount) };   // 旧付款单作废不了：照旧用旧的，免得重复付款
+  const form: Record<string, string | string[]> = {
+    amount: Number(o.amount).toFixed(2), currency: HP_CUR, reference_number: o.ref,
+    purpose: `Restoran Meng Kee ${o.ref}`.slice(0, 100), name: String(o.customer_name || "").slice(0, 60),
+    redirect_url: `${SITE_URL}/?hp=${encodeURIComponent(o.ref)}`, allow_repeated_payments: "false", send_email: "false",
+  };
+  let reqHp: any;
+  try { reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
+  catch (e) { console.log(`repay ${o.ref} methods refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }
+  if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
+  const url = String(reqHp?.url || ""), id = String(reqHp?.id || "");
+  if (!HPID_RE.test(id) || !hpUrlOk(url)) throw new Error("HitPay 没有回传付款页（repay）");
+  await patch(o.id, { pay_id: id, pay_url: url, pay_status: "pending" }, "&status=eq.pending");
+  console.log(`repay ${o.ref} → HitPay ${id} (${codes.join(",")})`);
+  return { ok: true, url, amount: Number(o.amount) };
+}
+/* 客人自己取消（还没付款）。已经付款了 → 不能取消，要走退款政策 */
+async function cancelOwn(req: Request, b: any) {
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
+  if (limited("cancel:" + ip, 20, 10 * 60000)) throw new UserError("操作太频繁，请稍后再试");
+  const o = await loadOwn(b);
+  if (o.status === "paid") return { ok: false, paid: true };
+  if (o.status !== "pending") return { ok: true, already: true };
+  if (o.pay_provider === "hitpay" && o.pay_id) {
+    const r = await confirmFromHitPay(o, "cancel");   // 取消前再确认一次有没有付款
+    if (r.status === "paid") return { ok: false, paid: true };
+    if (r.pay === "mismatch") throw new UserError("付款资料需要人工核对，请联系店家");
+    await dropRequest(o);
+  }
+  await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "客人取消（未付款）", pay_status: "cancelled" }, "&status=eq.pending");
+  console.log(`cancel ${o.ref} by customer`);
+  return { ok: true };
+}
+/* 超过 30 分钟还没付的单：作废付款单 + 订单设成已拒绝（后台就不会一直挂着「等客人付款」）。每次最多处理 5 张 */
+let lastSweep = 0;
+async function sweepStale() {
+  if (Date.now() - lastSweep < 5 * 60000) return; lastSweep = Date.now();
+  try {
+    const from = new Date(Date.now() - 3 * 86400000).toISOString(), to = new Date(Date.now() - (PENDING_MS + 5 * 60000)).toISOString();
+    const rows = await db(`web_orders?status=eq.pending&created_at=gte.${from}&created_at=lt.${to}&select=*&order=created_at.asc&limit=5`);
+    for (const o of rows || []) {
+      if (o.pay_provider === "hitpay" && o.pay_id) {
+        const r = await confirmFromHitPay(o, "sweep"); if (r.status === "paid" || r.pay === "mismatch") continue;
+        await dropRequest(o);
+      }
+      await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：逾期未付款", pay_status: "expired" }, "&status=eq.pending");
+      console.log(`sweep ${o.ref} expired`);
+    }
+  } catch (e) { console.log(`sweep error ${String((e as Error).message).slice(0, 160)}`); }
 }
 
 // ---------- 确认付款（只认 HitPay API 查到的结果） ----------
@@ -371,9 +443,11 @@ Deno.serve(async (req) => {
     if (req.headers.has("hitpay-signature")) return await webhook(req, raw);
     let b: any = {}; try { b = JSON.parse(raw || "{}"); } catch { /* */ }
     if (b.action === "pay") return json(req, await pay(req, b));
+    if (b.action === "cancel") return json(req, await cancelOwn(req, b));
     if (b.action === "warm") {   // 客人打开购物车/付款视窗时先「暖机」：先载好网站设定，外送单顺便叫醒 web-delyva，按「前往付款」时就快一点
       const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
       if (limited("warm:" + ip, 20, 10 * 60000)) return json(req, { ok: true });
+      try { (globalThis as any).EdgeRuntime?.waitUntil(sweepStale()); } catch { /* */ }   // 顺便清一下逾期没付款的单
       await Promise.all([site().catch(() => null),
         b.del ? fetch(`${SB_URL}/functions/v1/web-delyva`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` }, body: '{"action":"status"}' }).then((r) => r.text()).catch(() => null) : null]);
       return json(req, { ok: true });
@@ -381,7 +455,13 @@ Deno.serve(async (req) => {
     if (b.action === "check") {
       const o = await loadOwn(b);
       if (o.status !== "pending" || limited("check:" + o.ref, 1, 4000)) return json(req, { status: o.status });
-      return json(req, await confirmFromHitPay(o, "check"));
+      const res = await confirmFromHitPay(o, "check");
+      if (res.status === "pending" && Date.now() - Date.parse(o.created_at) > PENDING_MS + 5 * 60000 && res.pay !== "mismatch") {   // 逾期没付：作废
+        await dropRequest(o);
+        await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：逾期未付款", pay_status: "expired" }, "&status=eq.pending");
+        return json(req, { status: "rejected", pay: "expired" });
+      }
+      return json(req, res);
     }
     if (b.action === "status") return json(req, { ok: true, version: VERSION, base: HP_BASE, currency: HP_CUR, configured: !!account(null) });
     return json(req, { error: "unknown action" }, 400);
