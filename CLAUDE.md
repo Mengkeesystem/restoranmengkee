@@ -194,6 +194,8 @@
   - 每月总结订单列表在「金额」和「状态」中间加「付款 · 运费 · 手续费」：例如「DuitNow · 运费 RM 5.00 · 手续费 RM 0.58 (1.2%)」（`payCell`；运费 = 向客人收的运费、从讯息「运费:」那行读；% = 手续费 ÷ 订单金额）；CSV 多「付款方式 / 手续费 / 手续费%」。订单卡片的手续费也带 %。总结读的栏位加了 `pay_method`。
   - 客人「订单已完成」：完成后 **30 秒**自己用 3 秒淡出（`.trkchip.fade`/`#trkbox.fade`、`trkFadeT`），然后不再追踪；业主改：**进度视窗开着也一起淡出关掉**，不等客人按。
   - **付款方式选择**（HitPay 付款页的排序我们改不了，但建付款单时可以用 `payment_methods[]` 限定只显示哪几种）：config `payment.methods` 组别（DuitNow QR = `duitnow`，大按钮 + 「推荐」；电子钱包 = `touch_n_go`/`grabpay_direct`/`shopee_pay`；FPX = `fpx`；信用卡/借记卡 = `card` 放最下面小字）。付款视窗改成「选择付款方式」列表，按哪个就带 `pm` 给 web-hitpay，服务器只认 config 里的组别，HitPay 付款页就只显示那几种；HitPay 不接受（账号没开那个方式）就自动改成全部方式，客人照样能付（Logs 会写）。同一张单只建一次付款单，所以「继续付款」还是同一种方式。
+  - （同日改）订单列表「付款方式 / 运费 / 手续费」拆成三栏（`payCells`），格子里只放值（例如「DuitNow」「RM 5.00」「RM 0.58 (1.2%)」），不再重复「运费」「手续费」字眼。
+  - 空购物车：提示文字往上贴近（`.cempty`），下面加红色「🍽️ 浏览菜单」按钮（`__site.more()`：关购物车、滚到菜单）。
   - 业主要重新部署 web-hitpay（不用跑 SQL）。⚠️ 确认 HitPay 后台 Payment Methods 有开 DuitNow，不然选 DuitNow 会退回显示全部方式。
 - 以后网站的 Edge Function（Delyva、网关）命名用 `web-` 开头，跟 ERP 的 `send-order-push` 分开；secrets 也用 `WEB_` 前缀。
 

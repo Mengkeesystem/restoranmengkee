@@ -445,17 +445,17 @@ function drawSummary(){
     ${sumOutlet?"":`<div class="sumsec"><h3>按分店</h3>${tbl(["分店","订单","营业额"],Object.entries(D.outlet).sort((a,b)=>b[1][1]-a[1][1]).map(([k,v])=>[esc(k),v[0],money(v[1])]))}</div>`}
     <div class="sumsec"><h3>热卖 Top 15</h3>${top.length?tbl(["菜品","份数","金额"],top.map(([k,v])=>[esc(k),v[0],money(v[1])])):`<div class="live">没有菜品资料</div>`}</div>
     <div class="sumsec"><h3>每天</h3>${tbl(["日期","订单","营业额"],Object.entries(D.day).sort().map(([k,v])=>[k,v[0],money(v[1])]))}</div>
-    <div class="sumsec"><h3>订单列表（${D.rows.length}）</h3>${tbl(["参考号","时间","分店","类型","金额","付款 · 运费 · 手续费","状态"],D.rows.slice().reverse().map(o=>[esc(o.ref),esc(klDay(o.created_at)+" "+klHM(o.created_at)),esc(o.outlet||"-"),o.order_type==="delivery"?"外送":"自取",money(o.amount),payCell(o),isDone(o)?"已完成":o.status==="paid"?"已收款":o.status==="pending"?"待确认":"已拒绝"]))}</div>`;
+    <div class="sumsec"><h3>订单列表（${D.rows.length}）</h3>${tbl(["参考号","时间","分店","类型","金额","付款方式","运费","手续费","状态"],D.rows.slice().reverse().map(o=>[esc(o.ref),esc(klDay(o.created_at)+" "+klHM(o.created_at)),esc(o.outlet||"-"),o.order_type==="delivery"?"外送":"自取",money(o.amount),...payCells(o),isDone(o)?"已完成":o.status==="paid"?"已收款":o.status==="pending"?"待确认":"已拒绝"]))}</div>`;
 }
 /* 订单列表「付款 · 运费 · 手续费」：例如「DuitNow · 运费 RM 5.00 · 手续费 RM 0.45 (1.2%)」；运费 = 向客人收的运费（订单讯息里那行） */
 const payName = o => o.pay_provider==="hitpay" ? (PAYM[o.pay_method]||o.pay_method||"HitPay") : o.pay_provider ? String(o.pay_provider) : (o.status==="paid"?"转账（人工确认）":"");
 const feePct = o => (+o.pay_fees>0 && +o.amount>0) ? (o.pay_fees/o.amount*100).toFixed(1)+"%" : "";
-function payCell(o){
-  const p=parseMsg(o.message), parts=[];
-  const nm=o.status==="paid"?payName(o):""; if(nm) parts.push(esc(nm));
-  if(o.order_type==="delivery") parts.push(`运费 ${money(p.fee)}`);
-  if(+o.pay_fees>0) parts.push(`手续费 ${money(o.pay_fees)} (${feePct(o)})`);
-  return parts.join(" · ")||"—";
+/* 订单列表：付款方式 / 运费 / 手续费 分三栏（2026-10-31 业主：标题已写，格子里不重复「运费」「手续费」字眼） */
+function payCells(o){
+  const nm=o.status==="paid"?payName(o):"";
+  const fee=o.order_type==="delivery"?money(parseMsg(o.message).fee):"";
+  const hf=+o.pay_fees>0?`${money(o.pay_fees)} (${feePct(o)})`:"";
+  return [esc(nm)||"—", fee||"—", hf||"—"];
 }
 function exportCsv(){
   const D=sumData(); if(!D.rows.length){ alert("这个月没有订单"); return; }
