@@ -1,6 +1,6 @@
 import fs from "node:fs"; import path from "node:path"; import { createRequire } from "node:module";
 const require=createRequire(import.meta.url); const {chromium}=require("playwright");
-process.env.HP_CFG=new URL("./cfg-test.js",import.meta.url).pathname;
+process.env.HP_CFG=new URL("../../config.js",import.meta.url).pathname;
 const H=await import("./harness.mjs");
 const R="/home/user/restoranmengkee", CFG=fs.readFileSync(process.env.HP_CFG,"utf8");
 const ok=(c,m)=>console.log((c?"✅ ":"❌ ")+m);
@@ -26,7 +26,7 @@ async function run(name, setup){
   await p.check("#od_agree").catch(()=>{}); await p.click("#od_send"); await p.waitForTimeout(500);
   const err1=await p.$eval("#od_err",e=>e.textContent).catch(()=>"");
   const psText=await p.$eval("#paystep",e=>e.innerText.replace(/\s+/g," ")).catch(()=>"");
-  await p.click('#paystep button:has-text("前往付款")').catch(e=>console.log("  （没有前往付款按钮）",err1));
+  await p.evaluate(()=>__site.psHp("duitnow"));
   await p.waitForURL(/securecheckout/,{timeout:8000}).catch(()=>{});
   const o=H.DB.orders[H.DB.orders.length-1], onHp=/securecheckout/.test(p.url());
   console.log(`\n== ${name}\n  购物车：${bill}\n  付款视窗：${psText.slice(0,120)}`);

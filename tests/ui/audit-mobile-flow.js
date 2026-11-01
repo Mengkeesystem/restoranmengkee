@@ -11,6 +11,7 @@ await p.keyboard.press('Escape');await p.evaluate(()=>{document.querySelectorAll
 // add item
 await p.evaluate(()=>document.getElementById('menu').scrollIntoView());await p.waitForTimeout(600);
 await p.locator('.fcard').nth(0).locator('.fadd').click();await p.waitForTimeout(500);await p.screenshot({path:'/tmp/b-pick.png'});
+if(await p.locator('#opick .modebtn').count()){await p.locator('#opick .modebtn[data-m=pickup]').click();await p.waitForTimeout(400)}
 if(await p.locator('#opick.show').count()){await p.locator('#opick .opbtn').first().click();await p.waitForTimeout(500)}
 await p.screenshot({path:'/tmp/b-cust.png'});await ov('cust','#cust');
 await p.locator('#cust .btn.wa').click();await p.waitForTimeout(400);

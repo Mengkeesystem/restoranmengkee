@@ -492,6 +492,7 @@ window.SITE = {
       noteMax: 30,   // 「其他要求」最多几个字
     },
     sstRate: 0.06,            // 购物车自动加 SST（6%）；0 = 不加。算法：（食物小计 − 优惠）× 税率，运费不收 SST
+    rounding: { up: 7 },      // 凑整（2026-11-01 业主）：合计最后一位 sen ≥ 7 进位到下一个 10 sen，< 7 舍去（12.36→12.30，12.37→12.40）；删掉这行 = 不凑整
     menuPhotos: ["images/menu-1.jpg", "images/menu-2.jpg"],   // 纸本菜单原图，可点开放大
     enabled: true,
     pickupLeadMinutes: 60,                // 最快几分钟后可自取（2026-10-18 业主定 1 小时）

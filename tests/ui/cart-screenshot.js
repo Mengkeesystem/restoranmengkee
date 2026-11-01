@@ -7,10 +7,14 @@ await p.route(/supabase\.co/,r=>r.fulfill({status:200,contentType:'application/j
 await p.route(/googleapis|gstatic|fonts\./,r=>r.abort());
 await p.goto('http://localhost:8765/');await p.waitForTimeout(800);
 for(const i of [0,1]){ await p.locator('.fcard').nth(i).locator('.fadd').click(); await p.waitForTimeout(300);
- if(await p.locator('#opick.show').count()){ await p.locator('#opick .opbtn').first().click(); await p.waitForTimeout(300);}
+ if(await p.locator('#opick .modebtn').count()){await p.locator('#opick .modebtn[data-m=pickup]').click();await p.waitForTimeout(400)}
+if(await p.locator('#opick .modebtn').count()){ await p.locator('#opick .modebtn[data-m=pickup]').click(); await p.waitForTimeout(300);}
+if(await p.locator('#opick.show').count()){ await p.locator('#opick .opbtn').first().click(); await p.waitForTimeout(300);}
  if(i===0) await p.locator('#cust .cchips button').first().click().catch(()=>{});
  await p.locator('#cust .btn.wa').click(); await p.waitForTimeout(300);}
 await p.locator('header .cartbtn').click(); await p.waitForTimeout(400); await p.evaluate(()=>window.__site.otype('pickup')); await p.waitForTimeout(400);
+if(await p.locator('#opick .modebtn').count()){await p.locator('#opick .modebtn[data-m=pickup]').click();await p.waitForTimeout(400)}
+if(await p.locator('#opick .modebtn').count()){ await p.locator('#opick .modebtn[data-m=pickup]').click(); await p.waitForTimeout(300);}
 if(await p.locator('#opick.show').count()){ await p.locator('#opick .opbtn').first().click(); await p.waitForTimeout(300);}
 await p.waitForTimeout(500);
 const full=await p.evaluate(()=>{const d=document.getElementById('drawer');return d.scrollHeight;});

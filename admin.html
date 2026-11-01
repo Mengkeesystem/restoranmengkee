@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="明记后台">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>document.write('<script src="config.js?v='+Math.floor(Date.now()/60000)+'"><\/script>');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <style>
@@ -97,11 +97,26 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .m86s.on{background:#EEF8F1;color:#14532D}.m86s.off{background:#F9E3E3;color:var(--p)}.m86s.part{background:#FFF6DA;color:#7A4B00}
 .m86t{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2A1A14;color:#fff;padding:12px 18px;font-weight:700;max-width:90%;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.m86t.show{opacity:1}
 #m86View .bar label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+
+/* ===== 出餐拍照 + 退款（2026-11-01）===== */
+.proof{margin-top:10px;padding:10px;border:1px dashed var(--line);background:#FFFDF6;font-size:14px}
+.proof.need{border:2px solid var(--p);background:#FDF1F1}
+.proof.ok{border-style:solid;border-color:#BFE3CB;background:#F3FBF6}
+.proof .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.pth{width:84px;height:84px;object-fit:cover;border:1px solid var(--line);border-radius:var(--r);background:#eee;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:12px}
+.lb{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;gap:8px}
+.lb img{max-width:100%;max-height:82vh;object-fit:contain}
+.lb span{color:#fff;font-size:13px}
+.rfd{margin-top:8px;padding:8px 10px;border-left:4px solid #8A5A00;background:#FFF6DA;font-size:13.5px}
+.tag.rf{background:#FFE9C7;color:#7A4B00}
+.ibox label.rl{margin-top:8px}
+.ibox textarea,.ibox select,.ibox input{margin-bottom:2px}
 </style>
 </head>
 <body>
 <header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="m86Btn" hidden>🍽️ 菜单开关</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
 <div class="wrap" id="app"></div>
+<input type="file" id="shotIn" accept="image/*" capture="environment" hidden>
 
 <script>
 (function(){
@@ -200,6 +215,7 @@ async function load(){
   const fresh = data.filter(o=>alertable(o) && !seen.has(o.id));
   data.forEach(o=>{ if(alertable(o)) seen.add(o.id); });
   orders=data;
+  try{ await loadExtras(data); }catch(e){}
   if(!first && fresh.length){ beep(); document.title="🔔 新订单 · "+(S.name||""); setTimeout(()=>document.title=(S.name||"")+" · 店员后台",8000); }
   render(first?[]:fresh.map(o=>o.id)); first=false;
 }
@@ -211,6 +227,32 @@ let hasCourierCols=true, hasDoneCols=true, hasPayCols=true, dcfg=null, busy=new 
 /* HitPay 网上付款（2026-10-30）：客人在 HitPay 付款后，web-hitpay 自动把订单改成已收款（confirmed_by = HitPay） */
 const COLS_PAY=",pay_provider,pay_status,pay_method,pay_fees,paid_amount,paid_at";
 const isHp = o => o.pay_provider==="hitpay";
+/* 出餐拍照 / 退款（2026-11-01，verify-refund.sql）：表还没建就当没有这个功能 */
+let hasProof=true, hasRefund=true, proofs={}, refunds={}, urlCache={}, shotBusy=new Set(), shotFor=0;
+const noTable = e => /relation|42P01|schema cache|does not exist|PGRST20/i.test(String((e&&e.message)||"")+String((e&&e.code)||""));
+async function signProofs(rows){
+  const now=Date.now(), need=[...new Set(rows.map(p=>p.path))].filter(x=>!urlCache[x]||urlCache[x].exp<now);
+  for(let i=0;i<need.length;i+=100){
+    const {data,error}=await sb.storage.from("web-proof").createSignedUrls(need.slice(i,i+100),3600);
+    if(error||!data) return;
+    data.forEach(x=>{ if(x&&x.path&&x.signedUrl) urlCache[x.path]={u:x.signedUrl,exp:now+50*60000}; });
+  }
+}
+async function loadExtras(rows){
+  const ids=rows.filter(o=>o.status==="paid").map(o=>o.id);
+  if(!ids.length){ proofs={}; refunds={}; return; }
+  if(hasProof){
+    const {data,error}=await sb.from("web_order_proofs").select("id,order_id,path,created_at,created_by").in("order_id",ids).order("created_at",{ascending:true});
+    if(error){ if(noTable(error)) hasProof=false; }
+    else{ const m={}; data.forEach(p=>(m[p.order_id]=m[p.order_id]||[]).push(p)); proofs=m; try{ await signProofs(data); }catch(e){} }
+  }
+  if(hasRefund){
+    const {data,error}=await sb.from("web_refunds").select("id,order_id,amount,reason,mode,status,created_at,created_by").in("order_id",ids).order("created_at",{ascending:true});
+    if(error){ if(noTable(error)) hasRefund=false; }
+    else{ const m={}; data.forEach(r=>(m[r.order_id]=m[r.order_id]||[]).push(r)); refunds=m; }
+  }
+}
+const refundedOf = id => Math.round((refunds[id]||[]).filter(r=>r.status!=="failed").reduce((t,r)=>t+(+r.amount||0),0)*100)/100;
 const hpUnpaid = o => isHp(o) && o.status==="pending";
 /* 要响铃的单：一般单（QR 转账）一进来就响；HitPay 单要等客人付款成功才响（还没付的不响，免得厨房先做） */
 const alertable = o => isHp(o) ? o.status==="paid" : o.status==="pending";
@@ -271,33 +313,130 @@ function render(newIds){
   $("list").innerHTML = rows.length? rows.map(o=>{
     const old = o.status==="pending" && (Date.now()-new Date(o.created_at))>30*60000;
     return `<div class="ord ${o.status}${newIds.includes(o.id)?" new":""}">
-      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${isDone(o)?"done":hpUnpaid(o)?"rejected":o.status}">${isDone(o)?"已完成":hpUnpaid(o)?"等客人付款":o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${isHp(o)?`<span class="tag done">HitPay</span>`:""}${old?`<span class="tag old">超过 30 分钟</span>`:""}
+      <div class="oh"><div><span class="ref">${esc(o.ref)}</span><span class="tag ${isDone(o)?"done":hpUnpaid(o)?"rejected":o.status}">${isDone(o)?"已完成":hpUnpaid(o)?"等客人付款":o.status==="pending"?"待确认":o.status==="paid"?"已收款":"已拒绝"}</span>${isHp(o)?`<span class="tag done">HitPay</span>`:""}${refundedOf(o.id)>0?`<span class="tag rf">${refundedOf(o.id)>=+o.amount-0.001?"已全额退款":"已退款 "+money(refundedOf(o.id))}</span>`:""}${old?`<span class="tag old">超过 30 分钟</span>`:""}
         <div class="meta">${hhmm(o.created_at)}（${ago(o.created_at)}） · <b>${esc(o.outlet||"-")}</b> · ${o.order_type==="delivery"?"🛵 外送":"🛍️ 自取"}</div>
         <div class="meta">👤 <b>${esc(o.customer_name||"")}</b> · 📞 <a href="tel:${esc(String(o.customer_phone||"").replace(/[^\d+]/g,""))}">${esc(o.customer_phone||"")}</a></div></div>
         <div class="amt">${money(o.amount)}</div></div>
       ${notesHTML(o)}
       <details ${o.status==="pending"?"open":""}><summary>订单内容</summary><pre>${esc(o.message)}</pre></details>
       ${payHTML(o)}
+      ${refundHTML(o)}
       ${hpUnpaid(o)?`<div class="acts"><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 取消（客人没付款）</button></div>`
         :o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
         :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}${isDone(o)?` · 完成：${esc(o.completed_by||"Delyva")}${o.completed_at?" · "+hhmm(o.completed_at):""}`:""}</div>`}
+      ${proofHTML(o)}
       ${o.status==="paid"&&hasDoneCols&&!isDone(o)?`<div class="acts"><button class="btn ok sm" data-done="1" data-id="${o.id}" data-ref="${esc(o.ref)}" data-del="${o.order_type==="delivery"?1:""}">✅ ${o.order_type==="delivery"?"标记完成（已送达）":"完成（客人已取餐）"}</button></div>`:""}
       ${isDone(o)&&o.completed_at&&o.completed_by&&o.completed_by!=="Delyva"&&o.courier_status!==700&&o.courier_status!==1000?`<div class="acts"><button class="btn alt sm" data-done="0" data-id="${o.id}" data-ref="${esc(o.ref)}">↩ 撤回完成</button></div>`:""}
       ${courierHTML(o)}
     </div>`; }).join("") : `<div class="empty">${tab==="pending"?"目前没有待确认的订单 ☕":"没有记录"}</div>`;
   $("list").querySelectorAll("button[data-act]").forEach(b=>b.onclick=()=>act(b));
+  $("list").querySelectorAll("button[data-shot]").forEach(b=>b.onclick=()=>{ shotFor=+b.dataset.shot; $("shotIn").value=""; $("shotIn").click(); });
+  $("list").querySelectorAll("[data-pv]").forEach(b=>b.onclick=()=>openLb(b.dataset.pv,b.dataset.cap||""));
+  $("list").querySelectorAll("button[data-refund]").forEach(b=>b.onclick=()=>openRefund(+b.dataset.refund));
   $("list").querySelectorAll("button[data-cour]").forEach(b=>b.onclick=()=>courAct(b));
   $("list").querySelectorAll("button[data-done]").forEach(b=>b.onclick=()=>doneAct(b));
   $("list").querySelectorAll("button[data-sim]").forEach(b=>b.onclick=async()=>{ const id=+b.dataset.id; busy.add(id); render();
     try{ await fn("simulate",id,{code:+b.dataset.sim}); }catch(e){ alert("模拟失败："+e.message); } busy.delete(id); await load(); });
 }
 
+
+/* ---------- 出餐拍照证明（2026-11-01 业主：分店食物准备好要拍照，避免客人乱投诉东西少） ---------- */
+function proofHTML(o){
+  if(!hasProof||o.status!=="paid") return "";
+  const ps=proofs[o.id]||[], b=shotBusy.has(o.id), dn=isDone(o);
+  if(!ps.length){
+    const late=o.order_type==="delivery"&&(o.courier_status||0)>=500;
+    if(dn) return `<div class="proof"><span class="mut">⚠️ 这张单没有出餐照片。</span></div>`;
+    return `<div class="proof need"><b>📸 出餐拍照（必须）</b><div class="mut">食物准备好、打包好后，请<b>先拍照</b>（要拍到全部餐点和袋子），拍了才能按「完成」。照片会留作证明，万一客人投诉东西少可以查。${o.order_type==="delivery"?"外送单请在骑手取餐前拍好。":""}</div>
+      ${late?`<div class="err">⚠️ 骑手已经取餐了，但还没有出餐照片！</div>`:""}
+      <div class="acts"><button class="btn sm" data-shot="${o.id}" ${b?"disabled":""}>${b?"上传中…":"📸 拍照上传"}</button></div></div>`;
+  }
+  const last=ps[ps.length-1];
+  return `<div class="proof ok"><b>✅ 已拍照 ${ps.length} 张</b> <span class="mut">· ${esc(klHM(last.created_at))} · ${esc(String(last.created_by||"").split("@")[0])}</span>
+    <div class="thumbs">${ps.map(p=>{ const u=urlCache[p.path]; const cap=`${o.ref} · ${klDay(p.created_at)} ${klHM(p.created_at)} · ${p.created_by||""}`;
+      return u?`<img class="pth" data-pv="${esc(p.path)}" data-cap="${esc(cap)}" src="${esc(u.u)}" alt="出餐照片" loading="lazy">`:`<span class="pth">…</span>`; }).join("")}</div>
+    ${dn?"":`<div class="acts"><button class="btn alt sm" data-shot="${o.id}" ${b?"disabled":""}>${b?"上传中…":"➕ 再拍一张"}</button></div>`}</div>`;
+}
+function openLb(path,cap){
+  const u=urlCache[path]; if(!u) return;
+  const d=document.createElement("div"); d.className="lb"; d.innerHTML=`<img src="${esc(u.u)}" alt=""><span>${esc(cap)} · 点任何地方关闭</span>`;
+  d.onclick=()=>d.remove(); document.body.appendChild(d);
+}
+/* 缩小到最长边 1280px、JPEG，并在底部印上「参考号 · 分店 · 时间」（防止拿旧照片来充数） */
+async function shrink(file,label){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("读不到这张照片")); i.src=url; });
+    const sc=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(img.naturalWidth*sc)); c.height=Math.max(1,Math.round(img.naturalHeight*sc));
+    const x=c.getContext("2d"); x.drawImage(img,0,0,c.width,c.height);
+    const fs=Math.max(14,Math.round(c.width/42)), pad=Math.round(fs*.5);
+    x.fillStyle="rgba(0,0,0,.55)"; x.fillRect(0,c.height-fs-pad*2,c.width,fs+pad*2);
+    x.fillStyle="#fff"; x.font=`bold ${fs}px sans-serif`; x.textBaseline="middle"; x.fillText(label,pad,c.height-pad-fs/2);
+    const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.72)); if(!blob) throw new Error("照片处理失败");
+    return blob;
+  } finally { URL.revokeObjectURL(url); }
+}
+async function uploadShot(file,id){
+  const o=orders.find(x=>x.id===id); if(!o||!file) return;
+  shotBusy.add(id); render();
+  try{
+    const now=new Date().toISOString(), blob=await shrink(file,`${o.ref} · ${o.outlet||""} · ${klDay(now)} ${klHM(now)}`);
+    const path=`${id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+    const up=await sb.storage.from("web-proof").upload(path,blob,{contentType:"image/jpeg",upsert:false}); if(up.error) throw up.error;
+    const ins=await sb.from("web_order_proofs").insert({order_id:id,path}); if(ins.error) throw ins.error;
+  }catch(e){ alert("照片上传失败："+(e&&e.message||e)+"\n（如果一直失败，请告诉老板检查 verify-refund.sql 有没有跑）"); }
+  shotBusy.delete(id); await load();
+}
+$("shotIn").onchange=()=>{ const f=$("shotIn").files&&$("shotIn").files[0], id=shotFor; shotFor=0; if(f&&id) uploadShot(f,id); };
+
+/* ---------- 退款（2026-11-01 业主：在后台直接退款；只有管理员能退） ---------- */
+function refundHTML(o){
+  const rs=(refunds[o.id]||[]).filter(r=>r.status!=="failed"); const canR=role==="admin"&&hasRefund&&o.status==="paid";
+  const left=Math.round((+o.amount-refundedOf(o.id))*100)/100;
+  if(!rs.length&&!canR) return "";
+  return `${rs.length?`<div class="rfd"><b>💸 退款记录</b>${rs.map(r=>`<div>${money(r.amount)} · ${esc(klDay(r.created_at))} ${esc(klHM(r.created_at))} · ${r.mode==="manual"?"手动退款（记录）":r.status==="pending"?"HitPay 处理中":"HitPay 已退"} · ${esc(r.reason)} <span class="mut">· ${esc(String(r.created_by||"").split("@")[0])}</span></div>`).join("")}</div>`:""}
+    ${canR&&left>0.001?`<div class="acts"><button class="btn alt sm" data-refund="${o.id}">💸 退款</button></div>`:""}`;
+}
+async function fnHp(body){
+  const {data,error}=await sb.functions.invoke("web-hitpay",{body});
+  if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
+  return data;
+}
+function openRefund(id){
+  const o=orders.find(x=>x.id===id); if(!o) return;
+  const left=Math.round((+o.amount-refundedOf(id))*100)/100; if(left<=0.001){ alert("这张单已经全额退款了"); return; }
+  const hpPaid=isHp(o), d=document.createElement("div"); d.className="ibox";
+  const REASONS=["漏单 / 少餐","品质问题","送太晚 / 没送到","客人要求取消","店家无法出餐","多收 / 算错","其他"];
+  d.innerHTML=`<div><h3 style="margin:0 0 4px;color:var(--p)">💸 退款 · ${esc(o.ref)}</h3>
+    <div class="mut">订单 ${money(o.amount)} · 已退 ${money(refundedOf(id))} · <b>最多还能退 ${money(left)}</b></div>
+    <label class="rl">退款金额（RM）</label><input id="rf_amt" type="number" inputmode="decimal" step="0.01" min="0.01" max="${left}" value="${left.toFixed(2)}">
+    <label class="rl">原因（必填，会记录）</label><select id="rf_rs">${REASONS.map(x=>`<option>${esc(x)}</option>`).join("")}</select>
+    <input id="rf_note" placeholder="补充说明（选填，例如缺了哪道菜）" maxlength="120" style="margin-top:6px">
+    <div class="live" style="margin:10px 0 4px">${hpPaid?"<b>HitPay 自动退款</b>：钱会退回客人当初付款的方式。到账时间看付款方式和银行：一般信用卡 / FPX 约 3–5 个工作天，电子钱包可能要 7–14 天（HitPay 公开资料，实际以 HitPay 为准）。<br>⚠️ DuitNow 转账有可能不能自动退，HitPay 拒绝的话，请自己转账给客人，再按「已手动退款」记录。":"这张单不是 HitPay 付款，请自己转账给客人，再按「已手动退款」记录。"}</div>
+    <div class="err" id="rf_err"></div>
+    ${hpPaid?`<button class="btn" id="rf_go" style="width:100%;margin-bottom:8px">💸 用 HitPay 自动退款</button>`:""}
+    <button class="btn alt" id="rf_man" style="width:100%;margin-bottom:8px">📝 已手动退款（只记录，不会动钱）</button>
+    <button class="btn alt" id="rf_x" style="width:100%;border-color:var(--line);color:var(--mut)">取消</button></div>`;
+  document.body.appendChild(d);
+  const go=async(mode)=>{
+    const amt=Math.round((+$("rf_amt").value)*100)/100, why=($("rf_rs").value+($("rf_note").value.trim()?"："+$("rf_note").value.trim():"")).slice(0,200);
+    if(!(amt>0)||amt>left+0.001){ $("rf_err").textContent=`金额要在 0.01 到 ${left.toFixed(2)} 之间`; return; }
+    if(!confirm(mode==="hitpay"?`确定用 HitPay 退款 ${money(amt)} 给客人（订单 ${o.ref}）？\n退款送出后不能撤回。`:`确定记录「已手动退款 ${money(amt)}」（订单 ${o.ref}）？\n这只是登记，系统不会动任何钱。`)) return;
+    d.querySelectorAll("button").forEach(x=>x.disabled=true); $("rf_err").textContent="处理中…";
+    try{ const r=await fnHp({action:"refund",id,amount:amt,reason:why,mode}); d.remove(); alert(mode==="hitpay"?`HitPay 已受理退款 ${money(amt)} ✅\n（状态：${r.hitpay||"已送出"}；到账需要几个工作天）`:`已记录手动退款 ${money(amt)} ✅`); await load(); }
+    catch(e){ d.querySelectorAll("button").forEach(x=>x.disabled=false); $("rf_err").textContent=e.message; }
+  };
+  if($("rf_go")) $("rf_go").onclick=()=>go("hitpay"); $("rf_man").onclick=()=>go("manual"); $("rf_x").onclick=()=>d.remove();
+}
+
 async function doneAct(b){
   const on=b.dataset.done==="1";
+  if(on&&hasProof&&!(proofs[+b.dataset.id]||[]).length){ alert("请先拍照上传出餐照片，再按完成。\n（在订单上的「📸 拍照上传」）"); return; }
   if(!confirm(on ? `订单 ${b.dataset.ref} ${b.dataset.del?"确定已送达？\n（用 Delyva 的单，送达后会自动完成，不用按）":"确定客人已取餐？"}` : `把订单 ${b.dataset.ref} 撤回「已收款」？`)) return;
   b.disabled=true;
   const {error}=await sb.from("web_orders").update(on?{completed_at:new Date().toISOString(),completed_by:me.email}:{completed_at:null,completed_by:null}).eq("id",+b.dataset.id).eq("status","paid");
-  if(error){ alert("更新失败："+error.message); b.disabled=false; return; }
+  if(error){ alert(/need_proof/.test(error.message)?"请先拍照上传出餐照片，再按完成。":"更新失败："+error.message); b.disabled=false; return; }
   await load();
 }
 async function act(b){
@@ -319,7 +458,7 @@ async function act(b){
 }
 
 /* ---------- 每月总结：直接读 web_orders（全分店自动汇总，只有店员看得到） ---------- */
-let view="orders", sumMonth="", sumOutlet="", sumRows=[];
+let view="orders", sumMonth="", sumOutlet="", sumRows=[], sumRefunds=[];
 function klMonth(d){ const k=new Date((d?new Date(d):new Date()).getTime()+8*3600e3); return k.toISOString().slice(0,7); }
 function klDay(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(0,10); }
 function klHM(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(11,16); }
@@ -447,7 +586,12 @@ async function loadSummary(){
     if(error){ $("sbody").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
     all.push(...data); if(data.length<1000) break;
   }
-  sumRows=all; drawSummary();
+  sumRows=all; sumRefunds=[];
+  if(hasRefund){   /* 退款按「退款那天」算进那个月；连着订单一起读（分店筛选要用） */
+    const r=await sb.from("web_refunds").select("order_id,amount,reason,mode,status,created_at,created_by,web_orders(ref,outlet)").in("status",["done","manual"]).gte("created_at",from).lt("created_at",to).order("created_at",{ascending:true}).limit(2000);
+    if(r.error){ if(noTable(r.error)) hasRefund=false; } else sumRefunds=r.data||[];
+  }
+  drawSummary();
 }
 const num = s => Number(String(s).replace(/,/g,""))||0;
 /* 客人备注（2026-10-31 业主：后台要一眼看到）：整单的「备注 / 配送说明」+ 每道菜的口味要求（讯息里 [ ] 那段），放在订单内容上面、黄色框 */
@@ -487,6 +631,7 @@ function sumData(){
     const dy=D.day[klDay(o.created_at)]=D.day[klDay(o.created_at)]||[0,0]; dy[0]++; dy[1]+=a;
     p.items.forEach(it=>{ const x=D.items[it.name]=D.items[it.name]||[0,0]; x[0]+=it.q; x[1]+=it.amt; });
   });
+  D.refunds=sumRefunds.filter(r=>!sumOutlet||(r.web_orders&&r.web_orders.outlet===sumOutlet)); D.refund=D.refunds.reduce((t,r)=>t+(+r.amount||0),0);
   return D;
 }
 function drawSummary(){
@@ -497,10 +642,12 @@ function drawSummary(){
   const top=Object.entries(D.items).sort((a,b)=>b[1][0]-a[1][0]||b[1][1]-a[1][1]).slice(0,15);
   $("sbody").innerHTML=`<div class="kpis">
       ${kpi("营业额（已收款）",money(D.rev),`${n} 张订单`)}${kpi("平均每单",money(n?D.rev/n:0))}
+      ${D.refund>0?kpi("退款",money(D.refund),`${D.refunds.length} 笔 · 净营业额 ${money(D.rev-D.refund)}`):""}
       ${kpi("已完成",D.done,`还没完成 ${n-D.done}`)}${kpi("待确认 / 已拒绝",`${D.pend} / ${D.rej}`)}
       ${kpi("SST（含在营业额里）",money(D.sst))}${kpi("向客人收的运费",money(D.fee))}
       ${kpi("Delyva 骑手成本",money(D.cost),"已取消的不算")}${kpi("优惠折扣",money(D.disc))}
       ${D.hp?kpi("HitPay 手续费",money(D.hpFees),`${D.hp} 张网上付款，店家吸收`):""}</div>
+    ${D.refunds.length?`<div class="sumsec"><h3>退款记录（${D.refunds.length}）</h3>${tbl(["订单","退款时间","金额","方式","原因"],D.refunds.slice().reverse().map(r=>[esc((r.web_orders&&r.web_orders.ref)||"-"),esc(klDay(r.created_at)+" "+klHM(r.created_at)),money(r.amount),r.mode==="manual"?"手动":"HitPay",esc(r.reason)]))}</div>`:""}
     <div class="sumsec"><h3>自取 / 外送</h3>${tbl(["类型","订单","营业额"],[["🛍️ 自取",D.type.pickup[0],money(D.type.pickup[1])],["🛵 外送",D.type.delivery[0],money(D.type.delivery[1])]])}</div>
     ${sumOutlet?"":`<div class="sumsec"><h3>按分店</h3>${tbl(["分店","订单","营业额"],Object.entries(D.outlet).sort((a,b)=>b[1][1]-a[1][1]).map(([k,v])=>[esc(k),v[0],money(v[1])]))}</div>`}
     <div class="sumsec"><h3>热卖 Top 15</h3>${top.length?tbl(["菜品","份数","金额"],top.map(([k,v])=>[esc(k),v[0],money(v[1])])):`<div class="live">没有菜品资料</div>`}</div>

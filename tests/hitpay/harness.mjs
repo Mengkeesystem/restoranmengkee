@@ -1,7 +1,7 @@
 // 模拟环境：内存订单表 + 网站 config.js + Delyva 报价 + HitPay API；export 给测试用
 import fs from "node:fs"; import crypto from "node:crypto";
 export const ENV={SUPABASE_URL:"https://p.supabase.co",SUPABASE_SERVICE_ROLE_KEY:"srk-test",WEB_HITPAY_API_KEY:"hpkey",WEB_HITPAY_WEBHOOK_SALT:"whsalt",WEB_HITPAY_CURRENCY:"MYR"};
-export const DB={orders:[],seq:1}; export const HP={reqs:{},calls:[]}; export const DV={fee:9.5,calls:0,dispatch:[],ok:true};
+export const DB={orders:[],seq:1,refunds:[],rseq:1}; export const HP={reqs:{},calls:[]}; export const DV={fee:9.5,calls:0,dispatch:[],ok:true};
 let handler; globalThis.Deno={env:{get:k=>ENV[k]},serve:h=>{handler=h;}};
 const CFG=fs.readFileSync(process.env.HP_CFG||"/home/user/restoranmengkee/config.js","utf8");
 const J=(x,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{"content-type":"application/json"}});
@@ -17,6 +17,14 @@ export const mockFetch=async(u,init={})=>{ u=String(u); const m=(init.method||"G
   if(u.endsWith("/functions/v1/web-delyva")){ const b=JSON.parse(init.body);
     if(b.action==="quote"){ DV.calls++; DV.lastQuote=b; DV.lastAuth=init.headers&&init.headers.Authorization; return J(DV.ok?{ok:true,fee:DV.fee,service:"Instant Delivery"}:{ok:false,error:"no service"}); }
     if(b.action==="dispatch"){ DV.dispatch.push({id:b.id,auth:init.headers.Authorization}); return J({ok:true}); } }
+  if(u.includes("/auth/v1/user")){ const a=(init.headers&&init.headers.Authorization)||""; const em={ "Bearer eyadmin":"a@x.com","Bearer eymgr":"m@x.com","Bearer eystranger":"z@x.com" }[a]; return em?J({email:em}):J({message:"bad jwt"},401); }
+  if(u.includes("/rest/v1/web_staff")) return J([{email:"a@x.com",role:"admin"},{email:"m@x.com",role:"manager",outlets:[0]}]);
+  if(u.includes("/rest/v1/web_refunds")){ if(DB.noRefundTable) return J({message:"relation does not exist"},404);
+    if(m==="POST"){ const r={id:DB.rseq++,created_at:new Date().toISOString(),...JSON.parse(init.body)}; DB.refunds.push(r); return J([r]); }
+    if(m==="PATCH"){ const id=new URL(u).searchParams.get("id").replace("eq.",""); const r=DB.refunds.find(x=>String(x.id)===id); Object.assign(r,JSON.parse(init.body)); return J([r]); }
+    const sp=new URL(u).searchParams, oid=(sp.get("order_id")||"").replace("eq.",""), st=(sp.get("status")||"").replace(/^in\.\(|\)$/g,"").split(",");
+    return J(DB.refunds.filter(r=>String(r.order_id)===oid&&(!sp.get("status")||st.includes(r.status)))); }
+  if(u==="https://api.hit-pay.com/v1/refund"){ const b=Object.fromEntries(new URLSearchParams(init.body)); HP.refunds=(HP.refunds||[]).concat(b); if(HP.refundFail) return J({message:HP.refundFail},422); return J({id:"rf-"+crypto.randomUUID().slice(0,8),payment_id:b.payment_id,amount_refunded:b.amount,status:"succeeded"}); }
   if(u.startsWith("https://api.hit-pay.com/v1/payment-requests")){ HP.calls.push({m,u,key:init.headers["X-BUSINESS-API-KEY"],body:init.body});
     if(m==="POST"){ const b=Object.fromEntries(new URLSearchParams(init.body)); const id=crypto.randomUUID(); HP.reqs[id]={id,...b,status:"pending",url:`https://securecheckout.hit-pay.com/payment-request/@mk/${id}/checkout`}; return J(HP.reqs[id]); }
     const id=u.split("/").pop(); if(m==="DELETE"){ if(HP.noDelete) return J({message:"cannot delete"},422); const r0=HP.reqs[id]; if(!r0) return J({message:"not found"},404); r0.status="deleted"; HP.deleted=(HP.deleted||[]).concat(id); return J({success:true}); } const r=HP.reqs[id]; return r?J(r):J({message:"not found"},404); }

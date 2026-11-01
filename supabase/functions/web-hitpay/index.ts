@@ -29,10 +29,11 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-10-31e";
+const VERSION = "2026-11-01a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
+const ANON = env("SUPABASE_ANON_KEY");
 const HP_BASE = env("WEB_HITPAY_BASE", "https://api.hit-pay.com").replace(/\/$/, "");
 const HP_CUR = env("WEB_HITPAY_CURRENCY", "MYR").toUpperCase();
 const SITE_URL = env("WEB_SITE_URL", "https://restoranmengkee.com.my").replace(/\/$/, "");
@@ -108,6 +109,8 @@ async function site() {
 
 // ---------- 价钱计算（照 index.html 的同一套规则；改网页的算法要一起改这里） ----------
 const r2 = (n: number) => Math.round(n * 100) / 100;
+/* 凑整：最后一位 sen >= up 进位到下一个 10 sen，否则舍去（跟 index.html 的 roundSen 一样）；config 没写 ordering.rounding.up 就不凑整 */
+const roundSen = (S: any, x: number) => { const up = Number(S?.ordering?.rounding?.up); if (!(up >= 1 && up <= 10)) return r2(x); const c = Math.round(x * 100), d = ((c % 10) + 10) % 10; return (d >= up ? c - d + 10 : c - d) / 100; };
 const money = (S: any, n: number) => `${(S.ordering && S.ordering.currency) || "RM"} ${r2(n).toFixed(2)}`;
 const klDate = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 const noteHash = (s: string) => { let h = 5381; for (const c of s) h = ((h * 33) ^ (c.codePointAt(0) as number)) >>> 0; return "n" + h.toString(36); };
@@ -192,16 +195,16 @@ async function priceOrder(S: any, a: { cart: unknown; notes: unknown; voucher: u
     if (B.D.minOrder && sub - disc < B.D.minOrder) throw new UserError(`外送最低消费 ${money(S, B.D.minOrder)}`);
     fee = B.D.freeAbove && sub - disc >= B.D.freeAbove ? 0 : r2(a.fee ?? 0);
   }
-  const total = r2(sub - disc + box + sst + fee);
+  const raw = r2(sub - disc + box + sst + fee), total = roundSen(S, raw), adj = r2(total - raw);   // 凑整：跟网页同一套算法（config ordering.rounding.up）
   const head = [a.del ? "【网上点餐 - 外送】" : "【网上点餐 - 自取】", `分店: ${outlet.name}`, ...lines,
     `小计: ${money(S, sub)}${a.del && B.hasMarkup ? " (外送价)" : ""}`, ...(vLine ? [vLine] : []),
     ...(box > 0 && B.PK ? [`${B.PK.label}: ${money(S, box)}`] : []), ...(rate ? [`SST ${Math.round(rate * 1000) / 10}%: ${money(S, sst)}`] : []),
-    ...(a.del ? [`运费: ${fee === 0 ? "免运费" : money(S, fee)}${a.feeTag ? ` (${a.feeTag})` : ""}`] : []), `合计: ${money(S, total)}`];
-  return { sub, disc, box, sst, fee, total, count, head: head.join("\n"), outlet };
+    ...(a.del ? [`运费: ${fee === 0 ? "免运费" : money(S, fee)}${a.feeTag ? ` (${a.feeTag})` : ""}`] : []), ...(adj !== 0 ? [`凑整: ${adj > 0 ? "+" : "−"}${money(S, Math.abs(adj))}`] : []), `合计: ${money(S, total)}`];
+  return { sub, disc, box, sst, fee, total, adj, raw, count, head: head.join("\n"), outlet };
 }
 
 /* 客人那段（姓名/电话/地址/备注…）照用网页的，但去掉看起来像菜品/金额的行（免得每月总结被灌假数字） */
-const FAKE = /^\s*(•|SST|运费|Delivery fee|优惠码|Voucher|小计|Subtotal|合计|Total|打包盒|Takeaway box|付款方式|Payment)(\s|:|：|$)/i;   // \b 对中文字不管用
+const FAKE = /^\s*(•|SST|凑整|Rounding|运费|Delivery fee|优惠码|Voucher|小计|Subtotal|合计|Total|打包盒|Takeaway box|付款方式|Payment)(\s|:|：|$)/i;   // \b 对中文字不管用
 const tailOf = (msg: string) => { const i = msg.indexOf("\n\n"); return i < 0 ? "" : msg.slice(i + 2).split("\n").filter((l) => !FAKE.test(l)).join("\n").slice(0, 2500); };
 
 /* 外送运费：再问一次 Delyva（同一个 web-delyva 报价，有快取，跟客人看到的通常一样） */
@@ -272,7 +275,8 @@ async function pay(req: Request, b: any) {
   const base = await priceOrder(S, { cart: b.cart, notes: b.notes, voucher: b.voucher, del, oi, fee: 0, feeTag: "" });
   let fee = 0, feeTag = "";
   if (del) {
-    const claimed = r2(Number(o.amount) - (base.sub - base.disc + base.box + base.sst));
+    // 客人看到的运费：网页会一起送来（凑整后金额反推会差几 sen）；旧网页没送就用 订单金额 − 其他项 反推
+    const cf = Number(b.fee), claimed = Number.isFinite(cf) && cf >= 0 && cf < 500 ? r2(cf) : r2(Number(o.amount) - (base.sub - base.disc + base.box + base.sst));
     const fa = +(S.ordering?.delivery?.freeAbove) || 0;
     if (fa && base.sub - base.disc >= fa) fee = 0;   // 满额免运费
     else {
@@ -337,13 +341,17 @@ async function repay(o: any, S: any, b: any) {
       if (!q) throw new UserError("暂时拿不到外送运费，请稍后再试，或取消订单后重新下单");
       if (q.fee - claimed > FEE_TOL + 1e-9) throw new UserError(`外送运费有变动（现在是 ${money(S, q.fee)}），请取消这笔订单后重新下单`);
       if (q.fee - claimed > 0.005) {   // 涨得不多（容许范围内）→ 金额跟着 Delyva 新运费；变便宜 → 照原金额收
-        const diff = r2(q.fee - claimed), newAmt = r2(Number(o.amount) + diff);
-        if (o.pay_id && !(await dropRequest(o))) throw new UserError("运费有变动但旧付款单暂时作废不了，请稍后再试，或取消订单后重新下单");
-        let msg = String(o.message || "").replace(/运费:\s*RM\s*[\d.]+/, `运费: ${money(S, q.fee)}`).replace(/合计:\s*RM\s*[\d.]+/, `合计: ${money(S, newAmt)}`);
+        // 金额 = 凑整前金额 + 运费涨幅，再凑整一次（订单讯息里的「凑整」行同步更新）
+        const am = String(o.message || "").match(/凑整:\s*([+−-])\s*RM\s*([\d.]+)/), oldAdj = am ? (am[1] === "+" ? 1 : -1) * Number(am[2]) : 0;
+        const rawNew = r2(Number(o.amount) - oldAdj + r2(q.fee - claimed)), newAmt = roundSen(S, rawNew), newAdj = r2(newAmt - rawNew);
+        const changed = Math.abs(newAmt - Number(o.amount)) > 0.001;
+        if (changed && o.pay_id && !(await dropRequest(o))) throw new UserError("运费有变动但旧付款单暂时作废不了，请稍后再试，或取消订单后重新下单");
+        const adjLine = newAdj !== 0 ? `凑整: ${newAdj > 0 ? "+" : "−"}${money(S, Math.abs(newAdj))}\n` : "";
+        const msg = String(o.message || "").replace(/凑整:[^\n]*\n/, "").replace(/运费:\s*RM\s*[\d.]+/, `运费: ${money(S, q.fee)}`).replace(/合计:\s*RM\s*[\d.]+/, `${adjLine}合计: ${money(S, newAmt)}`);
         await patch(o.id, { amount: newAmt, message: msg }, "&status=eq.pending");
         o = { ...o, amount: newAmt, message: msg };
         console.log(`repay ${o.ref} fee ${claimed} -> ${q.fee}, amount -> ${newAmt}`);
-        b = { ...b, __forceNew: true };
+        if (changed) b = { ...b, __forceNew: true };
       }
     }
   }
@@ -400,6 +408,60 @@ async function sweepStale() {
       console.log(`sweep ${o.ref} expired`);
     }
   } catch (e) { console.log(`sweep error ${String((e as Error).message).slice(0, 160)}`); }
+}
+
+
+// ---------- 退款（2026-11-01 业主：在员工后台直接退款；只有「管理员」能退） ----------
+/* 只认登录的管理员（web_staff.role = admin；还没跑 staff.sql 的旧表当管理员）。分店经理不能退款 */
+async function adminEmail(req: Request): Promise<string> {
+  const auth = req.headers.get("authorization") || "";
+  if (!/^Bearer\s+ey/.test(auth)) throw new UserError("请先登录员工后台");
+  const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: ANON || SRK, Authorization: auth } });
+  if (!r.ok) throw new UserError("登录已过期，请重新登录员工后台");
+  const email = String((await r.json())?.email || "").toLowerCase();
+  if (!email) throw new UserError("请先登录员工后台");
+  let rows: any[];
+  try { rows = await db(`web_staff?select=email,role`); } catch { rows = (await db(`web_staff?select=email`)).map((x: any) => ({ ...x, role: "admin" })); }
+  const s = rows.find((x) => String(x.email).toLowerCase() === email);
+  if (!s) throw new UserError("这个账号不在店员白名单里");
+  if (s.role === "manager") throw new UserError("只有管理员（老板）可以退款");
+  return email;
+}
+async function refund(req: Request, b: any) {
+  const email = await adminEmail(req);
+  if (limited("refund:" + email, 30, 10 * 60000)) throw new UserError("操作太频繁，请稍后再试");
+  const id = Number(b.id); if (!Number.isInteger(id) || id < 1) throw new UserError("订单资料不对");
+  const o = (await db(`web_orders?id=eq.${id}&select=*`))?.[0]; if (!o) throw new UserError("找不到这张订单");
+  if (o.status !== "paid") throw new UserError("这张订单不是「已收款」，不能退款");
+  const mode = b.mode === "manual" ? "manual" : "hitpay";
+  const reason = String(b.reason || "").replace(/[\r\n]+/g, " ").trim().slice(0, 200);
+  if (reason.length < 2) throw new UserError("请填写退款原因");
+  const amt = r2(Number(b.amount)); if (!(amt > 0)) throw new UserError("退款金额不对");
+  let prev: any[];
+  try { prev = await db(`web_refunds?order_id=eq.${id}&status=in.(pending,done,manual)&select=amount`) || []; }
+  catch { throw new UserError("还没建立退款记录表，请先在 Supabase 跑 verify-refund.sql"); }
+  const already = r2(prev.reduce((t: number, x: any) => t + Number(x.amount), 0)), left = r2(Number(o.amount) - already);
+  if (amt > left + 0.001) throw new UserError(`这张单最多还能退 RM ${left.toFixed(2)}（订单 RM ${Number(o.amount).toFixed(2)}，已退 RM ${already.toFixed(2)}）`);
+  const row = (await db("web_refunds", { method: "POST", body: JSON.stringify({ order_id: id, amount: amt, reason, mode, status: mode === "manual" ? "manual" : "pending", created_by: email }) }))[0];
+  const upd = (p: Record<string, unknown>) => db(`web_refunds?id=eq.${row.id}`, { method: "PATCH", body: JSON.stringify(p) });
+  if (mode === "manual") { console.log(`refund ${o.ref} ${amt} manual by ${email}`); return { ok: true, status: "manual", left: r2(left - amt) }; }
+  try {
+    if (o.pay_provider !== "hitpay" || !o.pay_id) throw new UserError("这张单不是 HitPay 付款的，请手动退款后用「已手动退款」记录");
+    const acct = accountById(String(o.pay_acct || "")); if (!acct) throw new Error("找不到这张单的 HitPay 账号设定");
+    const pr = await hp(acct, "GET", `/v1/payment-requests/${encodeURIComponent(o.pay_id)}`);
+    const pay = (Array.isArray(pr?.payments) ? pr.payments : []).find((p: any) => String(p.status) === "succeeded");
+    if (!pay || !HPID_RE.test(String(pay.id || ""))) throw new UserError("HitPay 里找不到这笔付款，请到 HitPay 后台手动退款，再用「已手动退款」记录");
+    const rf = await hp(acct, "POST", "/v1/refund", { payment_id: String(pay.id), amount: amt.toFixed(2) });
+    await upd({ status: "done", payment_id: String(pay.id).slice(0, 64), hitpay_refund_id: String(rf?.id || "").slice(0, 64), hitpay_status: String(rf?.status || "").slice(0, 30) });
+    console.log(`refund ${o.ref} ${amt} via HitPay ${rf?.id || ""} ${rf?.status || ""} by ${email}`);
+    return { ok: true, status: "done", hitpay: String(rf?.status || ""), left: r2(left - amt) };
+  } catch (e) {
+    const msg = String((e as Error)?.message || e).slice(0, 280);
+    await upd({ status: "failed", error: msg }).catch(() => null);
+    console.log(`refund ${o.ref} ${amt} failed: ${msg}`);
+    if (e instanceof UserError) throw e;
+    throw new UserError(`HitPay 没有接受这笔退款：${msg.replace(/^HitPay\s*/, "")}。可以到 HitPay 后台手动退款，再用「已手动退款」记录。`);
+  }
 }
 
 // ---------- 确认付款（只认 HitPay API 查到的结果） ----------
@@ -473,6 +535,7 @@ Deno.serve(async (req) => {
     let b: any = {}; try { b = JSON.parse(raw || "{}"); } catch { /* */ }
     if (b.action === "pay") return json(req, await pay(req, b));
     if (b.action === "cancel") return json(req, await cancelOwn(req, b));
+    if (b.action === "refund") return json(req, await refund(req, b));
     if (b.action === "sweep") { await sweepStale(); return json(req, { ok: true }); }   // 定时清理逾期没付款的单（supabase/cron-sweep.sql 每分钟叫一次；任何人叫都只会作废「超过 11 分钟没付」的单）
     if (b.action === "warm") {   // 客人打开购物车/付款视窗时先「暖机」：先载好网站设定，外送单顺便叫醒 web-delyva，按「前往付款」时就快一点
       const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";

@@ -16,7 +16,8 @@ if(w===1280){
  await p.evaluate(()=>document.getElementById('menu').scrollIntoView());await p.waitForTimeout(500);
  await p.locator('.cats button').nth(1).click();await p.waitForTimeout(900);await p.screenshot({path:'/tmp/d-cat.png'});
  await p.locator('.fcard').nth(0).locator('.fadd').click();await p.waitForTimeout(400);
- if(await p.locator('#opick.show').count()){await p.locator('#opick .opbtn').first().click();await p.waitForTimeout(400)}
+ if(await p.locator('#opick .modebtn').count()){await p.locator('#opick .modebtn[data-m=pickup]').click();await p.waitForTimeout(400)}
+if(await p.locator('#opick.show').count()){await p.locator('#opick .opbtn').first().click();await p.waitForTimeout(400)}
  await p.screenshot({path:'/tmp/d-cust.png'});
  await p.locator('#cust .btn.wa').click();await p.waitForTimeout(400);
  await p.locator('header .cartbtn').click();await p.waitForTimeout(700);await p.screenshot({path:'/tmp/d-cart.png'});
