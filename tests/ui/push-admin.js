@@ -68,6 +68,19 @@ for(const w of [1280,393]){
   const ov=await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); ck(!ov,'没有横向溢出');
   await p.context().close();
 }
+console.log("--- 新订单提示音（换成业主的 5 秒声音）");
+{ const p=await open(393); await p.evaluate(()=>{ window.__starts=0; window.__bell=0; const o=AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start=function(){ window.__starts++; window.__dur=this.buffer&&this.buffer.duration; return o.apply(this,arguments); }; const oc=OscillatorNode.prototype.start; OscillatorNode.prototype.start=function(){ window.__bell++; return oc.apply(this,arguments); }; });
+  await p.click('#sndBtn'); await p.waitForTimeout(1500);
+  const r=await p.evaluate(()=>({s:window.__starts,b:window.__bell,d:window.__dur}));
+  ck(r.s===1&&r.b===0,'按「试听」→ 播的是业主的声音档（不是旧的叮当铃声） '+JSON.stringify(r));
+  ck(r.d>4.4&&r.d<5.2,'  ……长度约 5 秒（'+(r.d&&r.d.toFixed(2))+' 秒）');
+  await p.evaluate(()=>{ window.__starts=0; }); await p.click('#sndBtn'); await p.waitForTimeout(500); ck(await p.evaluate(()=>window.__starts)===1,'再按一次 → 重新播放（不会叠在一起）'); await p.context().close(); }
+{ const ctx=await b.newContext({viewport:{width:393,height:900}}); const p=await ctx.newPage(); await p.route('**/supabase.js',r=>r.fulfill({contentType:'application/javascript',body:MOCK}));
+  await p.route('**/admin.html',async r=>{const res=await r.fetch();let t=await res.text();t=t.replace(/ integrity="[^"]*"/,'');r.fulfill({response:res,body:t});});
+  await p.route('**/new-order.mp3*',r=>r.fulfill({status:404,body:""}));   // 声音档载不到
+  await p.goto('http://localhost:8765/admin.html'); await p.waitForTimeout(1200);
+  await p.evaluate(()=>{ window.__bell=0; const oc=OscillatorNode.prototype.start; OscillatorNode.prototype.start=function(){ window.__bell++; return oc.apply(this,arguments); }; });
+  await p.click('#sndBtn'); await p.waitForTimeout(800); ck(await p.evaluate(()=>window.__bell)>0,'声音档载不到 → 退回旧的叮当铃声（不会没声音）'); await ctx.close(); }
 console.log("--- 各种状态");
 { const p=await open(393,{perm:"granted"}); await p.evaluate(()=>{}); ck(/还没开启/.test(await p.locator('#pushBox').innerText()),'已允许权限但这台还没订阅 → 显示开启按钮'); 
   await p.click('#pushOn'); await p.waitForTimeout(500); ck(await p.evaluate(()=>window.__asked||0)===0,'权限已经是允许 → 不会再弹询问'); await p.context().close(); }

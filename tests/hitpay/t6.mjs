@@ -34,6 +34,23 @@ const reqPay = async (o) => { const id=crypto.randomUUID(); HP.reqs[id]={id,refe
   const r=await call(JSON.parse(raw),{"hitpay-signature":sign(raw,ENV.WEB_HITPAY_WEBHOOK_SALT)},"?a=d");
   t("web-push 当机 / 没部署 → 付款确认照样成功（通知失败不影响收款）", DB.orders.find(x=>x.id===o.id).status==="paid"&&r.ok!==false, r); DB.pushDown=false; }
 
+/* ---------- A2. 付款失败：HitPay 付款单还是 pending 但有一笔失败的付款 → pay_status=failed（客人网页会提示重试） ---------- */
+{ DB.push=[]; const o=addOrder({ref:"MK1102-1006",order_type:"pickup",amount:20,outlet:"OKR",outlet_idx:0,customer_phone:"0123456789"}); const id=crypto.randomUUID();
+  HP.reqs[id]={id,reference_number:o.ref,amount:"20.00",currency:"MYR",status:"pending",payments:[{id:"p1",status:"failed",payment_type:"card",fees:"0"}]};
+  Object.assign(o,{pay_provider:"hitpay",pay_id:id,pay_acct:"d",pay_url:"https://securecheckout.hit-pay.com/x"});
+  const r=await call({action:"check",ref:o.ref,token:o.token});
+  t("付款失败（付款单 pending + 有失败的付款）→ check 回报 pay:failed", r.body.pay==="failed"&&r.body.status==="pending", r);
+  t("  ……记进订单 pay_status=failed，订单仍是待付款（客人可以重试）", DB.orders.find(x=>x.id===o.id).pay_status==="failed"&&DB.orders.find(x=>x.id===o.id).status==="pending");
+  t("  ……不会误当成已收款、也不会通知员工新订单", DB.push.length===0, DB.push);
+  await new Promise(r=>setTimeout(r,4200));   // check 同一张单 4 秒内只查一次
+  HP.reqs[id].payments=[{id:"p1",status:"failed",payment_type:"card"},{id:"p2",status:"succeeded",payment_type:"duitnow_qr",fees:"0.3"}]; HP.reqs[id].status="completed";
+  const r2=await call({action:"check",ref:o.ref,token:o.token});
+  t("客人重试后付款成功 → 照常变已收款 + 通知员工", r2.body.status==="paid"&&DB.orders.find(x=>x.id===o.id).status==="paid"&&DB.push.length===1&&DB.push[0].kind==="paid", {r2,push:DB.push}); }
+{ const o=addOrder({ref:"MK1102-1007",order_type:"pickup",amount:20,outlet:"OKR",outlet_idx:0,customer_phone:"0123456789"}); const id=crypto.randomUUID();
+  HP.reqs[id]={id,reference_number:o.ref,amount:"20.00",currency:"MYR",status:"pending",payments:[]};
+  Object.assign(o,{pay_provider:"hitpay",pay_id:id,pay_acct:"d",pay_url:"https://securecheckout.hit-pay.com/x"});
+  const r=await call({action:"check",ref:o.ref,token:o.token}); t("还没付款（没有失败记录）→ 还是 pending，不会误报失败", r.body.pay==="pending"&&DB.orders.find(x=>x.id===o.id).pay_status!=="failed", r); }
+
 /* ---------- B. web-hitpay 健康检查（给监控用） ---------- */
 { const r=await rawGet("?health=1"); t("GET ?health=1 → 200 + ok:true + 新版本号", r.status===200&&r.body.ok===true&&/2026-11-02/.test(r.body.version), r);
   const k=ENV.WEB_HITPAY_API_KEY; ENV.WEB_HITPAY_API_KEY=""; const r2=await rawGet("?health=1"); ENV.WEB_HITPAY_API_KEY=k;

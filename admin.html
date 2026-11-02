@@ -146,13 +146,22 @@ let me=null, role="admin", myOutlets=[], tab="pending", outletF="", orders=[], s
 let actx=null;
 function audioCtx(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
 function soundOn(){ return !!(actx&&actx.state==="running"); }
-function unlockSound(){ const c=audioCtx(); if(c&&c.state!=="running") c.resume().then(updSoundBtn,updSoundBtn); else updSoundBtn(); }
+function unlockSound(){ const c=audioCtx(); if(c&&c.state!=="running") c.resume().then(updSoundBtn,updSoundBtn); else updSoundBtn(); loadRing(); }
 function bell(c,t0,f,vol){   /* 一个铃声：基音 + 两个泛音，快速起音、慢慢消失 */
   [[1,1],[2.76,.32],[5.4,.12]].forEach(([m,a])=>{ const o=c.createOscillator(),g=c.createGain(); o.type="sine"; o.frequency.value=f*m;
     g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(vol*a,t0+.008); g.gain.exponentialRampToValueAtTime(.0001,t0+(m===1?1.4:.6));
     o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+1.5); });
 }
-function beep(){ try{ const c=audioCtx(); if(!c) return; if(c.state!=="running") c.resume(); const t=c.currentTime+.05; bell(c,t,1318.5,.16); bell(c,t+.28,1046.5,.14); }catch(e){} }
+/* 新订单提示音（2026-11-02 业主换成自己的 5 秒声音 images/sound/new-order.mp3）：用同一个 AudioContext 播放（点过页面就解锁）。
+   声音档还没载好 / 载不到 → 退回上面的「叮～当」铃声，不会没声音。要换声音：直接换掉这个 mp3（建议 ≤ 10 秒），并把下面 ?v= 加一。 */
+let ringBuf=null, ringTried=false, ringSrc=null;
+async function loadRing(){ if(ringBuf||ringTried) return ringBuf; ringTried=true;
+  try{ const c=audioCtx(); if(!c) { ringTried=false; return null; } const r=await fetch("images/sound/new-order.mp3?v=1"); if(!r.ok) throw new Error("no sound"); ringBuf=await c.decodeAudioData(await r.arrayBuffer()); }catch(e){ ringBuf=null; }
+  return ringBuf; }
+function bellOld(){ const c=audioCtx(); const t=c.currentTime+.05; bell(c,t,1318.5,.16); bell(c,t+.28,1046.5,.14); }
+function beep(){ try{ const c=audioCtx(); if(!c) return; if(c.state!=="running") c.resume();
+  if(ringBuf){ try{ if(ringSrc) ringSrc.stop(); }catch(e){} ringSrc=c.createBufferSource(); ringSrc.buffer=ringBuf; ringSrc.connect(c.destination); ringSrc.start(); }
+  else { bellOld(); loadRing(); } }catch(e){} }
 function updSoundBtn(){ const b=$("sndBtn"); if(!b) return; const on=soundOn(); b.textContent=on?"🔔 提示音已开启 · 试听":"🔕 点这里开启提示音"; b.className="btn sm "+(on?"alt":""); }
 ["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,unlockSound,{passive:true}));
 
@@ -201,8 +210,8 @@ async function boot(){
     .catch(e=>{ dcfg=null; $("dvSt").textContent="🛵 Delyva 未连接："+String(e.message||e).slice(0,80); });
   $("dvBtn").onclick=async()=>{ if(!confirm("在 Delyva 登记状态通知网址？（只需要做一次，换 key 后再做一次）")) return;
     try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
-  $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
-  pushRender(); pushSync();
+  $("sndBtn").onclick=async()=>{ unlockSound(); await loadRing(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
+  pushRender(); pushSync(); loadRing();
   await load(); timer=setInterval(load,5000);
   if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#menu86") setView("m86");
 }
@@ -262,7 +271,7 @@ const alertable = o => isHp(o) ? o.status==="paid" : o.status==="pending";
 const PAYM={card:"信用卡/借记卡",fpx:"FPX 网银",touch_n_go:"Touch 'n Go",grabpay:"GrabPay",grabpay_direct:"GrabPay",shopee_pay:"ShopeePay",duitnow:"DuitNow",paynow_online:"PayNow",grabpay_paylater:"Grab PayLater",shopback_paylater:"ShopBack PayLater"};
 function payHTML(o){
   if(!isHp(o)) return "";
-  if(o.status==="pending") return `<div class="cour"><b>💳 HitPay：客人还没付款</b> <span class="mut">${o.pay_status&&o.pay_status!=="pending"?"（"+esc(o.pay_status)+"）":""}付款成功会自动变成「已收款」并响铃；不要先准备。超过 30 分钟没付可以按取消。</span></div>`;
+  if(o.status==="pending") return `<div class="cour"><b>💳 HitPay：客人还没付款</b> <span class="mut">${/^(failed|canceled|cancelled)$/i.test(o.pay_status||"")?"（客人付款失败了，可能正在重试）":o.pay_status&&o.pay_status!=="pending"?"（"+esc(o.pay_status)+"）":""}付款成功会自动变成「已收款」并响铃；不要先准备。10 分钟没付会自动取消。</span></div>`;
   const warn = o.pay_status==="mismatch" || (/^paid_/.test(o.pay_status||"") && o.status!=="paid");   /* 订单已经是已收款就不算问题（旧版 web-hitpay 同时确认时会误标 paid_pending） */
   return `<div class="cour"><b>💳 HitPay 已付款</b> · ${esc(PAYM[o.pay_method]||o.pay_method||"")}${o.paid_amount!=null?` · ${money(o.paid_amount)}`:""}${o.pay_fees!=null?` <span class="mut">（手续费 ${money(o.pay_fees)}${feePct(o)?" · "+feePct(o):""}）</span>`:""}
     ${warn?`<div class="err" style="margin-top:6px">⚠️ HitPay 显示客人已付款，但订单状态是「${esc(o.status==="rejected"?"已拒绝":o.status)}」或金额对不上（${esc(o.pay_status)}），请到 HitPay 后台核对，需要时退款。</div>`:""}</div>`;

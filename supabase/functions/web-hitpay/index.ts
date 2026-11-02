@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-02a";
+const VERSION = "2026-11-02b";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -470,8 +470,12 @@ async function confirmFromHitPay(o: any, via: string) {
   const acct = accountById(String(o.pay_acct || ""));
   if (!acct) throw new Error("找不到这张单的 HitPay 账号设定");
   const pr = await hp(acct, "GET", `/v1/payment-requests/${encodeURIComponent(o.pay_id)}`);
-  const st = String(pr?.status || "").toLowerCase();
+  let st = String(pr?.status || "").toLowerCase();
   if (st !== "completed") {
+    /* 付款失败（2026-11-02 业主：回到网站要看得出「付款没有成功」）：HitPay 的付款单还是 pending，但里面有一笔失败的付款（卡被拒、网银/钱包没扣到款…）
+       → 记成 failed，客人网页会提示「付款没有成功，请重试」。之后客人重试成功，状态会变 completed → 照常确认收款 */
+    if ((st === "" || st === "pending") && Array.isArray(pr?.payments) && pr.payments.some((p: any) => String(p?.status).toLowerCase() === "failed")
+        && !pr.payments.some((p: any) => String(p?.status).toLowerCase() === "succeeded")) st = "failed";
     if (st && st !== o.pay_status) await patch(o.id, { pay_status: st.slice(0, 20) });
     return { status: o.status, pay: st };
   }
