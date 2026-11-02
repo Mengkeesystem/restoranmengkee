@@ -1,7 +1,12 @@
-# 网站监控的检查清单（2026-11-02）。格式：名称|网址|页面里必须出现的字（可留空，只看 HTTP 200）
+# 网站监控的检查清单（2026-11-02）。格式：名称|网址|页面里必须出现的字（可留空，只看 HTTP 200）|apikey（可空；Supabase 项目的 publishable key，本来就公开）
 # 每 10 分钟由 .github/workflows/uptime.yml 检查一次；要加/减检查项，直接改这个文件。
 官网首页|https://restoranmengkee.com.my/|Meng Kee
 官网设定档 config.js|https://restoranmengkee.com.my/config.js|window.SITE
 付款函数 web-hitpay|https://kmcdokwiyetlmsrdlgqw.supabase.co/functions/v1/web-hitpay?health=1|"ok":true
 骑手函数 web-delyva|https://kmcdokwiyetlmsrdlgqw.supabase.co/functions/v1/web-delyva?health=1|"ok":true
 手机通知函数 web-push|https://kmcdokwiyetlmsrdlgqw.supabase.co/functions/v1/web-push?health=1|"ok":true
+# ---- 两个 ERP（2026-11-02）----
+明记 ERP 网页|https://mengkeesystem.github.io/ERP-testing-1.0/|多分店进销存系统
+明记 ERP 数据库登录服务（和官网同一个 Supabase 项目）|https://kmcdokwiyetlmsrdlgqw.supabase.co/auth/v1/health||sb_publishable_HVJ_hcFmSDU-N2kFUg5CRw_LH-X_phO
+牛室 ERP 网页（⚠️ 网址是照仓库名推的，第一次运行要确认）|https://beefhousesystem.github.io/BeefHouse_ERP_1.0/|多分店进销存系统
+牛室 ERP 数据库登录服务（牛室自己的 Supabase 项目）|https://cogxtzduusuzjumsdkxy.supabase.co/auth/v1/health||sb_publishable_0BSR2rrDXtWGDc_5IgYJmw_4xveik9c

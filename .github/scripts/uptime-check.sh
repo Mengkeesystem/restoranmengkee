@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 逐项检查 .github/uptime-targets.txt：HTTP 要 200，而且页面里要有指定的字。每项最多试 3 次（避免偶尔网络抖动误报）。
+# 逐项检查 .github/uptime-targets.txt（名称|网址|必须出现的字|apikey，后两项可空）：HTTP 要 200，而且页面里要有指定的字。每项最多试 3 次（避免偶尔网络抖动误报）。
 # 结果写进 $REPORT（默认 /tmp/uptime-report.md，给报警用）；有任何一项不正常 → 结束码 1。
 set -u
 TARGETS="${TARGETS_FILE:-.github/uptime-targets.txt}"
@@ -10,11 +10,11 @@ TMO="${CURL_TIMEOUT:-15}"         # 每次请求最多等几秒
 APIKEY="sb_publishable_HVJ_hcFmSDU-N2kFUg5CRw_LH-X_phO"
 : > "$REPORT"; bad=0; total=0
 body="$(mktemp)"
-while IFS='|' read -r name url kw; do
+while IFS='|' read -r name url kw key; do
   case "$name" in ''|\#*) continue;; esac
   total=$((total+1)); ok=0; why=""
   for try in 1 2 3; do
-    hdr=(); case "$url" in *supabase.co*) hdr=(-H "apikey: $APIKEY");; esac
+    hdr=(); if [ -n "${key:-}" ]; then hdr=(-H "apikey: $key"); else case "$url" in *kmcdokwiyetlmsrdlgqw.supabase.co*) hdr=(-H "apikey: $APIKEY");; esac; fi
     code=$(curl -sS -m "$TMO" -o "$body" -w '%{http_code}' "${hdr[@]}" "$url" 2>/tmp/uptime-curl-err) || code="000"
     if [ "$code" = "200" ] && { [ -z "$kw" ] || grep -qF -- "$kw" "$body"; }; then ok=1; break; fi
     if [ "$code" = "000" ]; then why="连不上（$(tr -d '\n' </tmp/uptime-curl-err | cut -c1-120)）"
