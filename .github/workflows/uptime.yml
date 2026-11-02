@@ -1,0 +1,35 @@
+name: 网站监控（每 10 分钟）
+
+# 每 10 分钟检查官网和三个后台函数（付款 / 骑手 / 手机通知）是否正常。
+# 出问题 → 开 Issue 并 @ 老板（电邮 + GitHub 手机 App 通知）；恢复 → 自动关掉。详见 .github/scripts/uptime-alert.sh
+# 要加/减检查项：改 .github/uptime-targets.txt。⚠️ GitHub 的定时任务偶尔会延迟几分钟；仓库连续 60 天没任何动静会被 GitHub 暂停。
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+env:
+  ALERT_USER: yxchong3     # 报警时 @ 谁（GitHub 用户名）
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 检查官网和后台函数
+        id: chk
+        continue-on-error: true
+        run: bash .github/scripts/uptime-check.sh
+      - name: 报警 / 恢复通知
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/uptime-alert.sh "${{ steps.chk.outcome }}"
