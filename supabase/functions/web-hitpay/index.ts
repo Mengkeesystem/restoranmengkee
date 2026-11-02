@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-01a";
+const VERSION = "2026-11-02a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -46,7 +46,7 @@ const cors = (req: Request) => {
   return {
     "Access-Control-Allow-Origin": ORIGINS.includes(o) || /^http:\/\/localhost(:\d+)?$/.test(o) ? o : ORIGINS[0],
     "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Vary": "Origin",
   };
 };
@@ -481,6 +481,7 @@ async function confirmFromHitPay(o: any, via: string) {
   if (String(pr.reference_number || "") !== o.ref || Math.abs(amt - Number(o.amount)) > 0.01 || cur !== HP_CUR) {
     await patch(o.id, { pay_status: "mismatch", courier_error: `⚠️ HitPay 付款资料对不上（${amt} ${cur}），请人工核对` });
     console.log(`confirm ${o.ref} mismatch ${amt} ${cur}`);
+    if (o.pay_status !== "mismatch") await notifyStaff("alert", o.id, "HitPay 付款资料对不上，请人工核对");
     return { status: o.status, pay: "mismatch" };
   }
   const now = new Date().toISOString(), info = { pay_status: "completed", paid_at: now, paid_amount: amt, pay_method: method || null, pay_fees: fees || null };
@@ -488,11 +489,12 @@ async function confirmFromHitPay(o: any, via: string) {
   if (!rows?.length) {   // 没改到：webhook 和网页同时到、另一边已经设成已收款；或店员先拒绝了。重新读一次现在的状态再决定（不能用手上的旧资料）
     const cur = await orderByRef(o.ref);
     const st = String(cur?.status || o.status);
-    if (st === "rejected") await patch(o.id, { ...info, pay_status: "paid_rejected" });
+    if (st === "rejected") { await patch(o.id, { ...info, pay_status: "paid_rejected" }); if (o.pay_status !== "paid_rejected") await notifyStaff("alert", o.id, "客人已经付款，但这张订单已被取消，请核对并退款"); }
     return { status: st, pay: "completed" };
   }
   console.log(`paid ${o.ref} via ${via} ${amt} ${cur} ${method}`);
-  if (o.order_type === "delivery") await autoDispatch(o.id);
+  await Promise.all([notifyStaff("paid", o.id),
+    o.order_type === "delivery" ? autoDispatch(o.id).then((ok) => ok ? null : notifyStaff("alert", o.id, "自动叫骑手失败，请在后台重新叫骑手")) : null]);
   return { status: "paid", pay: "completed" };
 }
 /* 外送单付款后自动叫骑手（请 web-delyva 做，用 service role 当内部呼叫）；失败的话 web-delyva 会把原因写在订单上，店员可按「叫骑手」重试 */
@@ -500,8 +502,18 @@ async function autoDispatch(id: number) {
   try {
     const r = await fetch(`${SB_URL}/functions/v1/web-delyva`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` },
       body: JSON.stringify({ action: "dispatch", id }) });
-    if (!r.ok) console.log(`auto dispatch ${id} failed ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  } catch (e) { console.log(`auto dispatch ${id} error ${(e as Error).message}`); }
+    if (!r.ok) { console.log(`auto dispatch ${id} failed ${r.status}: ${(await r.text()).slice(0, 200)}`); return false; }
+    return true;
+  } catch (e) { console.log(`auto dispatch ${id} error ${(e as Error).message}`); return false; }
+}
+
+/* 手机通知（2026-11-02）：付款成功 / 出问题时，请 web-push 发给员工的手机。失败只写 Logs，绝不影响付款确认（web-push 还没部署也没关系） */
+async function notifyStaff(kind: "paid" | "alert", id: number, text = "") {
+  try {
+    const r = await fetch(`${SB_URL}/functions/v1/web-push`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` },
+      body: JSON.stringify({ action: "notify", kind, id, text }), signal: AbortSignal.timeout(7000) });
+    if (!r.ok) console.log(`notify ${kind} ${id} failed ${r.status}: ${(await r.text()).slice(0, 160)}`);
+  } catch (e) { console.log(`notify ${kind} ${id} error ${(e as Error).message}`); }
 }
 
 // ---------- HitPay webhook ----------
@@ -528,6 +540,12 @@ async function webhook(req: Request, raw: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  if (req.method === "GET" && new URL(req.url).searchParams.get("health")) {   // 监控用（UptimeRobot 等）：数据库连得上 + HitPay 有设定 → ok:true，否则 503。不会呼叫 HitPay
+    const problems: string[] = [];
+    if (!account(null)) problems.push("没设定 HitPay API Key");
+    try { await db(`web_orders?select=id&limit=1`); } catch { problems.push("数据库连不上"); }
+    return json(req, { ok: problems.length === 0, version: VERSION, problems }, problems.length ? 503 : 200);
+  }
   if (req.method !== "POST") return json(req, { error: "method" }, 405);
   const raw = await req.text();
   try {

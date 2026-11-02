@@ -14,6 +14,7 @@ export const mockFetch=async(u,init={})=>{ u=String(u); const m=(init.method||"G
   if(u.includes("/rest/v1/web_orders")){ const f=q(u);
     if(m==="GET") return J(DB.orders.filter(o=>match(o,f)));
     if(m==="PATCH"){ const p=JSON.parse(init.body); const rows=DB.orders.filter(o=>match(o,f)); rows.forEach(o=>Object.assign(o,p)); return J(rows); } }
+  if(u.endsWith("/functions/v1/web-push")){ const b=JSON.parse(init.body); DB.push=DB.push||[]; DB.push.push({...b,auth:init.headers&&init.headers.Authorization}); if(DB.pushDown) return J({error:"down"},503); return J({ok:true,sent:1}); }   // 手机通知（2026-11-02）：只记下谁被通知了
   if(u.endsWith("/functions/v1/web-delyva")){ const b=JSON.parse(init.body);
     if(b.action==="quote"){ DV.calls++; DV.lastQuote=b; DV.lastAuth=init.headers&&init.headers.Authorization; return J(DV.ok?{ok:true,fee:DV.fee,service:"Instant Delivery"}:{ok:false,error:"no service"}); }
     if(b.action==="dispatch"){ DV.dispatch.push({id:b.id,auth:init.headers.Authorization}); return J({ok:true}); } }
@@ -34,3 +35,4 @@ await import("../../supabase/functions/web-hitpay/index.ts?"+Math.random());
 export const call=async(body,headers={},qs="")=>{ const r=await handler(new Request("https://p.supabase.co/functions/v1/web-hitpay"+qs,{method:"POST",headers:{"content-type":"application/json",origin:"https://restoranmengkee.com.my",...headers},body:typeof body==="string"?body:JSON.stringify(body)})); return {status:r.status, body:await r.json()}; };
 export function addOrder(o){ const row={id:DB.seq++,token:crypto.randomUUID(),status:"pending",created_at:new Date().toISOString(),outlet_idx:null,dest:null,...o}; DB.orders.push(row); return row; }
 export const sign=(raw,salt)=>crypto.createHmac("sha256",salt).update(raw).digest("hex");
+export const rawGet=async(qs="")=>{ const r=await handler(new Request("https://p.supabase.co/functions/v1/web-hitpay"+qs,{method:"GET",headers:{origin:"https://restoranmengkee.com.my"}})); return {status:r.status,body:await r.json().catch(()=>null)}; };

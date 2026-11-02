@@ -28,7 +28,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-10-31a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-11-02a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -312,6 +312,14 @@ async function webhook(req: Request, raw: string) {
   }
   return json(req, await applyStatus(data));
 }
+/* 手机通知（2026-11-02）：请 web-push 发给员工。失败只写 Logs（web-push 还没部署也没关系） */
+async function notifyStaff(id: number, text: string) {
+  try {
+    const r = await fetch(`${SB_URL}/functions/v1/web-push`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` },
+      body: JSON.stringify({ action: "notify", kind: "alert", id, text }), signal: AbortSignal.timeout(7000) });
+    if (!r.ok) console.log(`notify ${id} failed ${r.status}`);
+  } catch (e) { console.log(`notify ${id} error ${(e as Error).message}`); }
+}
 const cut = (v: unknown, n: number) => (v === null || v === undefined || v === "") ? null : String(v).slice(0, n);
 /* 把一笔 Delyva 状态写进订单（真的 webhook 和测试模拟共用同一段） */
 async function applyStatus(data: any) {
@@ -321,6 +329,8 @@ async function applyStatus(data: any) {
   const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=*`);
   if (!rows.length) return { ok: true, unknown: true };    // 不是网站叫的单
   const p = data?.personnel;
+  if ([475, 650, 900].includes(code) && rows[0].courier_status !== code && rows[0].courier_status !== 900)   // 骑手取餐失败 / 送达失败 / 取消 → 手机通知员工（员工自己在后台取消的已经是 900，不再吵）
+    await notifyStaff(rows[0].id, code === 900 ? "骑手单被取消了，请重新叫骑手" : code === 475 ? "骑手取餐失败，请联络骑手或重新叫骑手" : "骑手送达失败，请联络客人和骑手");
   await patchOrder(rows[0].id, {
     courier_status: code,
     ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo).slice(0, 60), courier_track_url: trackUrl(String(data.consignmentNo).slice(0, 60)) } : {}),
@@ -343,6 +353,12 @@ async function simulate(id: number, code: number) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  if (req.method === "GET" && new URL(req.url).searchParams.get("health")) {   // 监控用：Delyva key 有设定 → ok:true，否则 503。不会呼叫 Delyva
+    const problems: string[] = [];
+    if (!(DKEY && DCUST)) problems.push("没设定 Delyva API Key / Customer ID");
+    if (DCODE.toLowerCase() !== "trydx" && !DSECRET) problems.push("正式账号没设 API Secret（送达不会自动完成）");
+    return json(req, { ok: problems.length === 0, version: VERSION, problems }, problems.length ? 503 : 200);
+  }
   if (req.method !== "POST") return json(req, { error: "method" }, 405);
   const raw = await req.text();
   const isHook = req.headers.has("x-delyvax-hmac-sha256") || req.headers.has("x-delyvax-event") || /"consignmentNo"/.test(raw);

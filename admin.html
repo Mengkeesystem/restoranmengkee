@@ -187,8 +187,10 @@ async function boot(){
   $("staffBtn").hidden=role!=="admin"; $("staffBtn").onclick=()=>setView(view==="staff"?"orders":"staff");
   $("m86Btn").hidden=false; $("m86Btn").onclick=()=>setView(view==="m86"?"orders":"m86");
   if(role==="manager"&&mine.length===1){ outletF=mine[0].name; sumOutlet=mine[0].name; }
-  $("logoutBtn").onclick=async()=>{ clearInterval(timer); await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
-  app.innerHTML = `<div id="ordView"><div class="hint">🔔 请保持这个页面开着（声音打开）。有新订单会响铃。<b>先在收款机 / MAE / 银行 App 核对收到的金额，再按「已收款」</b>，客人的网页会显示「店家已确认」。客人不会另外发 WhatsApp，订单内容就在下面。</div>
+  $("logoutBtn").onclick=async()=>{ clearInterval(timer); try{ const ps=pushOK()?await pushSub():null; if(ps) await fnPush({action:"unsubscribe",endpoint:ps.endpoint}); }catch(e){}   /* 登出后这台手机不再收通知（下次登录会自动登记回来） */
+    await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
+  app.innerHTML = `<div id="ordView"><div class="hint">🔔 客人在 HitPay 付款成功后，订单会<b>自动变成「已收款」并响铃</b>，不用手动确认。请保持这个页面开着（声音打开），或开启下面的「手机通知」（关掉网页、锁屏也会响）。客人不会另外发 WhatsApp，订单内容就在下面。</div>
+    <div class="hint pushbox" id="pushBox" hidden></div>
     <div class="bar"><select id="of">${mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:""}${mine.map(o=>`<option ${o.name===outletF?"selected":""}>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
     <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div><div id="m86View" hidden></div>`;
   $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="summary"?"orders":"summary");
@@ -200,6 +202,7 @@ async function boot(){
   $("dvBtn").onclick=async()=>{ if(!confirm("在 Delyva 登记状态通知网址？（只需要做一次，换 key 后再做一次）")) return;
     try{ const r=await fn("setup_webhook"); alert("完成 ✅\n新登记："+(r.added.join(", ")||"无（已经登记过）")+"\n网址："+r.url); }catch(e){ alert("失败："+e.message); } };
   $("sndBtn").onclick=()=>{ unlockSound(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
+  pushRender(); pushSync();
   await load(); timer=setInterval(load,5000);
   if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#menu86") setView("m86");
 }
@@ -269,6 +272,49 @@ const isDone = o => o.status==="paid" && (!!o.completed_at || o.courier_status==
 const tabOf = o => isDone(o) ? "done" : o.status;
 /* Delyva 状态代码（照官方插件） */
 const DSTAT={100:"已叫车，等骑手接单",110:"已叫车，等骑手接单",200:"骑手已接单",400:"骑手前往取餐",475:"⚠️ 取餐失败",500:"已取餐",600:"配送中",650:"⚠️ 送达失败",700:"✅ 已送达",1000:"✅ 已完成",900:"已取消"};
+/* ---------- 手机通知（2026-11-02，web-push 函数）----------
+   新订单付款成功 / 订单出问题时，服务器发 Web Push 到员工的手机（关掉网页、锁屏也会响）。
+   每台手机各开一次；iPhone 要先「加到主画面」再从图标打开才行（iOS 16.4 以上）。 */
+const pushOK = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+let pushKey="", pushErr="";
+async function fnPush(body){
+  const {data,error}=await sb.functions.invoke("web-push",{body});
+  if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
+  return data;
+}
+const b64u2u8 = s => { const r=atob((s+"=".repeat((4-s.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from(r,c=>c.charCodeAt(0)); };
+async function pushSub(){ try{ const reg=await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); }catch(e){ return null; } }
+async function pushRender(){
+  const box=$("pushBox"); if(!box) return; box.hidden=false;
+  const btn=(id,t,cls)=>`<button type="button" id="${id}" class="btn sm ${cls||""}">${t}</button>`;
+  let h;
+  if(!pushOK()) h = isIOS&&!standalone()
+    ? `📲 <b>手机通知：</b>iPhone 要先把后台「加到主画面」（Safari 底部分享按钮 → 加到主画面），再从主画面的图标打开，才能开启通知。（需要 iOS 16.4 以上）`
+    : `📲 <b>手机通知：</b>这个浏览器不支持。Android 请用 Chrome；iPhone 请先把后台「加到主画面」。`;
+  else if(isIOS&&!standalone()) h = `📲 <b>手机通知：</b>iPhone 要先把后台「加到主画面」（Safari 底部分享按钮 → 加到主画面），再从主画面的图标打开，才能开启通知。`;
+  else if(Notification.permission==="denied") h = `📲 <b>手机通知：</b>你拒绝了通知。要到手机「设置」里找到「明记后台」（或这个网站），把通知打开，再回来。`;
+  else { const sub=await pushSub(), on=Notification.permission==="granted"&&!!sub;
+    h = on ? `✅ <b>手机通知已开启</b>（这台手机）。新订单付款成功、订单出问题时会通知你。 ${btn("pushTest","发送测试通知","alt")} ${btn("pushOff","关闭","alt")}`
+           : `📲 <b>手机通知：</b>还没开启。开启后，新订单付款成功时手机会响（关掉网页、锁屏也会）。 ${btn("pushOn","📲 开启手机通知")}`; }
+  box.innerHTML = h + (pushErr?` <span class="err">${esc(pushErr)}</span>`:"");
+  const on_=$("pushOn"), off_=$("pushOff"), t_=$("pushTest");
+  if(on_) on_.onclick=async()=>{ on_.disabled=true; pushErr=""; try{ await pushEnable(); }catch(e){ pushErr=String(e.message||e).replace(/^FunctionsHttpError: ?/,""); } pushRender(); };
+  if(off_) off_.onclick=async()=>{ off_.disabled=true; await pushDisable(); pushErr=""; pushRender(); };
+  if(t_) t_.onclick=async()=>{ t_.disabled=true; pushErr=""; try{ const r=await fnPush({action:"test"}); if(!r.sent) pushErr="测试通知没有发出去，请先「关闭」再重新开启。"; else alert("测试通知已发出，几秒内手机会响。\n（如果没收到：看手机有没有开「勿扰/专注模式」）"); }catch(e){ pushErr=String(e.message||e); } pushRender(); };
+}
+async function pushEnable(){   /* 一定要在按钮点击里呼叫（浏览器规定：权限询问要有人点按钮） */
+  const perm = Notification.permission==="granted" ? "granted" : await Notification.requestPermission();
+  if(perm!=="granted") return;
+  if(!pushKey){ let r; try{ r=await fnPush({action:"status"}); }catch(e){ throw new Error("后台还没设定好手机通知（老板要先部署 web-push 函数）"); } if(!r||!r.configured||!r.publicKey) throw new Error("后台还没设定推送密钥（WEB_VAPID_PUBLIC / WEB_VAPID_PRIVATE）"); pushKey=r.publicKey; }
+  const reg=await navigator.serviceWorker.ready; let sub=await reg.pushManager.getSubscription();
+  if(sub){ const k=sub.options&&sub.options.applicationServerKey?Array.from(new Uint8Array(sub.options.applicationServerKey)).join():"", want=Array.from(b64u2u8(pushKey)).join(); if(k!==want){ await sub.unsubscribe(); sub=null; } }   /* 密钥换过了：重新订阅 */
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u2u8(pushKey)});
+  await fnPush({action:"subscribe",sub:sub.toJSON(),ua:navigator.userAgent});
+}
+async function pushDisable(){ const sub=await pushSub(); if(sub){ await fnPush({action:"unsubscribe",endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe().catch(()=>{}); } }
+/* 每次登录都把这台手机的订阅重新登记在目前登入的账号下（换人用同一台手机也对；通知只发给看得到那张订单的人） */
+async function pushSync(){ if(!pushOK()||Notification.permission!=="granted") return; const sub=await pushSub(); if(sub) fnPush({action:"subscribe",sub:sub.toJSON(),ua:navigator.userAgent}).catch(()=>{}); }
+
 async function fn(action,id,extra){
   const {data,error}=await sb.functions.invoke("web-delyva",{body:{action,id,...(extra||{})}});
   if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
@@ -322,7 +368,7 @@ function render(newIds){
       ${payHTML(o)}
       ${refundHTML(o)}
       ${hpUnpaid(o)?`<div class="acts"><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 取消（客人没付款）</button></div>`
-        :o.status==="pending"?`<div class="acts"><button class="btn ok" data-act="paid" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✅ 已收款</button><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 拒绝</button></div>`
+        :o.status==="pending"?`<div class="cour"><b>⚠️ 这张订单没有经过 HitPay 付款</b> <span class="mut">系统不会把它当成已付款，也不能手动按「已收款」。可能是客人没完成付款，或有人乱发订单。请不要准备出餐。</span></div><div class="acts"><button class="btn alt" data-act="rejected" data-id="${o.id}" data-ref="${esc(o.ref)}" data-amt="${esc(money(o.amount))}">✖ 取消这张订单</button></div>`
         :`<div class="who">${o.status==="paid"?"确认":"拒绝"}：${esc(o.confirmed_by||"")} · ${o.confirmed_at?hhmm(o.confirmed_at):""}${isDone(o)?` · 完成：${esc(o.completed_by||"Delyva")}${o.completed_at?" · "+hhmm(o.completed_at):""}`:""}</div>`}
       ${proofHTML(o)}
       ${o.status==="paid"&&hasDoneCols&&!isDone(o)?`<div class="acts"><button class="btn ok sm" data-done="1" data-id="${o.id}" data-ref="${esc(o.ref)}" data-del="${o.order_type==="delivery"?1:""}">✅ ${o.order_type==="delivery"?"标记完成（已送达）":"完成（客人已取餐）"}</button></div>`:""}
@@ -440,21 +486,13 @@ async function doneAct(b){
   await load();
 }
 async function act(b){
-  const st=b.dataset.act, q = st==="paid"
-    ? `确认已收到 ${b.dataset.amt}（参考号 ${b.dataset.ref}）？\n按确定后，客人的网页会显示「店家已确认收款」，请开始准备。`
-    : `确定拒绝订单 ${b.dataset.ref}？客人的网页会显示「未能确认付款」。`;
-  if(!confirm(q)) return;
+  /* 2026-11-02：已收款只能由 HitPay 付款通知自动确认（数据库也挡着：supabase/lock-paid.sql）。后台只剩「取消」 */
+  if(b.dataset.act!=="rejected") return;
+  if(!confirm(`确定取消订单 ${b.dataset.ref}？客人的网页会显示「未能确认付款」。`)) return;
   b.disabled=true;
-  const {error}=await sb.from("web_orders").update({status:st,confirmed_at:new Date().toISOString(),confirmed_by:me.email}).eq("id",+b.dataset.id).eq("status","pending");
+  const {error}=await sb.from("web_orders").update({status:"rejected",confirmed_at:new Date().toISOString(),confirmed_by:me.email}).eq("id",+b.dataset.id).eq("status","pending");
   if(error){ alert("更新失败："+error.message); b.disabled=false; return; }
   await load();
-  /* 外送单：已收款后自动叫 Delyva 骑手（失败会显示在订单上，可再按「叫骑手」） */
-  const o=orders.find(x=>x.id===+b.dataset.id);
-  if(st==="paid"&&o&&o.order_type==="delivery"&&o.dest&&dcfg&&dcfg.configured&&!o.courier_order_id){
-    busy.add(o.id); render();
-    try{ await fn("dispatch",o.id); }catch(e){ alert("已收款，但自动叫骑手失败："+e.message+"\n可以在订单上按「🛵 叫骑手」再试，或手动叫车。"); }
-    busy.delete(o.id); await load();
-  }
 }
 
 /* ---------- 每月总结：直接读 web_orders（全分店自动汇总，只有店员看得到） ---------- */
