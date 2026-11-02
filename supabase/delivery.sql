@@ -172,11 +172,11 @@ begin
   end if;
   insert into public.web_lookup_log (ip) values (v_ip);
   select coalesce(jsonb_agg(x order by x->>'at' desc), '[]'::jsonb) into v_out from (
-    select jsonb_build_object('ref', ref, 'at', created_at, 'outlet', outlet, 'type', order_type, 'amount', amount, 'status', status,
+    -- 2026-11-02 隐私（PDPA）：按电话查只回传「状态」，不回传金额和订单明细（知道别人电话也看不到什么）。
+    -- 金额/明细/收据只在下单的那部手机显示：用下面的 web_my_order_detail(ref, token)，要有下单时拿到的 token 才行。
+    select jsonb_build_object('ref', ref, 'at', created_at, 'outlet', outlet, 'type', order_type, 'status', status,
       'courier', case when courier_order_id is null then null else courier_status end,
-      'done', completed_at is not null,   -- 栏位在下面第 6 部分加（plpgsql 执行时才检查，同一份脚本跑完就有）
-      -- 订单讯息第一段（标题、分店、菜品、小计/SST/运费/合计），空一行之后的姓名/电话/地址不回传
-      'detail', left(split_part(message, E'\n\n', 1), 3000)) x
+      'done', completed_at is not null) x   -- 栏位在下面第 6 部分加（plpgsql 执行时才检查，同一份脚本跑完就有）
     from public.web_orders
     where public.web_norm_phone(customer_phone) = v_phone and created_at > now() - interval '30 days'
     order by created_at desc limit 20) s;
@@ -185,6 +185,19 @@ end $$;
 
 revoke all on function public.web_my_orders(text) from public;
 grant execute on function public.web_my_orders(text) to anon, authenticated;
+
+-- 金额 + 订单明细（订单讯息第一段：标题、分店、菜品、小计/SST/运费/合计；空一行之后的姓名/电话/地址不回传）
+-- 要 ref + token 都对才给（token 只有下单的那部手机有）
+create or replace function public.web_my_order_detail(p_ref text, p_token uuid)
+returns jsonb language plpgsql security definer stable set search_path = public as $$
+declare o public.web_orders%rowtype;
+begin
+  select * into o from public.web_orders where ref = p_ref and token = p_token;
+  if not found then return null; end if;
+  return jsonb_build_object('amount', o.amount, 'detail', left(split_part(o.message, E'\n\n', 1), 3000));
+end $$;
+revoke all on function public.web_my_order_detail(text, uuid) from public;
+grant execute on function public.web_my_order_detail(text, uuid) to anon, authenticated;
 
 -- 6) 已完成（2026-10-28）------------------------------------------------
 -- 外送：Delyva 通知送达（700/1000）时由 web-delyva 自动填；自取：店员在后台按「完成」。

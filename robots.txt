@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://restoranmengkee.com.my/sitemap.xml
