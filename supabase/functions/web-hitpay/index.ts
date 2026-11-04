@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-02b";
+const VERSION = "2026-11-04a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -548,7 +548,8 @@ Deno.serve(async (req) => {
     const problems: string[] = [];
     if (!account(null)) problems.push("没设定 HitPay API Key");
     try { await db(`web_orders?select=id&limit=1`); } catch { problems.push("数据库连不上"); }
-    return json(req, { ok: problems.length === 0, version: VERSION, problems }, problems.length ? 503 : 200);
+    /* mode：现在连的是 HitPay 正式（live）还是测试（sandbox）；currency：收款币别。换正式账号后用它确认（正式 = live + MYR） */
+    return json(req, { ok: problems.length === 0, version: VERSION, mode: /sandbox/i.test(HP_BASE) ? "sandbox" : "live", currency: HP_CUR, problems }, problems.length ? 503 : 200);
   }
   if (req.method !== "POST") return json(req, { error: "method" }, 405);
   const raw = await req.text();

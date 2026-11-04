@@ -52,7 +52,8 @@ const reqPay = async (o) => { const id=crypto.randomUUID(); HP.reqs[id]={id,refe
   const r=await call({action:"check",ref:o.ref,token:o.token}); t("还没付款（没有失败记录）→ 还是 pending，不会误报失败", r.body.pay==="pending"&&DB.orders.find(x=>x.id===o.id).pay_status!=="failed", r); }
 
 /* ---------- B. web-hitpay 健康检查（给监控用） ---------- */
-{ const r=await rawGet("?health=1"); t("GET ?health=1 → 200 + ok:true + 新版本号", r.status===200&&r.body.ok===true&&/2026-11-02/.test(r.body.version), r);
+{ const r=await rawGet("?health=1"); t("GET ?health=1 → 200 + ok:true + 新版本号", r.status===200&&r.body.ok===true&&/2026-11-0[24]/.test(r.body.version), r);
+  t("health 带 mode / currency（正式 = live + MYR）", r.body.mode==="live"&&r.body.currency==="MYR", r.body);
   const k=ENV.WEB_HITPAY_API_KEY; ENV.WEB_HITPAY_API_KEY=""; const r2=await rawGet("?health=1"); ENV.WEB_HITPAY_API_KEY=k;
   t("HitPay key 没设 → 503 + ok:false（监控会报警）", r2.status===503&&r2.body.ok===false&&r2.body.problems.length>0, r2);
   const r3=await rawGet(""); t("没带 ?health 的 GET 照旧拒绝（405）", r3.status===405, r3); }
