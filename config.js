@@ -428,7 +428,7 @@ window.SITE = {
       { id: "A043", badge: "明记六宝", badgeEn: "MK Six" },   // 南乳炸鸡
       { id: "A038", badge: "明记六宝", badgeEn: "MK Six" },   // 冬菜蒸猪肉
       { id: "A057", badge: "明记六宝", badgeEn: "MK Six" },   // 招牌豆腐
-      "A008",   // 金凤鱼（招牌蒸等）
+      "A008",   // 金凤鱼（招牌蒸等，已合并）
       "R005",   // 咕咾肉饭
     ],
     pickupFollowsDelivery: true,   // 网上自取跟外送同一个接单时段（delivery.windows）：过了最后点餐时间，自取也不接、不能预约（2026-10-30 业主）
@@ -581,8 +581,8 @@ window.SITE = {
         {
           "id": "A008",
           "image": "images/menu/A008.jpg",
-          "tt": "肉质紧实细嫩，刺少 · 鲜香甘甜",
-          "ttEn": "Firm, tender flesh, few bones · Fresh and sweet",
+          "tt": "肉质紧实细嫩，刺少 · 按做法不同：鲜香、酸辣或咸香",
+          "ttEn": "Firm, tender flesh, few bones · Flavour depends on the style you pick",
           "code": "A008",
           "name": "金凤鱼",
           "nameEn": "Red Tilapia",
@@ -592,100 +592,26 @@ window.SITE = {
             55
           ],
           "options": [
-            "招牌蒸 Signature",
-            "清蒸 Steamed",
+            "招牌蒸 Signature Steamed",
+            "清蒸 Steamed with Ginger",
             "油浸 Deep-Fried",
-            "豆豉面豉蒸 Black Bean Taucu (咸)"
-          ]
-        },
-        {
-          "id": "A009",
-          "image": "images/menu/A010.jpg",
-          "tt": "肉质紧实细嫩，刺少 · 酸辣开胃",
-          "ttEn": "Firm, tender flesh, few bones · Appetising sour and spicy",
-          "code": "A009",
-          "name": "金凤鱼 (酱/娘惹)",
-          "nameEn": "Red Tilapia (Sauce / Nyonya)",
-          "prices": [
-            51,
-            53,
-            58
-          ],
-          "options": [
+            "豆豉面豉蒸 Black Bean Taucu (咸)",
             "酱蒸 Spicy Paste Bean (微辣)",
             "娘惹蒸 Nyonya Steamed",
-            "娘惹炸 Nyonya Fried"
-          ]
-        },
-        {
-          "id": "A011",
-          "tt": "肉质紧实细嫩，刺少 · 面豉苦瓜，咸香下饭",
-          "ttEn": "Firm, tender flesh, few bones · Taucu & bitter gourd, savoury with rice",
-          "code": "A011",
-          "name": "炒金凤鱼",
-          "nameEn": "Stir-Fried Red Tilapia",
-          "price": 55
-        },
-        {
-          "id": "A012",
-          "image": "images/menu/A012.jpg",
-          "tt": "肉质紧实细嫩，刺少 · 香脆可口",
-          "ttEn": "Firm, tender flesh, few bones · Crispy and fragrant",
-          "code": "A012",
-          "name": "油浸金凤鱼",
-          "nameEn": "Deep-Fried Red Tilapia",
-          "prices": [
-            48,
-            50,
-            55
-          ]
-        },
-        {
-          "id": "A013",
-          "tt": "肉质紧实细嫩，刺少 · 酸辣开胃",
-          "ttEn": "Firm, tender flesh, few bones · Appetising sour and spicy",
-          "code": "A013",
-          "name": "娘惹蒸金凤鱼",
-          "nameEn": "Steamed with Nyonya Style",
-          "prices": [
-            51,
-            53,
-            58
-          ]
-        },
-        {
-          "id": "A014",
-          "tt": "外酥脆、肉细嫩，刺少 · 酸辣开胃",
-          "ttEn": "Crispy outside, tender inside, few bones · Sour and spicy",
-          "code": "A014",
-          "name": "娘惹炸金凤鱼",
-          "nameEn": "Deep-Fried with Nyonya Style",
-          "prices": [
-            51,
-            53,
-            58
-          ]
-        },
-        {
-          "id": "A015",
-          "tt": "肉质紧实细嫩，刺少 · 椰香咸甜，几乎不辣",
-          "ttEn": "Firm, tender flesh, few bones · Savoury-sweet coconut curry, barely spicy",
-          "code": "A015",
-          "name": "咖喱金凤鱼",
-          "nameEn": "Curry Red Tilapia",
-          "price": 60
-        },
-        {
-          "id": "A016",
-          "tt": "肉质紧实细嫩，刺少 · 咸香，稍偏咸",
-          "ttEn": "Firm, tender flesh, few bones · Rich and savoury, a bit salty",
-          "code": "A016",
-          "name": "豆豉面豉蒸金凤鱼 (咸)",
-          "nameEn": "Steamed with Black Bean Taucu",
-          "prices": [
-            48,
-            50,
-            55
+            "娘惹炸 Nyonya Fried",
+            "炒 Stir-Fried (面豉苦瓜，不分大小 RM55)",
+            "咖喱 Curry (不分大小 RM60)"
+          ],
+          "optPrices": [
+            [48, 50, 55],
+            [48, 50, 55],
+            [48, 50, 55],
+            [48, 50, 55],
+            [51, 53, 58],
+            [51, 53, 58],
+            [51, 53, 58],
+            [55, 55, 55],
+            [60, 60, 60]
           ]
         }
       ]

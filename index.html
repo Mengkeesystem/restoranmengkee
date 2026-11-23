@@ -1032,7 +1032,9 @@ async function load86(){
 }
 const canOrder = it => !it.soldOut && !it.seasonal;
 const sizeNames = (it,lg) => { const n=(it.prices||[]).length; const zh=it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); const en=it.sizesEn||(n===2?["S","L"]:n===3?["S","M","L"]:n===4?["S","M","L","XL"]:[]); return (lg||lang)==="en"?en:zh; };
-const unitPrice = (it,si) => it.prices ? it.prices[si] : it.price;
+/* 做法加价（2026-11-23）：it.optPrices[做法序号] = 该做法各份量的价钱（数组）或固定价钱（数字）；没写就照 prices/price */
+const unitPrice = (it,si,oi) => { const v=it.optPrices&&it.optPrices[oi||0]; if(v!==undefined&&v!==null) return Array.isArray(v)?v[si]:v; return it.prices ? it.prices[si] : it.price; };
+const minPriceOf = it => { const a=[]; if(it.optPrices) it.optPrices.forEach(v=>{ if(Array.isArray(v)) a.push(...v); else if(typeof v==="number") a.push(v); }); else if(it.prices) a.push(...it.prices); return Math.min(...a); };
 /* 购物车每一行 key = 菜id|份量|做法，有客制化时再加 |选项序号(用.连接)|备注代号；例：A001|1|0|0.2|n1a2b3c */
 const parseKey = k => { const [id,si,oi,m,n]=k.split("|"); return {it:allItems[id], si:+si||0, oi:+oi||0, mods:m?m.split(".").map(Number):[], nh:n||""}; };
 const keyOf = (id,si,oi,mods,nh) => { const m=(mods||[]).slice().sort((a,b)=>a-b).join("."); return id+"|"+(si||0)+"|"+(oi||0)+(m||nh?"|"+m+"|"+(nh||""):""); };
@@ -1042,7 +1044,7 @@ const noteHash = s => { let h=5381; for(const c of s) h=((h*33)^c.codePointAt(0)
 const catOf = Object.create(null); (S.menu||[]).forEach(c=>(c.items||[]).forEach(it=>{catOf[it.id]=c;}));
 const delPrice = p => { const d=(S.ordering&&S.ordering.delivery)||{}, a=+d.priceAdd||0, m=+d.priceMarkup||0, st=+d.markupStep||0.5; if(a>0) return Math.round((p+a)*100)/100; return m>0 ? Math.round(Math.ceil(p*(1+m)/st-1e-9)*st*100)/100 : p; };
 const hasDelMarkup = () => { const d=(S.ordering&&S.ordering.delivery)||{}; return +d.priceAdd>0||+d.priceMarkup>0; };
-const priceFor = (it,si) => { const p=unitPrice(it,si); return isDel()?delPrice(p):p; };
+const priceFor = (it,si,oi) => { const p=unitPrice(it,si,oi); return isDel()?delPrice(p):p; };
 /* 打包盒：每份都加；item.box > 分类 box > packaging.fee */
 const PK = () => (S.ordering&&S.ordering.packaging)||null;
 const boxOf = it => { if(!PK()) return 0; const c=catOf[it.id]; return +(it.box!=null?it.box:(c&&c.box!=null?c.box:PK().fee))||0; };
@@ -1063,7 +1065,7 @@ const pick = {};   /* 卡片上目前选的份量/做法 */
 const curPick = it => pick[it.id] || (pick[it.id]={si:0,oi:0});
 const saveCart = () => { if(!Object.keys(cart).length) modeAck=false; Object.keys(cartNotes).forEach(k=>{ if(!cart[k]) delete cartNotes[k]; }); store.set("site_cart",cart); store.set("site_cart_notes",cartNotes); };
 const cartCount = () => Object.values(cart).reduce((a,b)=>a+b,0);
-const cartTotal = () => Math.round(Object.entries(cart).reduce((s,[k,q])=>{const {it,si}=parseKey(k);return s+(it?priceFor(it,si)*q:0);},0)*100)/100;
+const cartTotal = () => Math.round(Object.entries(cart).reduce((s,[k,q])=>{const {it,si,oi}=parseKey(k);return s+(it?priceFor(it,si,oi)*q:0);},0)*100)/100;
 const boxTotal = () => Math.round(Object.entries(cart).reduce((s,[k,q])=>{const {it}=parseKey(k);return s+(it?boxOf(it)*q:0);},0)*100)/100;
 function lineLabel(k, forWa){
   const {it,si,oi}=parseKey(k), parts=[];
@@ -1200,12 +1202,12 @@ function openCust(it,pick){
 }
 function closeCust(){ custSt=null; $("cust").classList.remove("show"); $("cust").innerHTML=""; if(!drawerOpen&&!lbOpen) document.body.style.overflow=""; }
 function renderCust(){
-  const c=custSt; if(!c) return; const it=c.it, os=custOpts(it), box=boxOf(it), up=priceFor(it,c.si), min=it.min||1;
+  const c=custSt; if(!c) return; const it=c.it, os=custOpts(it), box=boxOf(it), up=priceFor(it,c.si,c.oi), min=it.min||1;
   const lab=lineLabel(keyOf(it.id,c.si,c.oi));
   $("cust").innerHTML=`<div class="psbox custbox" role="dialog" aria-modal="true">
     <div class="pshead"><b>${esc(itemName(it))}${esc(lab)}</b><button type="button" class="lbx dark" onclick="__site.cust('close')" aria-label="close">✕</button></div>
     <div class="note" style="margin-top:-6px">${money(up)}${isDel()&&hasDelMarkup()?` · ${esc(t("delPriceTag"))}`:""}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div>
-    ${c.pick&&it.prices&&it.prices.length>1?`<div><div class="custh">${esc(t("custSize"))}</div><div class="cchips">${it.prices.map((pr,i)=>`<button type="button" class="${i===c.si?"on":""}" aria-pressed="${i===c.si}" onclick="__site.cust('si',${i})">${esc(sizeNames(it)[i]||"")} · ${money(pr)}</button>`).join("")}</div></div>`:""}
+    ${c.pick&&it.prices&&it.prices.length>1?`<div><div class="custh">${esc(t("custSize"))}</div><div class="cchips">${it.prices.map((pr,i)=>`<button type="button" class="${i===c.si?"on":""}" aria-pressed="${i===c.si}" onclick="__site.cust('si',${i})">${esc(sizeNames(it)[i]||"")} · ${money(unitPrice(it,i,c.oi))}</button>`).join("")}</div></div>`:""}
     ${c.pick&&it.options&&it.options.length>1?`<div><div class="custh">${esc(t("prep"))}</div><div class="cchips">${it.options.map((o,i)=>`<button type="button" class="${i===c.oi?"on":""}" aria-pressed="${i===c.oi}" onclick="__site.cust('oi',${i})">${esc(o)}</button>`).join("")}</div></div>`:""}
     ${os.length?`<div><div class="custh">${esc(t("custOpts"))}</div><div class="cchips">${os.map((o,i)=>`<button type="button" class="${c.mods.has(i)?"on":""}" aria-pressed="${c.mods.has(i)}" onclick="__site.cust('mod',${i})">${c.mods.has(i)?"✓ ":""}${esc(lang==="en"?(o.en||o.zh):o.zh)}</button>`).join("")}</div></div>
     <div><div class="custh">${esc(t("custOther"))}</div><input id="custNote" maxlength="${+CUST().noteMax||30}" placeholder="${esc(t("custOtherPh"))}" value="${esc(c.note)}"></div>`:""}
@@ -1912,7 +1914,7 @@ function renderFeatured(on){
   const anim=!featSeen&&motionOK();
   el.innerHTML=`<div class="fhead"><h3>⭐ ${esc(t("featT"))}</h3><span>${esc(t("featS"))}</span></div><div class="ftrack${anim?" rv":""}">${list.map(({it,b},fi)=>{
     const id=esc(it.id).replace(/'/g,""), q=cartQtyOf(it.id), offF=isOff(it), ok=on&&canOrder(it)&&!offF;
-    const pr=it.prices?`${money(Math.min(...it.prices))} <small>${esc(t("featFrom"))}</small>`:money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
+    const pr=it.prices?`${money(minPriceOf(it))} <small>${esc(t("featFrom"))}</small>`:money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
     return `<div class="fcard" style="--d:${fi*0.13}s"><div class="fph"><img src="${esc(it.image)}" alt="${esc(itemName(it))}" loading="lazy">${b?`<span class="fbadge">${esc(b)}</span>`:""}${q?`<span class="fq">${esc(t("inCart"))} ${q}</span>`:""}${it.soldOut||offF?`<div class="so">${esc(t("soldOut"))}${offF?`<small>${esc(msg86("off",it.id))}</small>`:""}</div>`:""}</div>
       <div class="fin"><h4>${esc(itemName(it))}</h4>${L(it,"tt")?`<p>${esc(String(L(it,"tt")).split(" · ").pop())}</p>`:""}<div class="fft"><b>${pr}</b>${ok?`<button type="button" class="fadd" onclick="__site.feat('${id}')" aria-label="+">+</button>`:""}</div></div></div>`;
   }).join("")}</div>`;
@@ -1936,15 +1938,15 @@ function renderMenu(){
     (c.items||[]).map((it,ii)=>{
       const id=esc(it.id).replace(/'/g,""), p=curPick(it), q=itemQty(it.id,p.si,p.oi), off=isOff(it), back=!off&&curOutlet!==""&&backAt(it,curOutlet), ocan=canOrder(it)&&!off;
       const sn=sizeNames(it);
-      const priceTxt = it.seasonal ? esc(t("season")) : it.prices ? money(it.prices[p.si]) : money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
+      const priceTxt = it.seasonal ? esc(t("season")) : it.prices ? money(unitPrice(it,p.si,p.oi)) : money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
       return `<div class="item${it.image?"":" noimg"}${i===justOpened&&motionOK()?" pop":""}" style="--d:${Math.min(ii,8)*0.09}s"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
         ${it.tag?`<span class="tag">${esc(lang==="en"?"Signature":it.tag)}</span>`:""}${it.code?`<span class="code">${esc(it.code)}</span>`:""}${it.soldOut||off?`<div class="so">${esc(t("soldOut"))}${off?`<small>${esc(msg86("off",it.id))}</small>`:""}</div>`:""}${back?`<span class="backtag">${esc(msg86("back",it.id))}</span>`:""}</div>
         <div class="in"><h4>${esc(itemName(it))}</h4>${lang!=="en"&&it.nameEn?`<div class="en">${esc(it.nameEn)}</div>`:""}
         ${L(it,"tt")?`<div class="tt">${esc(L(it,"tt"))}</div>`:""}
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
-        ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&ocan?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${pr}</b></button>`).join("")}</div>`:""}
+        ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&ocan?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${unitPrice(it,i,p.oi)}</b></button>`).join("")}</div>`:""}
         ${it.options&&on&&ocan?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
-        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si)))}</small>`:""}</span>${on&&ocan?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
+        <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si,p.oi)))}</small>`:""}</span>${on&&ocan?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
   if(justOpened>=0) catSeen.add("cat-"+justOpened);   /* 客人自己点开的分类不再淡入，免得标题闪一下 */
   justOpened=-1;
@@ -2110,9 +2112,9 @@ function renderDrawer(){
   const d0 = (prevDate&&dates.some(x=>x.includes(`value="${prevDate}"`))) ? prevDate : (dates.length?dates[0].match(/value="([^"]+)"/)[1]:"");
   /* 购物车排序（2026-10-26 业主照客善截图）：订单商品 → 送餐地址 → 预计送达 → 联系方式 → 配送说明/备注 → 优惠码 → 付款方式 → 付款详情 → 下单 */
   const sec=(title,body,cls)=>`<div class="osec form${cls?" "+cls:""}"><div class="full osh">${title}</div>${body}</div>`;
-  const itemsHTML = ids.map(k=>{const {it,si}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl full">${it.image?`<img class="cimg" src="${esc(it.image)}" alt="" loading="lazy">`:`<span class="cimg ph">🍲</span>`}<div class="nm">${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}${isOff(it)?`<div class="offnote">⚠️ ${esc(msg86("off",it.id))}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
+  const itemsHTML = ids.map(k=>{const {it,si,oi}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl full">${it.image?`<img class="cimg" src="${esc(it.image)}" alt="" loading="lazy">`:`<span class="cimg ph">🍲</span>`}<div class="nm">${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}${isOff(it)?`<div class="offnote">⚠️ ${esc(msg86("off",it.id))}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
-      <b style="min-width:76px;text-align:right">${money(priceFor(it,si)*cart[k])}</b></div>`;}).join("")
+      <b style="min-width:76px;text-align:right">${money(priceFor(it,si,oi)*cart[k])}</b></div>`;}).join("")
     + `<div class="full"><button type="button" class="addmore" onclick="__site.more()">${esc(t("addMore"))}</button></div>`;
   const outletSel = outlets().length?`<div class="full"><label>${esc(t(isDel()?"outletDelLbl":"outlet"))}</label><select id="od_outlet">${outletOptions(prevOutlet,isDel())}</select></div>`:"";
   const addrHTML = `${outletSel}<div class="full">${mapFail?"":`<div id="pinslot"></div><button type="button" class="btn alt usepin" id="od_usepin">${esc(t("useCenter"))}</button>`}
@@ -2180,7 +2182,7 @@ function renderDrawer(){
       return; }
     store.set("site_guest",{name,phone,outlet:oi,addr}); saveOdDraft();
     const pi=payInfo(oi);
-    const lines=Object.entries(cart).map(([k,q])=>{const {it,si}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)}${custLabel(k,true)} x${q} = ${money(priceFor(it,si)*q)}`;});
+    const lines=Object.entries(cart).map(([k,q])=>{const {it,si,oi}=parseKey(k);return `• ${it.code?it.code+" ":""}${it.name}${lineLabel(k,true)}${custLabel(k,true)} x${q} = ${money(priceFor(it,si,oi)*q)}`;});
     const note=$("od_note").value.trim();
     const buildMsg = payLine => [t(isDel()?"waOrderDel":"waOrder"),oi!==undefined?`${t("outlet")}: ${outlets()[+oi].name}`:null,...lines,...waTotalLines(),"",`${t("name")}: ${name}`,`${t("phone")}: ${phone}`,...(isDel()?[`${t("delAddr")}: ${addr}`]:[]),...(isDel()&&unit?[`${t("unitLbl")}: ${unit}`]:[]),...(isDel()&&delGeo?[`${t(delGeo.src==="pin"?"delGeoLblPin":delGeo.src==="addr"?"delGeoLblAddr":"delGeoLbl")}: https://www.google.com/maps?q=${delGeo.lat.toFixed(6)},${delGeo.lng.toFixed(6)}${geoKm(oi)!=null?` (${t("delGeoKm").replace("{km}",geoKm(oi).toFixed(1)).replace("{m}",t(delRoutes.mode==="DRIVING"?"modeCar":"modeMoto"))})`:""}`]:[]),`${t(isDel()?"delDate":"pickupDate")}: ${date}`,...(isDel()?(eta?[`${t("etaLbl")}: ${eta.from}–${eta.to} (${t("etaShort").replace("{p1}",eta.p[0]).replace("{p2}",eta.p[1]).replace("{r1}",eta.r[0]).replace("{r2}",eta.r[1])})`]:[]):[`${t("pickupTime")}: ${time}`]),note?`${isDel()?t("delNoteLbl"):t("remark").replace(/\s*\(.*\)/,"")}: ${note}`:null,payLine].filter(x=>x!==null).join("\n");
     if(prepayReq()&&!pi){ $("od_err").textContent=t("payNotReady"); return; }

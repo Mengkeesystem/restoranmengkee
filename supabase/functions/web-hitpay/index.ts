@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-04a";
+const VERSION = "2026-11-23a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -122,7 +122,7 @@ function priceBook(S: any) {
   const items: Record<string, any> = Object.create(null), cat: Record<string, any> = Object.create(null);
   (S.menu || []).forEach((c: any) => (c.items || []).forEach((it: any) => { items[it.id] = it; cat[it.id] = c; }));
   const O = S.ordering || {}, D = O.delivery || {}, PK = O.packaging || null, CU = O.customize || {};
-  const unit = (it: any, si: number) => it.prices ? it.prices[si] : it.price;
+  const unit = (it: any, si: number, oi = 0) => { const v = it.optPrices && it.optPrices[oi]; if (v !== undefined && v !== null) return Array.isArray(v) ? v[si] : v; return it.prices ? it.prices[si] : it.price; };
   const delPrice = (p: number) => { const a = +D.priceAdd || 0, m = +D.priceMarkup || 0, st = +D.markupStep || 0.5;
     if (a > 0) return r2(p + a); return m > 0 ? r2(Math.ceil(p * (1 + m) / st - 1e-9) * st) : p; };
   const hasMarkup = +D.priceAdd > 0 || +D.priceMarkup > 0;
@@ -166,7 +166,7 @@ async function priceOrder(S: any, a: { cart: unknown; notes: unknown; voucher: u
       && (!nh || (note.length > 0 && noteHash(note) === nh));
     if (ok && offSet.has(id)) throw new UserError(`「${it.name}」刚刚售完了，请把它从购物车拿掉再下单`);
     if (!ok) throw new UserError("购物车里有菜品资料不对（可能菜单刚更新），请重新整理网页再下单");
-    const p = a.del ? B.delPrice(B.unit(it, si)) : B.unit(it, si);
+    const p = a.del ? B.delPrice(B.unit(it, si, oo)) : B.unit(it, si, oo);
     sub += p * q; box += B.boxOf(it) * q; count += q;
     const lab = [it.prices ? B.sizes(it)[si] : null, it.options ? it.options[oo] : null].filter(Boolean);
     const parts = mods.map((i) => os[i] ? os[i].zh : "").filter(Boolean);
