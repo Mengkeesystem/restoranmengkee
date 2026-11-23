@@ -111,6 +111,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .tag.rf{background:#FFE9C7;color:#7A4B00}
 .ibox label.rl{margin-top:8px}
 .ibox textarea,.ibox select,.ibox input{margin-bottom:2px}
+.rETA{margin:6px 0;padding:6px 10px;background:#EAF6EC;border-left:3px solid #1f8a4c;font-size:14px}.rETA .late{color:var(--p)}
 </style>
 </head>
 <body>
@@ -331,6 +332,16 @@ async function fn(action,id,extra){
   if(error){ let m=error.message; try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(e){} throw new Error(m); }
   return data;
 }
+/* 骑手接单后：显示「接单 N 分钟前」+（Delyva 有给的话）「预计 HH:MM 到店（约还有 N 分钟）」——让店里知道还有多久、好提早准备（2026-11-23） */
+function riderEtaHTML(o,r){
+  const st=o.courier_status||0; if(!(st===200||st===400)||!r) return "";
+  const now=Date.now(), mins=ms=>Math.round(ms/60000);
+  let t=""; if(r.accepted_at&&isFinite(Date.parse(r.accepted_at))) t=`接单 ${Math.max(0,mins(now-Date.parse(r.accepted_at)))} 分钟前`;
+  let e=""; if(r.eta_at&&isFinite(Date.parse(r.eta_at))){ const left=mins(Date.parse(r.eta_at)-now);
+    e=left>0?`<b>预计 ${esc(klHM(r.eta_at))} 到店（约还有 ${left} 分钟）</b>`:`<b class="late">骑手应该快到了（预计 ${esc(klHM(r.eta_at))}）</b>`; }
+  if(!t&&!e) return "";
+  return `<div class="rETA">⏱️ ${[t,e].filter(Boolean).join(" · ")}</div>`;
+}
 function courierHTML(o){
   if(o.order_type!=="delivery"||o.status!=="paid"||!hasCourierCols) return "";
   if(!o.dest) return `<div class="cour"><span class="mut">🛵 这张单没有送餐坐标（旧订单），请手动叫车。</span></div>`;
@@ -344,6 +355,7 @@ function courierHTML(o){
   const r=o.courier_rider||{}, trk=o.courier_tracking&&dcfg&&dcfg.company?`https://${encodeURIComponent(dcfg.company)}.delyva.app/customer/strack?trackingNo=${encodeURIComponent(o.courier_tracking)}`:"";
   return `<div class="cour">${addr}<div><b>🛵 ${esc(DSTAT[o.courier_status]||("状态 "+(o.courier_status??"-")))}</b>${o.courier_service?` · ${esc(o.courier_service)}`:""}${o.courier_fee?` · 运费成本 ${money(o.courier_fee)}`:""}</div>
     ${r.name||r.phone?`<div class="mut">骑手：${esc(r.name||"")} ${r.phone?`· <a href="tel:${esc(String(r.phone).replace(/[^\d+]/g,""))}">${esc(r.phone)}</a>`:""} ${r.plate?`· ${esc(r.plate)}`:""}</div>`:""}
+    ${riderEtaHTML(o,r)}
     <div class="mut">Delyva 单号 ${esc(o.courier_order_id)}${trk?` · <a href="${trk}" target="_blank" rel="noopener">追踪</a>`:""}</div>
     ${o.courier_error?`<div class="err">${esc(o.courier_error)}</div>`:""}
     ${!dn&&(o.courier_status||0)<500?`<div class="acts"><button class="btn alt sm" data-cour="cancel" data-id="${o.id}" ${b?"disabled":""}>取消骑手</button></div>`:""}

@@ -17,7 +17,7 @@
 // 数据表：supabase/push.sql（web_push_subs）
 // 监控：GET <函数网址>?health=1 → {"ok":true,...}（给 UptimeRobot 之类的服务看）
 // =====================================================================
-const VERSION = "2026-11-02a";
+const VERSION = "2026-11-23a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -126,7 +126,7 @@ const clean = (s: unknown, n: number) => String(s ?? "").replace(/[\u0000-\u001f
 /* 内部呼叫：付款成功 / 出问题 → 发给看得到这张订单的员工 */
 async function notify(b: any) {
   if (!VAPID_PUBLIC || !VAPID_PRIVATE) return { ok: false, error: "没设定 WEB_VAPID_PUBLIC / WEB_VAPID_PRIVATE" };
-  const id = Number(b.id), kind = b.kind === "alert" ? "alert" : "paid";
+  const id = Number(b.id), kind = b.kind === "alert" ? "alert" : b.kind === "rider" ? "rider" : "paid";
   if (!Number.isInteger(id) || id <= 0) throw new UserError("bad id");
   const o = (await db(`web_orders?id=eq.${id}&select=ref,outlet,outlet_idx,order_type,amount`))[0];
   if (!o) return { ok: true, sent: 0, unknown: true };
@@ -135,7 +135,9 @@ async function notify(b: any) {
   if (!who.length) return { ok: true, sent: 0 };
   const subs = await db(`web_push_subs?email=in.(${who.map((e) => `"${e.replace(/"/g, "")}"`).join(",")})&select=endpoint,p256dh,auth`);
   const type = o.order_type === "delivery" ? "外送" : "自取";
-  const payload = kind === "alert"
+  const payload = kind === "rider"
+    ? { title: `🛵 骑手已接单 ${o.ref}`, body: `${clean(b.text, 120) || "请开始准备餐点"}（${clean(o.outlet, 40)} · ${type}）`, tag: `r-${o.ref}`, url: "admin.html" }
+    : kind === "alert"
     ? { title: `⚠️ 订单需要处理 ${o.ref}`, body: `${clean(b.text, 120) || "请打开后台查看"}（${clean(o.outlet, 40)} · ${type} · ${money(o.amount)}）`, tag: `a-${o.ref}`, url: "admin.html" }
     : { title: `🔔 新订单 ${o.ref}`, body: `${clean(o.outlet, 40)} · ${type} · ${money(o.amount)} · 已付款，请开始准备`, tag: `p-${o.ref}`, url: "admin.html" };
   const r = await sendTo(subs || [], payload);

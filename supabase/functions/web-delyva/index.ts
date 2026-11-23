@@ -28,7 +28,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-11-02a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-11-23a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -313,12 +313,26 @@ async function webhook(req: Request, raw: string) {
   return json(req, await applyStatus(data));
 }
 /* 手机通知（2026-11-02）：请 web-push 发给员工。失败只写 Logs（web-push 还没部署也没关系） */
-async function notifyStaff(id: number, text: string) {
+async function notifyStaff(id: number, text: string, kind: "alert" | "rider" = "alert") {
   try {
     const r = await fetch(`${SB_URL}/functions/v1/web-push`, { method: "POST", headers: { "Content-Type": "application/json", apikey: SRK, Authorization: `Bearer ${SRK}` },
-      body: JSON.stringify({ action: "notify", kind: "alert", id, text }), signal: AbortSignal.timeout(7000) });
+      body: JSON.stringify({ action: "notify", kind, id, text }), signal: AbortSignal.timeout(7000) });
     if (!r.ok) console.log(`notify ${id} failed ${r.status}`);
   } catch (e) { console.log(`notify ${id} error ${(e as Error).message}`); }
+}
+/* 骑手预计几点到店取餐（2026-11-23 业主：让店里知道还有多久、好提早准备）。
+   ⚠️ Delyva 的通知里有没有这个资料、叫什么名字，我们**还没确认**（trydx 看不到真实骑手）：这里试几个常见的栏位名，
+   数字 ≤ 300 当「几分钟后」、更大的当时间戳、文字当日期；都没有就不显示（只显示「接单多久了」）。
+   每次状态通知都会在 Logs 印出 Delyva 这次传来的栏位名（只印名字，不印内容），方便确认。 */
+function etaFrom(d: any): string | null {
+  const c = [d?.eta, d?.etaPickup, d?.pickupEta, d?.estimatedPickupTime, d?.estimatedPickup, d?.estimatedArrival, d?.personnel?.eta, d?.deliveryService?.eta, d?.deliveryService?.estimatedPickupTime];
+  for (const v of c) {
+    let t = NaN;
+    if (typeof v === "number" && isFinite(v) && v > 0) t = v <= 300 ? Date.now() + v * 60000 : v > 1e12 ? v : v > 1e9 ? v * 1000 : NaN;
+    else if (typeof v === "string" && v.trim()) { const n = Number(v); t = isFinite(n) && n > 0 && n <= 300 ? Date.now() + n * 60000 : Date.parse(v); }
+    if (isFinite(t) && t > Date.now() - 60000 && t < Date.now() + 6 * 3600e3) return new Date(t).toISOString();
+  }
+  return null;
 }
 const cut = (v: unknown, n: number) => (v === null || v === undefined || v === "") ? null : String(v).slice(0, n);
 /* 把一笔 Delyva 状态写进订单（真的 webhook 和测试模拟共用同一段） */
@@ -329,6 +343,12 @@ async function applyStatus(data: any) {
   const rows = await db(`web_orders?courier_order_id=eq.${encodeURIComponent(delyvaId)}&select=*`);
   if (!rows.length) return { ok: true, unknown: true };    // 不是网站叫的单
   const p = data?.personnel;
+  console.log(`tracking ${delyvaId} ${code} 栏位：${Object.keys(data || {}).join(",")} ｜ 骑手栏位：${p && typeof p === "object" ? Object.keys(p).join(",") : "-"}`);
+  const prev = (rows[0].courier_rider && typeof rows[0].courier_rider === "object") ? rows[0].courier_rider : {};
+  const firstAccept = (code === 200 || code === 400) && !prev.accepted_at && rows[0].order_type === "delivery";
+  const eta = (code === 200 || code === 400) ? etaFrom(data) : null;
+  const rider = { ...prev, ...(p ? { name: cut(p.name, 60), phone: cut(String(p.phone ?? p.contactNumber ?? "").replace(/[^\d+]/g, ""), 20), plate: cut(p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo, 20) } : {}),
+    ...(firstAccept ? { accepted_at: new Date().toISOString() } : {}), ...(eta ? { eta_at: eta } : {}) };
   if ([475, 650, 900].includes(code) && rows[0].courier_status !== code && rows[0].courier_status !== 900)   // 骑手取餐失败 / 送达失败 / 取消 → 手机通知员工（员工自己在后台取消的已经是 900，不再吵）
     await notifyStaff(rows[0].id, code === 900 ? "骑手单被取消了，请重新叫骑手" : code === 475 ? "骑手取餐失败，请联络骑手或重新叫骑手" : "骑手送达失败，请联络客人和骑手");
   await patchOrder(rows[0].id, {
@@ -336,8 +356,12 @@ async function applyStatus(data: any) {
     ...(data?.consignmentNo ? { courier_tracking: String(data.consignmentNo).slice(0, 60), courier_track_url: trackUrl(String(data.consignmentNo).slice(0, 60)) } : {}),
     // 送达 → 订单自动进「已完成」（店员已经手动按完成的就不改）
     ...((code === 700 || code === 1000) && !rows[0].completed_at ? { completed_at: new Date().toISOString(), completed_by: "Delyva" } : {}),
-    ...(p ? { courier_rider: { name: cut(p.name, 60), phone: cut(String(p.phone ?? p.contactNumber ?? "").replace(/[^\d+]/g, ""), 20), plate: cut(p.vehicleNo ?? p.plateNo ?? p.vehicle?.plateNo, 20) } } : {}),
+    ...((p || firstAccept || eta) ? { courier_rider: rider } : {}),
   });
+  if (firstAccept) {   // 骑手第一次接单 → 通知员工开始准备（有预计到店时间就一起写）
+    const mins = eta ? Math.max(0, Math.round((Date.parse(eta) - Date.now()) / 60000)) : null;
+    await notifyStaff(rows[0].id, mins === null ? "骑手已接单，请开始准备餐点" : `骑手已接单，预计约 ${mins} 分钟到店取餐，请开始准备`, "rider");
+  }
   return { ok: true };
 }
 /* 🧪 测试账号专用：假装 Delyva 发来骑手状态（正式账号一律拒绝，不会碰到真单） */
@@ -348,7 +372,7 @@ async function simulate(id: number, code: number) {
   const o = await getOrder(id);
   if (!o?.courier_order_id) throw new Error("这张单还没叫骑手");
   return applyStatus({ orderId: o.courier_order_id, statusCode: code, ...(o.courier_tracking ? { consignmentNo: o.courier_tracking } : {}),
-    ...(code >= 200 && code !== 475 ? { personnel: { name: "Test Rider（测试骑手）", phone: "0123456789", vehicleNo: "WTEST 123" } } : {}) });
+    ...(code >= 200 && code !== 475 ? { personnel: { name: "Test Rider（测试骑手）", phone: "0123456789", vehicleNo: "WTEST 123" } } : {}), ...(code === 200 || code === 400 ? { etaPickup: 8 } : {}) });   // 测试账号模拟「8 分钟到店」，让后台看得到预计到店的画面
 }
 
 Deno.serve(async (req) => {

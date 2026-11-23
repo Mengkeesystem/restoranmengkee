@@ -62,6 +62,8 @@ sent.length=0; await call({action:"notify",kind:"paid",id:2},SRK); t("Scott 的�
 sent.length=0; await call({action:"notify",kind:"paid",id:3},SRK); t("分店不明的旧单 → 只有管理员", sent.map(x=>x.endpoint.split("/").pop()).join()==="A", sent.map(x=>x.endpoint));
 sent.length=0; await call({action:"notify",kind:"alert",id:1,text:"自动叫骑手失败 <script>alert(1)</script>"},SRK);
 t("出问题提醒：⚠️ 标题 + 说明，网页符号被洗掉", sent[0].body.title.startsWith("⚠️")&&sent[0].body.body.includes("自动叫骑手失败")&&!/[<>]/.test(sent[0].body.body), sent[0]?.body);
+sent.length=0; await call({action:"notify",kind:"rider",id:1,text:"骑手已接单，预计约 7 分钟到店取餐，请开始准备 <b>x</b>"},SRK);
+t("骑手接单通知：🛵 标题 + 预计几分钟，网页符号被洗掉", sent[0]&&sent[0].body.title.startsWith("🛵 骑手已接单")&&/约 7 分钟/.test(sent[0].body.body)&&!/[<>]/.test(sent[0].body.body), sent[0]?.body);
 r=await call({action:"notify",kind:"paid",id:999},SRK); t("订单不存在 → 不报错、不发", r.s===200&&r.b.sent===0, r);
 r=await call({action:"notify",kind:"paid",id:"1; drop"},SRK); t("乱填 id → 拒绝", r.s===400, r);
 staffNoRole=true; sent.length=0; await call({action:"notify",kind:"paid",id:2},SRK); t("还没跑 staff.sql（没有 role 栏）→ 全部当管理员，照样发", sent.length>=3, sent.length); staffNoRole=false;
