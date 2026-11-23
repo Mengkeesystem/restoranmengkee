@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-23a";
+const VERSION = "2026-11-23b";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -266,6 +266,7 @@ async function pay(req: Request, b: any) {
   }
   const outlet = (S.outlets || [])[oi];
   if (!Number.isInteger(oi) || !outlet || String(outlet.name).slice(0, 80) !== o.outlet || (del && o.outlet_idx !== oi)) throw new UserError("分店资料不对");
+  if (del && !(S.ordering && S.ordering.delivery && S.ordering.delivery.enabled)) throw new UserError("外送暂时没有开放，请改用自取");   // config.js 的 ordering.delivery.enabled=false 时，服务器也挡外送单
   const all = S.payment && S.payment.gateway === "hitpay";   // 全部分店用 HitPay（hitpay:false 排除）；否则只有 hitpay:true 的分店
   if (all ? outlet.hitpay === false : outlet.hitpay !== true) throw new UserError("这间分店还没开网上付款");
   const acct = account(oi);

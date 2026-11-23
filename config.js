@@ -75,18 +75,18 @@ window.SITE = {
     { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "OKR", phone: "017-2408981", whatsapp: "60172408981", lat: 3.1064, lng: 101.6765, address: "97, Jln Klang Lama, Batu 3, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       /* 2026-10-26 业主给的店面 Maybank DuitNow 商家 QR（照片解码后重新生成清晰版，内容一字不改） */
       payment: { qr: "images/pay/okr-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "RESTORAN MENG KEE" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", phone: "018-6692638", whatsapp: "60186692638", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", delivery: true, sst: false, name: "OKR (Scott Garden 对面)", phone: "018-6692638", whatsapp: "60186692638", lat: 3.0954, lng: 101.6738, nameEn: "OKR (opposite Scott Garden)", address: "Restaurant Meng Kee, opposite Scott Garden, Jln Klang Lama, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
       payment: { qr: "images/pay/scott-duitnow.png", accountName: "RESTORAN MENG KEE SCOTT" } },
-    { region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", phone: "018-7678897", whatsapp: "60187678897", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", delivery: true, name: "Kelana Jaya (PJ)", phone: "018-7678897", whatsapp: "60187678897", lat: 3.1119, lng: 101.5996, address: "15, Jalan SS 4d/2, SS 4, 47301 Petaling Jaya, Selangor",
       payment: { qr: "images/pay/pj-duitnow.png", bankName: "Maybank (DuitNow QR)", accountName: "MK KELANA SB" } },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", phone: "016-3932002", whatsapp: "60163932002", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", phone: "010-2700814", whatsapp: "60102700814", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", phone: "012-3058213", whatsapp: "60123058213", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Subang", phone: "012-7136816", whatsapp: "60127136816", lat: 3.0423, lng: 101.5835, address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", phone: "016-3492011", whatsapp: "60163492011", lat: 3.0163, lng: 101.4332, address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", phone: "017-3755344", whatsapp: "60173755344", lat: 2.9972, lng: 101.5312, address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
-    { region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", phone: "017-8193918", whatsapp: "60178193918", lat: 3.1251, lng: 101.4646, address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
-    { region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", phone: "010-2699325", whatsapp: "60102699325", lat: 2.6953, lng: 101.9067, address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Cheras (Damai Perdana)", phone: "016-3932002", whatsapp: "60163932002", lat: 3.0458, lng: 101.7419, address: "23-G, Jalan Damai Perdana 1/9d, Bandar Damai Perdana, 43200 Cheras, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Kajang", phone: "010-2700814", whatsapp: "60102700814", lat: 3.0034, lng: 101.7629, address: "13-G, Jln Besar Bukit Angkat, Bukit Angkat, 43000 Kajang, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Puchong", phone: "012-3058213", whatsapp: "60123058213", lat: 3.0454, lng: 101.6212, address: "10, Jalan Kenari 12a, Bandar Puchong Jaya, 47100 Puchong, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Subang", phone: "012-7136816", whatsapp: "60127136816", lat: 3.0423, lng: 101.5835, address: "22, Jalan USJ 11/3j, USJ 11, 47620 Subang Jaya, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Klang (Bayu Tinggi)", phone: "016-3492011", whatsapp: "60163492011", lat: 3.0163, lng: 101.4332, address: "2-G, Jln Bayu Tinggi 2a, Taman Bayu Perdana, 41200 Klang, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Bukit Rimau", phone: "017-3755344", whatsapp: "60173755344", lat: 2.9972, lng: 101.5312, address: "2-G, Jln Sungai Burung Y 32/Y, Bukit Rimau, 40460 Shah Alam, Selangor" },
+    { hitpay: false, region: "雪隆区", regionEn: "Klang Valley", name: "Setia Alam", phone: "017-8193918", whatsapp: "60178193918", lat: 3.1251, lng: 101.4646, address: "41-G, Jalan Setia Utama AT U13/AT, Alam Nusantara, 40170 Shah Alam, Selangor" },
+    { hitpay: false, region: "芙蓉区", regionEn: "Seremban", name: "Seremban 2", phone: "010-2699325", whatsapp: "60102699325", lat: 2.6953, lng: 101.9067, address: "Pusat Dagangan, 325-G, Jalan S2 B28, Seremban 2, 70300 Seremban, Negeri Sembilan" },
   ],
 
   /* ---------- 品牌故事 ---------- */
@@ -435,7 +435,7 @@ window.SITE = {
     voucherInPromos: false,   // 优惠码兑换框：false = 只在购物车结账时输入；true = 优惠活动区块也显示
     /* 外送：客人自己选配送范围，店员看地址核对。以后要改按邮区/自动算距离再调整 */
     delivery: {
-      enabled: true,
+      enabled: false,   // 2026-11-23：Delyva 还是测试账号，外送先关；正式账号好了改回 true（服务器也会挡）
       /* maxKm：估算路程 ≤ maxKm 就用这一档（路程 = Google 路线真实路程）；最后一档不写 maxKm = 以上全部。
          客人按「用我现在的位置」时自动选档（要该分店有 lat/lng），否则客人自己选、店员核对 */
       /* 2026-10-26 业主改：外送价 = 每份菜单价 +RM1（priceAdd），运费按距离分段收（原方案 A 是 +10% + 5km 内免运费，算下来每单亏 RM3–6） */
