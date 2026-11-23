@@ -108,7 +108,7 @@ window.SITE = {
     { icon: "leaf", t: "食材每日新鲜", tEn: "Fresh every day", d: "每天一早采办", dEn: "Bought every morning" },
   ],
   /* 本店故事旁边的照片（用 3 张：第一张横幅大图（只看下半部的菜，从上面滑下来），下面左边一张（从左边进来）、右边一张（从右边进来））。有店内/门面照片后可以换掉 */
-  storyImages: ["images/menu/A001.jpg", "images/menu/A021.jpg", "images/menu/A034.jpg"],
+  storyImages: ["images/story-fish.jpg", "images/menu/A021.jpg", "images/menu/A034.jpg"],
 
   /* 环境照片：放进 images/ 文件夹，写文件名。留空数组则不显示这一块 */
   gallery: [                              // TODO 放店内/门面照片
