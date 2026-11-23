@@ -792,6 +792,7 @@ window.SITE = {
         },
         {
           "id": "A030",
+          "image": "images/menu/A030.jpg",
           "tt": "虾肉厚实弹牙，虾膏丰腴 · 鲜甜浓香",
           "ttEn": "Thick, bouncy, rich roe · Sweet and fragrant",
           "code": "A030",
@@ -1055,6 +1056,7 @@ window.SITE = {
       "items": [
         {
           "id": "A047",
+          "image": "images/menu/A047.jpg",
           "tt": "叶嫩微滑 · 清香微苦，回甘",
           "ttEn": "Tender leaves · Light, slightly bitter, sweet finish",
           "code": "A047",
@@ -1235,6 +1237,7 @@ window.SITE = {
         },
         {
           "id": "ADD1",
+          "phText": "咸鱼", "phTextEn": "Salted Fish",
           "box": 0,
           "tt": "咸鱼香脆 · 咸香下饭",
           "ttEn": "Crispy salted fish · Savoury, great with rice",
@@ -1354,6 +1357,7 @@ window.SITE = {
         },
         {
           "id": "A065",
+          "image": "images/menu/A065.jpg",
           "tt": "滑嫩如布丁 · 清鲜温和",
           "ttEn": "Silky like pudding · Light and mild",
           "code": "A065",
@@ -1430,9 +1434,9 @@ window.SITE = {
       "cat": "饭类",
       "catEn": "Rice",
       "items": [
-        { "id": "R001", "code": "R001", "name": "白饭", "nameEn": "White Rice", "price": 1.5,
+        { "id": "R001", "image": "images/menu/R001.jpg", "code": "R001", "name": "白饭", "nameEn": "White Rice", "price": 1.5,
           "tt": "粒粒松软 · 配什么菜都好吃", "ttEn": "Soft and fluffy · Goes with every dish" },
-        { "id": "R002", "code": "R002", "name": "炒饭", "nameEn": "Fried Rice",
+        { "id": "R002", "image": "images/menu/R002.jpg", "code": "R002", "name": "炒饭", "nameEn": "Fried Rice",
           "sizes": ["家乡炒饭", "叁巴炒饭", "咸鱼炒饭", "虾仁炒饭", "海鲜炒饭"],
           "sizesEn": ["Kampung", "Sambal", "Salted Fish", "Shrimp", "Seafood"],
           "prices": [12.9, 12.9, 13.9, 14.9, 18.9],

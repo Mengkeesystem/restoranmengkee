@@ -883,6 +883,8 @@ footer{background:var(--dk);border-top:3px solid var(--a);text-align:center;padd
 .otwrap .otype button.on .otx small{color:rgba(255,255,255,.88)}
 .otwrap .otype button.on .otck{display:block}
 @media(max-width:400px){.otwrap .otype .oti{font-size:26px}.otwrap .otype .otx b{font-size:16px}.otwrap .otype .otx small{font-size:11px}.modebtn{min-height:128px}}
+.phtxt{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:6px;text-align:center;font:700 22px/1.2 "Noto Serif SC",serif;color:var(--p);letter-spacing:.08em}
+.phtxt.s{font-size:13px;letter-spacing:0;padding:2px}
 </style>
 </head>
 <body>
@@ -1033,6 +1035,8 @@ async function load86(){
 const canOrder = it => !it.soldOut && !it.seasonal;
 const sizeNames = (it,lg) => { const n=(it.prices||[]).length; const zh=it.sizes||(n===2?["小","大"]:n===3?["小","中","大"]:n===4?["小","中","大","特大"]:[]); const en=it.sizesEn||(n===2?["S","L"]:n===3?["S","M","L"]:n===4?["S","M","L","XL"]:[]); return (lg||lang)==="en"?en:zh; };
 /* 做法加价（2026-11-23）：it.optPrices[做法序号] = 该做法各份量的价钱（数组）或固定价钱（数字）；没写就照 prices/price */
+/* 没照片的菜可写 phText（例：加咸鱼）→ 用字代替图片 */
+const phTxt = (it,dflt,small) => { const t=lang==="en"?(it.phTextEn||it.phText):it.phText; return t?`<span class="phtxt${small?" s":""}">${esc(t)}</span>`:dflt; };
 const unitPrice = (it,si,oi) => { const v=it.optPrices&&it.optPrices[oi||0]; if(v!==undefined&&v!==null) return Array.isArray(v)?v[si]:v; return it.prices ? it.prices[si] : it.price; };
 const minPriceOf = it => { const a=[]; if(it.optPrices) it.optPrices.forEach(v=>{ if(Array.isArray(v)) a.push(...v); else if(typeof v==="number") a.push(v); }); else if(it.prices) a.push(...it.prices); return Math.min(...a); };
 /* 购物车每一行 key = 菜id|份量|做法，有客制化时再加 |选项序号(用.连接)|备注代号；例：A001|1|0|0.2|n1a2b3c */
@@ -1941,7 +1945,7 @@ function renderMenu(){
       const id=esc(it.id).replace(/'/g,""), p=curPick(it), q=itemQty(it.id,p.si,p.oi), off=isOff(it), back=!off&&curOutlet!==""&&backAt(it,curOutlet), ocan=canOrder(it)&&!off;
       const sn=sizeNames(it);
       const priceTxt = it.seasonal ? esc(t("season")) : it.prices ? money(unitPrice(it,p.si,p.oi)) : money(it.price)+(it.unit?` <small>/ ${esc(lang==="en"&&it.unitEn?it.unitEn:it.unit)}</small>`:"");
-      return `<div class="item${it.image?"":" noimg"}${i===justOpened&&motionOK()?" pop":""}" style="--d:${Math.min(ii,8)*0.09}s"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:"🍲"}
+      return `<div class="item${it.image?"":" noimg"}${i===justOpened&&motionOK()?" pop":""}" style="--d:${Math.min(ii,8)*0.09}s"><div class="ph">${it.image?`<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy">`:phTxt(it,"🍲")}
         ${it.tag?`<span class="tag">${esc(lang==="en"?"Signature":it.tag)}</span>`:""}${it.code?`<span class="code">${esc(it.code)}</span>`:""}${it.soldOut||off?`<div class="so">${esc(t("soldOut"))}${off?`<small>${esc(msg86("off",it.id))}</small>`:""}</div>`:""}${back?`<span class="backtag">${esc(msg86("back",it.id))}</span>`:""}</div>
         <div class="in"><h4>${esc(itemName(it))}</h4>${lang!=="en"&&it.nameEn?`<div class="en">${esc(it.nameEn)}</div>`:""}
         ${L(it,"tt")?`<div class="tt">${esc(L(it,"tt"))}</div>`:""}
@@ -2114,7 +2118,7 @@ function renderDrawer(){
   const d0 = (prevDate&&dates.some(x=>x.includes(`value="${prevDate}"`))) ? prevDate : (dates.length?dates[0].match(/value="([^"]+)"/)[1]:"");
   /* 购物车排序（2026-10-26 业主照客善截图）：订单商品 → 送餐地址 → 预计送达 → 联系方式 → 配送说明/备注 → 优惠码 → 付款方式 → 付款详情 → 下单 */
   const sec=(title,body,cls)=>`<div class="osec form${cls?" "+cls:""}"><div class="full osh">${title}</div>${body}</div>`;
-  const itemsHTML = ids.map(k=>{const {it,si,oi}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl full">${it.image?`<img class="cimg" src="${esc(it.image)}" alt="" loading="lazy">`:`<span class="cimg ph">🍲</span>`}<div class="nm">${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}${isOff(it)?`<div class="offnote">⚠️ ${esc(msg86("off",it.id))}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
+  const itemsHTML = ids.map(k=>{const {it,si,oi}=parseKey(k);const sk=esc(k).replace(/'/g,"");return `<div class="cl full">${it.image?`<img class="cimg" src="${esc(it.image)}" alt="" loading="lazy">`:`<span class="cimg ph">${phTxt(it,"🍲",true)}</span>`}<div class="nm">${esc(itemName(it))}${esc(lineLabel(k))}${custLabel(k)?`<div class="custl">${esc(custLabel(k).trim())}</div>`:""}${isOff(it)?`<div class="offnote">⚠️ ${esc(msg86("off",it.id))}</div>`:""}<div class="note">${money(priceFor(it,si))}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div></div>
       <span class="qty"><button class="minus" onclick="__site.step('${sk}',-1)">−</button><b>${cart[k]}</b><button onclick="__site.step('${sk}',1)">+</button></span>
       <b style="min-width:76px;text-align:right">${money(priceFor(it,si,oi)*cart[k])}</b></div>`;}).join("")
     + `<div class="full"><button type="button" class="addmore" onclick="__site.more()">${esc(t("addMore"))}</button></div>`;
