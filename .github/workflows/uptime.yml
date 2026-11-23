@@ -1,11 +1,11 @@
-name: 网站监控（每 12 小时）
+name: 网站监控（每 2 小时）
 
-# 每 12 小时检查官网和三个后台函数（付款 / 骑手 / 手机通知）是否正常。
+# 每 2 小时检查官网和三个后台函数（付款 / 骑手 / 手机通知）是否正常。
 # 出问题 → 开 Issue 并 @ 老板（电邮 + GitHub 手机 App 通知）；恢复 → 自动关掉。详见 .github/scripts/uptime-alert.sh
 # 要加/减检查项：改 .github/uptime-targets.txt。⚠️ GitHub 的定时任务偶尔会延迟几分钟；仓库连续 60 天没任何动静会被 GitHub 暂停。
 on:
   schedule:
-    - cron: "17 */12 * * *"
+    - cron: "17 */2 * * *"
   workflow_dispatch:
 
 permissions:
