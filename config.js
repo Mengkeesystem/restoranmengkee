@@ -53,10 +53,10 @@ window.SITE = {
 
   /* 社交平台 / 外送平台链接，没有的留空 "" 就不会显示 */
   social: {
-    facebook: "https://www.facebook.com/share/1GN91yegZu/?mibextid=wwXIfr",
+    facebook: "https://www.facebook.com/RestoranMengKeeOldKlangRoad/",
     instagram: "https://www.instagram.com/restaurant_mengkee",
     instagramName: "restaurant_mengkee",     // 图标旁显示的账号名
-    facebookName: "明记家乡小食店",           // TODO 确认 Facebook 专页名称
+    facebookName: "明记家乡小食店",           // 2026-11-23 业主确认：专页名就是这个（Old Klang Road 专页）
     foodpanda: "",                        // TODO
     grabfood: "",                         // TODO
   },
