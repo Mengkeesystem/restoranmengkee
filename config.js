@@ -117,38 +117,22 @@ window.SITE = {
 
   /* ---------- 优惠活动 / 节日套餐 ----------
    * from/to 是显示期间(含当天)，过期会自动隐藏，不用手动删。to 留空 = 长期 */
-  promos: [                               // TODO 以下是示例活动，请换成明记真实的活动（过期会自动隐藏）
+  promos: [                               // 2026-11-23 业主：删掉示例，只放这两个（有新的真实活动再加）
     {
-      icon: "clock", badge: "限时", badgeEn: "Limited",
-      title: "开张优惠：堂食满 RM50 送凉水一杯",
-      titleEn: "Opening promo: free herbal drink with RM50 dine-in",
-      body: "活动期间堂食消费满 RM50，送自家凉水一杯（热/冷）。",
-      bodyEn: "Spend RM50 on dine-in and get a free homemade herbal drink (hot/cold).",
-      from: "2026-10-01", to: "2026-12-31", image: "",
+      icon: "gift", badge: "新上线", badgeEn: "Now Open",
+      title: "网站正式上线！OKR 可自取和外送",
+      titleEn: "Our website is live! OKR now takes pickup and delivery",
+      body: "明记网上点餐正式启用：OKR 分店现在可以网上自取和外送，其他分店敬请期待。",
+      bodyEn: "Online ordering is now open at our OKR outlet for both pickup and delivery. Other outlets are coming soon.",
+      from: "2026-11-23", to: "", image: "",
     },
     {
-      icon: "tag", badge: "平日", badgeEn: "Weekdays",
-      title: "平日午市：招牌菜 9 折",
-      titleEn: "Weekday lunch: 10% off signature dishes",
-      body: "星期一至五 11am–3pm 堂食，点任何「招牌」标签的菜品享 9 折。",
-      bodyEn: "Mon–Fri 11am–3pm dine-in: 10% off any dish marked Signature.",
-      from: "2026-10-01", to: "2026-12-31", image: "",
-    },
-    {
-      icon: "gift", badge: "生日", badgeEn: "Birthday",
-      title: "生日月份：送招牌豆腐一份",
-      titleEn: "Birthday month: free Signature Beancurd",
-      body: "生日当月出示身份证，堂食满 RM80 送招牌豆腐（小）一份。",
-      bodyEn: "Show your IC in your birthday month — spend RM80 on dine-in for a free Signature Beancurd (S).",
-      from: "2026-10-01", to: "", image: "",
-    },
-    {
-      icon: "calendar", badge: "预订", badgeEn: "Pre-order",
-      title: "农历新年团圆饭：开放预订",
-      titleEn: "Chinese New Year reunion dinner: now taking bookings",
-      body: "6–10 人团圆套餐，含松鱼头、琵琶鸭、咖喱三鲜煲等招牌菜。请提前 7 天 WhatsApp 预订。",
-      bodyEn: "Reunion sets for 6–10 pax featuring our signature bighead carp, pipa duck and seafood curry. Book 7 days ahead on WhatsApp.",
-      from: "2026-10-15", to: "2027-02-28", image: "",
+      icon: "calendar", badge: "即将推出", badgeEn: "Coming Soon",
+      title: "新年菜单即将推出",
+      titleEn: "Chinese New Year menu coming soon",
+      body: "新年菜单即将推出，想提早了解或预订，欢迎打电话到各分店，或通过 WhatsApp 询问。",
+      bodyEn: "Our Chinese New Year menu is coming soon. For details or early bookings, call your nearest outlet or message us on WhatsApp.",
+      from: "2026-11-23", to: "2027-02-28", image: "",
     },
   ],
 
