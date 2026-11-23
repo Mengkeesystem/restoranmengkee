@@ -1067,10 +1067,12 @@ const saveCart = () => { if(!Object.keys(cart).length) modeAck=false; Object.key
 const cartCount = () => Object.values(cart).reduce((a,b)=>a+b,0);
 const cartTotal = () => Math.round(Object.entries(cart).reduce((s,[k,q])=>{const {it,si,oi}=parseKey(k);return s+(it?priceFor(it,si,oi)*q:0);},0)*100)/100;
 const boxTotal = () => Math.round(Object.entries(cart).reduce((s,[k,q])=>{const {it}=parseKey(k);return s+(it?boxOf(it)*q:0);},0)*100)/100;
+/* 做法名称：英文界面用 optionsEn；没写就把「中文 English」里的中文拿掉（订单讯息一律用中文原文） */
+const optName = (it,i,zh) => { const o=it.options[i]; if(zh||lang!=="en") return o; if(it.optionsEn&&it.optionsEn[i]) return it.optionsEn[i]; const e=o.replace(/[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]+/g," ").replace(/\(\s*\)/g,"").replace(/\s+/g," ").trim(); return e||o; };
 function lineLabel(k, forWa){
   const {it,si,oi}=parseKey(k), parts=[];
   if(it.prices) parts.push(sizeNames(it, forWa?"zh":lang)[si]);
-  if(it.options) parts.push(it.options[oi]);
+  if(it.options) parts.push(optName(it,oi,forWa));
   return parts.length?" ("+parts.join(", ")+")":"";
 }
 /* 客制化文字：[不要葱, 不要蒜米; 其他: …]（讯息一律用中文，店员看得懂；check.html 会略过方括号里的内容） */
@@ -1208,7 +1210,7 @@ function renderCust(){
     <div class="pshead"><b>${esc(itemName(it))}${esc(lab)}</b><button type="button" class="lbx dark" onclick="__site.cust('close')" aria-label="close">✕</button></div>
     <div class="note" style="margin-top:-6px">${money(up)}${isDel()&&hasDelMarkup()?` · ${esc(t("delPriceTag"))}`:""}${it.unit?" / "+esc(lang==="en"&&it.unitEn?it.unitEn:it.unit):""}</div>
     ${c.pick&&it.prices&&it.prices.length>1?`<div><div class="custh">${esc(t("custSize"))}</div><div class="cchips">${it.prices.map((pr,i)=>`<button type="button" class="${i===c.si?"on":""}" aria-pressed="${i===c.si}" onclick="__site.cust('si',${i})">${esc(sizeNames(it)[i]||"")} · ${money(unitPrice(it,i,c.oi))}</button>`).join("")}</div></div>`:""}
-    ${c.pick&&it.options&&it.options.length>1?`<div><div class="custh">${esc(t("prep"))}</div><div class="cchips">${it.options.map((o,i)=>`<button type="button" class="${i===c.oi?"on":""}" aria-pressed="${i===c.oi}" onclick="__site.cust('oi',${i})">${esc(o)}</button>`).join("")}</div></div>`:""}
+    ${c.pick&&it.options&&it.options.length>1?`<div><div class="custh">${esc(t("prep"))}</div><div class="cchips">${it.options.map((o,i)=>`<button type="button" class="${i===c.oi?"on":""}" aria-pressed="${i===c.oi}" onclick="__site.cust('oi',${i})">${esc(optName(it,i))}</button>`).join("")}</div></div>`:""}
     ${os.length?`<div><div class="custh">${esc(t("custOpts"))}</div><div class="cchips">${os.map((o,i)=>`<button type="button" class="${c.mods.has(i)?"on":""}" aria-pressed="${c.mods.has(i)}" onclick="__site.cust('mod',${i})">${c.mods.has(i)?"✓ ":""}${esc(lang==="en"?(o.en||o.zh):o.zh)}</button>`).join("")}</div></div>
     <div><div class="custh">${esc(t("custOther"))}</div><input id="custNote" maxlength="${+CUST().noteMax||30}" placeholder="${esc(t("custOtherPh"))}" value="${esc(c.note)}"></div>`:""}
     ${box?`<div class="custbx">🥡 ${esc(L(PK(),"label"))} <b>+${money(box)}</b> / ${esc(t("custPer"))}</div>`:""}
@@ -1945,7 +1947,7 @@ function renderMenu(){
         ${L(it,"tt")?`<div class="tt">${esc(L(it,"tt"))}</div>`:""}
         ${L(it,"desc")?`<div class="ds">${esc(L(it,"desc"))}</div>`:""}
         ${it.prices?`<div class="sizes" role="radiogroup">${it.prices.map((pr,i)=>`<button class="${i===p.si?"on":""}" ${on&&ocan?`onclick="__site.size('${id}',${i})"`:""} aria-pressed="${i===p.si}">${esc(sn[i]||"")} <b>${unitPrice(it,i,p.oi)}</b></button>`).join("")}</div>`:""}
-        ${it.options&&on&&ocan?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(o)}</option>`).join("")}</select>`:""}
+        ${it.options&&on&&ocan?`<select class="optsel" aria-label="${esc(t("prep"))}" onchange="__site.opt('${id}',this.value)">${it.options.map((o,i)=>`<option value="${i}" ${i===p.oi?"selected":""}>${esc(optName(it,i))}</option>`).join("")}</select>`:""}
         <div class="ft"><span class="price"><span class="amt">${priceTxt}</span>${!it.seasonal&&DEL()&&hasDelMarkup()?`<small class="delp">🛵 ${esc(t("delPriceShort"))} ${money(delPrice(unitPrice(it,p.si,p.oi)))}</small>`:""}</span>${on&&ocan?`<span class="qty">${q?`<button class="minus" onclick="__site.add('${id}',-1)" aria-label="-">−</button><b>${q}</b>`:""}<button onclick="__site.add('${id}',1)" aria-label="+">+</button></span>`:it.seasonal?`<span class="note">${esc(t("askPrice"))}</span>`:""}</div></div></div>`;
     }).join("")}</div>`}</div>`;}).join("");
   if(justOpened>=0) catSeen.add("cat-"+justOpened);   /* 客人自己点开的分类不再淡入，免得标题闪一下 */

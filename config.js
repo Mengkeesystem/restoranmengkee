@@ -602,6 +602,17 @@ window.SITE = {
             "炒 Stir-Fried (面豉苦瓜，不分大小 RM55)",
             "咖喱 Curry (不分大小 RM60)"
           ],
+          "optionsEn": [
+            "Signature Steamed",
+            "Steamed with Ginger",
+            "Deep-Fried",
+            "Steamed with Black Bean Taucu (salty)",
+            "Steamed with Spicy Paste Bean (mildly spicy)",
+            "Nyonya Steamed",
+            "Nyonya Fried",
+            "Stir-Fried with Taucu & Bitter Gourd (one price for all sizes, RM55)",
+            "Curry (one price for all sizes, RM60)"
+          ],
           "optPrices": [
             [48, 50, 55],
             [48, 50, 55],
