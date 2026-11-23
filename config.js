@@ -428,7 +428,7 @@ window.SITE = {
       { id: "A043", badge: "明记六宝", badgeEn: "MK Six" },   // 南乳炸鸡
       { id: "A038", badge: "明记六宝", badgeEn: "MK Six" },   // 冬菜蒸猪肉
       { id: "A057", badge: "明记六宝", badgeEn: "MK Six" },   // 招牌豆腐
-      "A008",   // 招牌蒸金凤鱼
+      "A008",   // 金凤鱼（招牌蒸等）
       "R005",   // 咕咾肉饭
     ],
     pickupFollowsDelivery: true,   // 网上自取跟外送同一个接单时段（delivery.windows）：过了最后点餐时间，自取也不接、不能预约（2026-10-30 业主）
@@ -581,43 +581,41 @@ window.SITE = {
         {
           "id": "A008",
           "image": "images/menu/A008.jpg",
-          "tt": "肉质紧实细嫩，刺少 · 鲜香甘甜，姜蓉微辣",
-          "ttEn": "Firm, tender flesh, few bones · Fresh and sweet, light ginger-chilli kick",
+          "tt": "肉质紧实细嫩，刺少 · 鲜香甘甜",
+          "ttEn": "Firm, tender flesh, few bones · Fresh and sweet",
           "code": "A008",
-          "name": "招牌蒸金凤鱼",
-          "nameEn": "Signature Steamed Red Tilapia",
-          "prices": [
-            48,
-            50,
-            55
-          ]
-        },
-        {
-          "id": "A009",
-          "tt": "肉质紧实细嫩，刺少 · 酸甜微辣 (Tiga Rasa)",
-          "ttEn": "Firm, tender flesh, few bones · Sweet, sour, mildly spicy (Tiga Rasa)",
-          "code": "A009",
-          "name": "酱蒸金凤鱼 (微辣)",
-          "nameEn": "Steamed with Spicy Paste Bean",
-          "prices": [
-            51,
-            53,
-            58
-          ]
-        },
-        {
-          "id": "A010",
-          "tt": "肉质紧实细嫩，刺少 · 姜丝鲜香，较清淡",
-          "ttEn": "Firm, tender flesh, few bones · Fresh ginger aroma, lighter taste",
-          "code": "A010",
-          "name": "清蒸金凤鱼",
-          "nameEn": "Steamed with Ginger Silk",
+          "name": "金凤鱼",
+          "nameEn": "Red Tilapia",
           "prices": [
             48,
             50,
             55
           ],
-          "image": "images/menu/A010.jpg"
+          "options": [
+            "招牌蒸 Signature",
+            "清蒸 Steamed",
+            "油浸 Deep-Fried",
+            "豆豉面豉蒸 Black Bean Taucu (咸)"
+          ]
+        },
+        {
+          "id": "A009",
+          "image": "images/menu/A010.jpg",
+          "tt": "肉质紧实细嫩，刺少 · 酸辣开胃",
+          "ttEn": "Firm, tender flesh, few bones · Appetising sour and spicy",
+          "code": "A009",
+          "name": "金凤鱼 (酱/娘惹)",
+          "nameEn": "Red Tilapia (Sauce / Nyonya)",
+          "prices": [
+            51,
+            53,
+            58
+          ],
+          "options": [
+            "酱蒸 Spicy Paste Bean (微辣)",
+            "娘惹蒸 Nyonya Steamed",
+            "娘惹炸 Nyonya Fried"
+          ]
         },
         {
           "id": "A011",
