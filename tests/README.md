@@ -30,3 +30,5 @@ FAKE_AT=2026-10-29T12:30:00+08:00 node --experimental-strip-types --import ./fak
 
 ## tests/ui/（看画面用，要先开 `localhost:8765`）
 `verify-refund.js`（后台出餐拍照 + 退款，模拟 Supabase，要在同一条命令里 `python3 -m http.server 8765 &` 再 `node tests/ui/verify-refund.js`）、`audit-mobile-pages.js`（360/393/430 宽：横向溢出、小按钮、JS 错误 + 各区块截图）、`audit-mobile-flow.js`（侧栏、客制化、购物车自取/外送、我的订单）、`audit-desktop.js`（1024–1920 宽 + 下单流程截图）、`menu86.js`（菜单开关：客人网页售完/回来啦 + 后台「🍽️ 菜单开关」页，模拟 Supabase）、`pending-flow.js`（待付款订单：关网页回来→购物车有待付款卡片→继续付款选 FPX→取消；模拟后台）、`cart-screenshot.js`、`trk-screenshot.js`（订单进度视窗）、`pay-fail.js`（付款失败提示：HitPay 回报失败 → 进度视窗「付款没有成功」+ 继续付款；重试后回到等待；`python3 -m http.server 8765 --directory <仓库根目录> &` 再 `node tests/ui/pay-fail.js`）、`my-orders.js`（「我的订单」只显示状态：本机的单才有金额/明细/收据；`python3 -m http.server 8765 --directory <仓库根目录> &` 再 `node tests/ui/my-orders.js`）、`push-admin.js`（后台：没有手动已收款按钮 + 手机通知各种状态，模拟 Supabase 和推送；`python3 -m http.server 8765 --directory <仓库根目录> &` 再 `node tests/ui/push-admin.js`）。截图存在 `/tmp`，自己用 Read 看。
+
+| `tests/ui/audit-log.js` | **操作记录页**（管理员/经理/没跑 SQL，模拟 RPC；筛选、载入更早、搜索、CSV、XSS 转义、经理进不去；需先 `python3 -m http.server 8765 &`） |

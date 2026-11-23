@@ -114,7 +114,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 </style>
 </head>
 <body>
-<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="m86Btn" hidden>🍽️ 菜单开关</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
+<header><img src="images/logo.png" alt=""><b id="hTitle">店员后台 · 付款确认</b><span class="sp"></span><button class="btn sm" id="instBtn" hidden>📲 安装 App</button><button class="btn alt sm" id="m86Btn" hidden>🍽️ 菜单开关</button><button class="btn alt sm" id="staffBtn" hidden>👥 店员</button><button class="btn alt sm" id="auditBtn" hidden>🧾 操作记录</button><button class="btn alt sm" id="viewBtn" hidden>📊 每月总结</button><span id="hUser" class="live"></span><button class="btn alt sm" id="logoutBtn" hidden>登出</button></header>
 <div class="wrap" id="app"></div>
 <input type="file" id="shotIn" accept="image/*" capture="environment" hidden>
 
@@ -194,14 +194,16 @@ async function boot(){
   const outs=S.outlets||[], mine=role==="admin"?outs:outs.filter((o,i)=>myOutlets.includes(i));
   $("hUser").innerHTML=`<span class="role ${role==="admin"?"":"mgr"}">${role==="admin"?"管理员 · 全部分店":"分店经理 · "+esc(mine.map(o=>o.name).join("、")||"未指定")}</span>${esc(me.email)}`; $("logoutBtn").hidden=false;
   $("staffBtn").hidden=role!=="admin"; $("staffBtn").onclick=()=>setView(view==="staff"?"orders":"staff");
+  $("auditBtn").hidden=role!=="admin"; $("auditBtn").onclick=()=>setView(view==="audit"?"orders":"audit");
+  sb.rpc("web_audit_login").then(()=>{},()=>{});   /* 记一笔「登录」到操作记录（还没跑 audit-log.sql 就静静失败，不影响使用） */
   $("m86Btn").hidden=false; $("m86Btn").onclick=()=>setView(view==="m86"?"orders":"m86");
   if(role==="manager"&&mine.length===1){ outletF=mine[0].name; sumOutlet=mine[0].name; }
   $("logoutBtn").onclick=async()=>{ clearInterval(timer); try{ const ps=pushOK()?await pushSub():null; if(ps) await fnPush({action:"unsubscribe",endpoint:ps.endpoint}); }catch(e){}   /* 登出后这台手机不再收通知（下次登录会自动登记回来） */
-    await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
+    await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("auditBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
   app.innerHTML = `<div id="ordView"><div class="hint">🔔 客人在 HitPay 付款成功后，订单会<b>自动变成「已收款」并响铃</b>，不用手动确认。请保持这个页面开着（声音打开），或开启下面的「手机通知」（关掉网页、锁屏也会响）。客人不会另外发 WhatsApp，订单内容就在下面。</div>
     <div class="hint pushbox" id="pushBox" hidden></div>
     <div class="bar"><select id="of">${mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:""}${mine.map(o=>`<option ${o.name===outletF?"selected":""}>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
-    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div><div id="m86View" hidden></div>`;
+    <div class="tabs" id="tabs"></div><div id="list"></div></div><div id="sumView" hidden></div><div id="staffView" hidden></div><div id="m86View" hidden></div><div id="auditView" hidden></div>`;
   $("viewBtn").hidden=false; $("viewBtn").onclick=()=>setView(view==="summary"?"orders":"summary");
   $("of").onchange=e=>{ outletF=e.target.value; render(); };
   /* Delyva 连线状态：显示在提示音按钮旁边，方便排查（还没部署 web-delyva 就当没有外送功能） */
@@ -213,7 +215,7 @@ async function boot(){
   $("sndBtn").onclick=async()=>{ unlockSound(); await loadRing(); setTimeout(()=>{ updSoundBtn(); beep(); },60); }; updSoundBtn();
   pushRender(); pushSync(); loadRing();
   await load(); timer=setInterval(load,5000);
-  if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#menu86") setView("m86");
+  if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#audit"&&role==="admin") setView("audit"); else if(location.hash==="#menu86") setView("m86");
 }
 
 async function load(){
@@ -510,14 +512,16 @@ function klMonth(d){ const k=new Date((d?new Date(d):new Date()).getTime()+8*360
 function klDay(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(0,10); }
 function klHM(ts){ return new Date(new Date(ts).getTime()+8*3600e3).toISOString().slice(11,16); }
 function setView(v){
-  if(v==="staff"&&role!=="admin") v="orders";
-  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary"; $("staffView").hidden=v!=="staff"; $("m86View").hidden=v!=="m86";
+  if((v==="staff"||v==="audit")&&role!=="admin") v="orders";
+  view=v; $("ordView").hidden=v!=="orders"; $("sumView").hidden=v!=="summary"; $("staffView").hidden=v!=="staff"; $("m86View").hidden=v!=="m86"; $("auditView").hidden=v!=="audit";
+  $("auditBtn").textContent=v==="audit"?"📋 回到订单":"🧾 操作记录";
   $("m86Btn").textContent=v==="m86"?"📋 回到订单":"🍽️ 菜单开关";
   $("viewBtn").textContent=v==="summary"?"📋 回到订单":"📊 每月总结";
   $("staffBtn").textContent=v==="staff"?"📋 回到订单":"👥 店员";
-  history.replaceState(null,"",v==="summary"?"#summary":v==="staff"?"#staff":v==="m86"?"#menu86":location.pathname+location.search);
+  history.replaceState(null,"",v==="summary"?"#summary":v==="staff"?"#staff":v==="audit"?"#audit":v==="m86"?"#menu86":location.pathname+location.search);
   if(v==="m86") m86Load();
   if(v==="staff") staffLoad();
+  if(v==="audit") auditLoad(true);
   if(v==="summary"){ if(!sumMonth) sumMonth=klMonth(); renderSummaryShell(); loadSummary(); }
 }
 /* ---------- 菜单开关 86（2026-10-31）：某道菜没有了 → 关掉；有了 → 打开。按分店分开（经理只能管自己的分店）。客人的网页每分钟更新一次 ---------- */
@@ -568,6 +572,61 @@ function m86Draw(){
 }
 let m86T=null;
 function m86Toast(t){ let e=$("m86t"); if(!e){ e=document.createElement("div"); e.id="m86t"; e.className="m86t"; document.body.appendChild(e); } e.textContent=t; e.classList.add("show"); clearTimeout(m86T); m86T=setTimeout(()=>e.classList.remove("show"),3500); }
+/* ---------- 操作记录 Audit log（2026-11-23，只有管理员；数据库触发器自动记，audit-log.sql） ---------- */
+const AUD_ACT={order_paid:"💰 付款成功",order_reject:"❌ 订单取消/拒绝",order_status:"订单状态改变",order_complete:"✅ 完成订单",order_uncomplete:"↩ 撤回完成",courier_dispatch:"🛵 叫了骑手",courier_cancel:"🛵 骑手单被取消",proof_upload:"📸 上传出餐照片",refund_request:"💸 申请退款",refund_manual:"💸 登记手动退款",refund_done:"💸 退款成功",refund_failed:"⚠️ 退款失败",staff_add:"👥 新增店员",staff_update:"👥 修改店员",staff_remove:"👥 移除店员",menu_off:"🍽️ 菜品售完（关掉）",menu_on:"🍽️ 菜品恢复（打开）",login:"🔑 登录后台"};
+const AUD_CAT=[["","全部动作"],["order","订单（付款/取消/完成）"],["courier","骑手"],["proof","出餐照片"],["refund","退款"],["staff","店员管理"],["menu","菜单开关"],["login","登录"]];
+let audRows=[], audMore=false, audActor="", audCat="", audQ="", audBusy=false;
+function audItemName(code){ for(const c of (S.menu||[])) for(const it of (c.items||[])) if(it&&it.id===code) return it.name||""; return ""; }
+function audGroup(rows){   /* 「全部分店一次关掉」会连着记 11 笔相同的：合成一行 */
+  const out=[];
+  for(const r of rows){ const last=out[out.length-1];
+    if(last && (r.action==="menu_off"||r.action==="menu_on") && last.action===r.action && last.actor===r.actor && last.target===r.target && Math.abs(new Date(last.at)-new Date(r.at))<5000 && r.outlet!=null){ last.outlets.push(r.outlet); continue; }
+    out.push({...r, outlets: r.outlet!=null?[r.outlet]:[]}); }
+  return out;
+}
+async function auditLoad(reset){
+  const v=$("auditView"); if(audBusy) return; audBusy=true;
+  if(reset){ audRows=[]; audMore=false; v.innerHTML=`<div class="empty">读取中…</div>`; }
+  const before=reset||!audRows.length?null:audRows[audRows.length-1].id;
+  const {data,error}=await sb.rpc("web_audit_list",{p_limit:200,p_before:before,p_actor:audActor||null,p_action:audCat||null,p_q:audQ||null});
+  audBusy=false;
+  if(error){ v.innerHTML=`<div class="err">读不到操作记录：${esc(/web_audit_list|PGRST202|function/i.test(error.message)?"数据库还没跑 audit-log.sql（请老板到 Supabase SQL Editor 跑一次）":error.message)}</div>`; return; }
+  const got=(Array.isArray(data)?data:[]).filter(x=>x&&typeof x==="object"&&Number.isFinite(+x.id));
+  audRows=audRows.concat(got); audMore=got.length>=200; auditDraw();
+}
+function auditDraw(){
+  const v=$("auditView"), outs=S.outlets||[];
+  const actors=[...new Set(audRows.map(r=>r.actor))].sort(); if(audActor&&!actors.includes(audActor)) actors.unshift(audActor);
+  const G=audGroup(audRows);
+  const rows=G.map(r=>{
+    const act=AUD_ACT[r.action]||r.action;
+    const ol=r.outlets.length>1?(r.outlets.length>=outs.length?"全部分店":r.outlets.map(i=>(outs[i]||{}).name||i).join("、")):(r.outlets.length===1?((outs[r.outlets[0]]||{}).name||("分店 "+r.outlets[0])):"—");
+    let tg=r.target||"—"; if(r.action.startsWith("menu_")){ const n=audItemName(r.target); if(n) tg=r.target+" "+n; }
+    return [esc(klDay(r.at)+" "+klHM(r.at)),esc(r.actor),esc(act),esc(tg),esc(ol),esc(r.detail||"")]; });
+  v.innerHTML=`<div class="hint">🧾 这里记着<b>谁、什么时候、做了什么</b>（付款成功、取消、完成订单、退款、出餐拍照、店员增删、菜单开关、登录）。由数据库自动记录，<b>不能修改或删除</b>；只有管理员看得到。时间是吉隆坡时间。</div>
+    <div class="bar"><select id="audC">${AUD_CAT.map(([k,t])=>`<option value="${k}" ${k===audCat?"selected":""}>${esc(t)}</option>`).join("")}</select>
+      <select id="audA"><option value="">所有人</option>${actors.map(a=>`<option value="${esc(a)}" ${a===audActor?"selected":""}>${esc(a)}</option>`).join("")}</select>
+      <input id="audQ" type="search" placeholder="搜参考号 / 邮箱 / 说明" value="${esc(audQ)}" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit">
+      <button class="btn alt sm" id="audR">🔄 刷新</button><button class="btn sm" id="audCsv">⬇ 导出 CSV</button></div>
+    ${rows.length?`<div class="tblw"><table class="tbl"><tr>${["时间","谁","做了什么","对象","分店","说明"].map(h=>`<th>${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>`:`<div class="empty">没有符合的记录</div>`}
+    ${audMore?`<div style="text-align:center;margin:12px 0"><button class="btn alt" id="audMore">载入更早的记录</button></div>`:""}`;
+  $("audC").onchange=e=>{ audCat=e.target.value; auditLoad(true); };
+  $("audA").onchange=e=>{ audActor=e.target.value; auditLoad(true); };
+  $("audQ").onkeydown=e=>{ if(e.key==="Enter"){ audQ=e.target.value.trim(); auditLoad(true); } };
+  $("audQ").onchange=e=>{ audQ=e.target.value.trim(); auditLoad(true); };
+  $("audR").onclick=()=>auditLoad(true);
+  if($("audMore")) $("audMore").onclick=()=>auditLoad(false);
+  $("audCsv").onclick=auditCsv;
+}
+function auditCsv(){
+  if(!audRows.length){ alert("没有记录可以导出"); return; }
+  const cell=x=>{ let t=String(x==null?"":x); if(/^[=+\-@\t\r]/.test(t)) t="'"+t; return '"'+t.replace(/"/g,'""')+'"'; };   /* 防 Excel 公式注入 */
+  const outs=S.outlets||[];
+  const lines=[["日期","时间","谁","动作","对象","分店","说明"].map(cell).join(",")];
+  audRows.forEach(r=>lines.push([klDay(r.at),klHM(r.at),r.actor,AUD_ACT[r.action]||r.action,r.target||"",r.outlet!=null?((outs[r.outlet]||{}).name||r.outlet):"",r.detail||""].map(cell).join(",")));
+  const b=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}), u=URL.createObjectURL(b), a=document.createElement("a");
+  a.href=u; a.download=`MengKee-audit-${klDay(new Date())}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),30000);
+}
 /* ---------- 店员管理（只有管理员看得到；数据库函数也只准管理员用） ---------- */
 let staffRows=null, staffEdit=null;
 async function staffLoad(){
