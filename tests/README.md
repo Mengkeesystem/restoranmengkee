@@ -34,3 +34,5 @@ FAKE_AT=2026-10-29T12:30:00+08:00 node --experimental-strip-types --import ./fak
 | `tests/ui/audit-log.js` | **操作记录页**（管理员/经理/没跑 SQL，模拟 RPC；筛选、载入更早、搜索、CSV、XSS 转义、经理进不去；需先 `python3 -m http.server 8765 &`） |
 
 | `tests/ui/rider-eta.js` | **骑手接单后显示接单多久 / 预计到店**（有预计、已过、没给、已取餐不显示、XSS；需先 `python3 -m http.server 8765 &`） |
+
+| `tests/ui/admin-alarm.js` | **后台「务必响」+ 不自动登出**（Playwright 假时钟；新订单一直响到按知道了、声音被挡/连不上提示、JWT 过期续期、登录失效响铃、手动登出不吵；需先 `python3 -m http.server 8765 &`） |

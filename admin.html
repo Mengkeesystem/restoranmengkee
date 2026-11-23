@@ -112,6 +112,13 @@ pre{white-space:pre-wrap;word-break:break-word;background:#FFFBF0;border:1px sol
 .ibox label.rl{margin-top:8px}
 .ibox textarea,.ibox select,.ibox input{margin-bottom:2px}
 .rETA{margin:6px 0;padding:6px 10px;background:#EAF6EC;border-left:3px solid #1f8a4c;font-size:14px}.rETA .late{color:var(--p)}
+#topBars{position:sticky;top:0;z-index:70}
+.tbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 14px;font-size:15px;line-height:1.35;color:#fff}
+.tbar small{display:block;font-weight:400;opacity:.92;font-size:13px}
+.tbar.warn{background:#9a1c1c;cursor:pointer}
+.tbar.new{background:#B4232A;animation:nbp 1s ease-in-out infinite alternate}
+.tbar .btn{background:#fff;color:#9a1c1c;border-color:#fff;white-space:nowrap}
+@keyframes nbp{from{background:#B4232A}to{background:#e0262f}}
 </style>
 </head>
 <body>
@@ -138,7 +145,9 @@ if(!B.supabaseUrl || !B.supabaseAnonKey || !window.supabase){
   app.innerHTML = `<div class="card"><h2 style="margin-top:0;color:var(--p)">后台还没设定</h2><p>请先照 README「付款确认小后台」的步骤建好 Supabase 项目，并把网址和 anon key 填进 <code>config.js</code> 的 <code>backend</code>。</p></div>`;
   return;
 }
-const sb = window.supabase.createClient(B.supabaseUrl, B.supabaseAnonKey);
+/* 登录状态存在这台装置上、自动续期；只有按「登出」才会登出（2026-11-23：店员不能因为登出而漏掉订单） */
+const sb = window.supabase.createClient(B.supabaseUrl, B.supabaseAnonKey, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:false}});
+let manualOut=false, outAlarm=null;
 let me=null, role="admin", myOutlets=[], tab="pending", outletF="", orders=[], seen=new Set(), first=true, timer=null;
 
 /* 提示音（新订单） */
@@ -166,6 +175,56 @@ function beep(){ try{ const c=audioCtx(); if(!c) return; if(c.state!=="running")
 function updSoundBtn(){ const b=$("sndBtn"); if(!b) return; const on=soundOn(); b.textContent=on?"🔔 提示音已开启 · 试听":"🔕 点这里开启提示音"; b.className="btn sm "+(on?"alt":""); }
 ["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,unlockSound,{passive:true}));
 
+/* ===================== 「务必响」（2026-11-23 业主：不能漏掉新订单） =====================
+   ① 新订单 → 立刻响 + 手机震动，之后每 15 秒再响，直到店员按「知道了」（最多 20 分钟）；标题闪「🔔 新订单」。
+   ② 声音被浏览器关着（手机刚开页、锁屏回来）→ 页面最上面一条红色提示「声音关闭，新订单不会响」，点一下就开。
+   ③ 连不上服务器 / 登录失效 → 红色提示 + 登录失效会响铃，不会悄悄漏单。
+   ④ 屏幕保持常亮（Wake Lock，手机只要页面开在前面）。
+   ⑤ 关掉再打开页面：20 分钟内、这台装置还没确认过的已收款订单会照样响。 */
+const ACK_KEY="mk_admin_ack_v1"; let ackIds=[];
+try{ ackIds=(JSON.parse(localStorage.getItem(ACK_KEY)||"[]")||[]).filter(Number.isInteger).slice(-300); }catch(e){}
+function saveAck(){ try{ localStorage.setItem(ACK_KEY,JSON.stringify(ackIds.slice(-300))); }catch(e){} }
+function topBars(){ let e=$("topBars"); if(!e){ e=document.createElement("div"); e.id="topBars"; document.body.prepend(e); } return e; }
+function bar(id,cls,html,onclick){ const box=topBars(); let e=$(id); if(!html){ if(e) e.remove(); return; }
+  if(!e){ e=document.createElement("div"); e.id=id; e.className="tbar "+cls; box.appendChild(e); } if(e.dataset.h!==html){ e.innerHTML=html; e.dataset.h=html; } if(onclick) e.onclick=onclick; }
+let pendAlarm=new Map(), alarmT=null, alarmSince=0, titleT=null;
+function alarmRing(){ beep(); try{ navigator.vibrate&&navigator.vibrate([400,200,400,200,400]); }catch(e){} }
+function drawNewBar(){
+  if(!pendAlarm.size){ bar("newBar","",""); clearInterval(titleT); titleT=null; document.title=(S.name||"")+" · 店员后台"; return; }
+  const refs=[...pendAlarm.values()];
+  bar("newBar","new",`<div><b>🔔 ${refs.length} 张新订单</b> ${esc(refs.slice(0,3).join("、"))}${refs.length>3?"…":""}<small>（没按「知道了」会一直提醒）</small></div><button class="btn" id="newAck">知道了</button>`);
+  const b=$("newAck"); if(b) b.onclick=alarmAck;
+  if(!titleT){ let k=0; titleT=setInterval(()=>{ document.title=(k++%2?"":"🔔 新订单！ ")+(S.name||"")+" · 店员后台"; },900); }
+}
+function alarmStart(rows){
+  rows.forEach(o=>pendAlarm.set(o.id,o.ref)); if(!pendAlarm.size) return;
+  drawNewBar(); alarmRing();
+  if(!alarmT){ alarmSince=Date.now(); alarmT=setInterval(()=>{ if(!pendAlarm.size||Date.now()-alarmSince>20*60000){ clearInterval(alarmT); alarmT=null; return; } alarmRing(); },15000); }
+}
+function alarmAck(){ pendAlarm.forEach((r,id)=>{ if(!ackIds.includes(id)) ackIds.push(id); }); saveAck(); pendAlarm.clear(); clearInterval(alarmT); alarmT=null; try{ if(ringSrc) ringSrc.stop(); }catch(e){} drawNewBar(); }
+function alarmPrune(rows){   /* 店员已经处理（完成/取消）的订单，不用再响 */
+  let ch=false; pendAlarm.forEach((r,id)=>{ const o=rows.find(x=>x.id===id); if(!o||isDone(o)||!alertable(o)){ pendAlarm.delete(id); ch=true; } }); if(ch) drawNewBar(); }
+/* 声音 / 连线 / 屏幕常亮 的提示条 */
+let lastOk=Date.now(), failN=0, wl=null;
+function updWarn(){
+  if(!me){ bar("sndWarn","",""); bar("connBar","",""); return; }
+  bar("sndWarn","warn", soundOn()?"":`<div><b>🔕 声音是关闭的——新订单不会响！</b><small>请点这里一下，把声音打开</small></div><button class="btn">开启声音</button>`, ()=>unlockSound());
+  const gap=Date.now()-lastOk;
+  bar("connBar","warn", gap>30000?`<div><b>⚠️ 连不上服务器${gap>90000?"（已 "+Math.round(gap/60000)+" 分钟）":""}——现在可能收不到新订单</b><small>请检查网络（Wi‑Fi / 数据）。系统在自动重试</small></div>`:"");
+}
+async function wakeOn(){ try{ if(!me||!("wakeLock" in navigator)||wl||document.visibilityState!=="visible") return; wl=await navigator.wakeLock.request("screen"); wl.addEventListener("release",()=>{ wl=null; }); }catch(e){ wl=null; } }
+/* 登录状态：快过期就先续期；失败就重试，不是只等它自己续 */
+async function ensureSession(force){
+  try{ const {data:{session}}=await sb.auth.getSession(); if(!session) return false;
+    const left=(session.expires_at||0)*1000-Date.now();
+    if(force||left<5*60000){ const r=await sb.auth.refreshSession(); return !r.error; } return true; }catch(e){ return false; }
+}
+function wakeUp(){ if(!me) return; unlockSound(); wakeOn(); try{ load(); }catch(e){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") wakeUp(); });
+window.addEventListener("online",wakeUp); window.addEventListener("focus",()=>{ if(me){ wakeOn(); } });
+["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,()=>{ wakeOn(); },{passive:true}));
+setInterval(updWarn,2000);
+
 function loginView(msg){
   $("logoutBtn").hidden=true; $("hUser").textContent="";
   app.innerHTML = `<div class="card" style="max-width:420px;margin:30px auto">
@@ -184,13 +243,13 @@ function loginView(msg){
 async function boot(){
   const {data:{session}} = await sb.auth.getSession();
   if(!session){ loginView(); return; }
-  me=session.user;
+  me=session.user; manualOut=false; clearInterval(outAlarm); outAlarm=null;
   const {data:ok, error} = await sb.rpc("is_web_staff");
-  if(error||!ok){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
+  if(error||!ok){ manualOut=true; await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
   /* 角色（2026-10-31，staff.sql）：admin 看全部分店；manager 只看自己的分店（数据库 RLS 本来就挡着，这里只是让画面对得上）。还没跑 staff.sql 就当 admin */
   { const r=await sb.rpc("web_staff_me"); const v=r.data;
     if(!r.error&&v&&typeof v==="object"){ role=v.role==="manager"?"manager":"admin"; myOutlets=Array.isArray(v.outlets)?v.outlets.map(Number).filter(Number.isInteger):[]; }
-    else if(!r.error&&!v){ await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
+    else if(!r.error&&!v){ manualOut=true; await sb.auth.signOut(); loginView("这个账号不在店员白名单里，请联络老板。"); return; }
     else { role="admin"; myOutlets=[]; } }
   const outs=S.outlets||[], mine=role==="admin"?outs:outs.filter((o,i)=>myOutlets.includes(i));
   $("hUser").innerHTML=`<span class="role ${role==="admin"?"":"mgr"}">${role==="admin"?"管理员 · 全部分店":"分店经理 · "+esc(mine.map(o=>o.name).join("、")||"未指定")}</span>${esc(me.email)}`; $("logoutBtn").hidden=false;
@@ -200,7 +259,7 @@ async function boot(){
   $("m86Btn").hidden=false; $("m86Btn").onclick=()=>setView(view==="m86"?"orders":"m86");
   if(role==="manager"&&mine.length===1){ outletF=mine[0].name; sumOutlet=mine[0].name; }
   $("logoutBtn").onclick=async()=>{ clearInterval(timer); try{ const ps=pushOK()?await pushSub():null; if(ps) await fnPush({action:"unsubscribe",endpoint:ps.endpoint}); }catch(e){}   /* 登出后这台手机不再收通知（下次登录会自动登记回来） */
-    await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("auditBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
+    manualOut=true; me=null; pendAlarm.clear(); clearInterval(alarmT); alarmT=null; drawNewBar(); updWarn(); await sb.auth.signOut(); $("viewBtn").hidden=true; $("staffBtn").hidden=true; $("auditBtn").hidden=true; $("m86Btn").hidden=true; role="admin"; myOutlets=[]; outletF=""; sumOutlet=""; view="orders"; history.replaceState(null,"",location.pathname); loginView(); };
   app.innerHTML = `<div id="ordView"><div class="hint">🔔 客人在 HitPay 付款成功后，订单会<b>自动变成「已收款」并响铃</b>，不用手动确认。请保持这个页面开着（声音打开），或开启下面的「手机通知」（关掉网页、锁屏也会响）。客人不会另外发 WhatsApp，订单内容就在下面。</div>
     <div class="hint pushbox" id="pushBox" hidden></div>
     <div class="bar"><select id="of">${mine.length>1||role==="admin"?`<option value="">${role==="admin"?"全部分店":"我的全部分店"}</option>`:""}${mine.map(o=>`<option ${o.name===outletF?"selected":""}>${esc(o.name)}</option>`).join("")}</select><span class="live"><i></i>自动更新中（每 5 秒）</span><button type="button" id="sndBtn" class="btn sm">🔕 点这里开启提示音</button><button type="button" id="dvBtn" class="btn alt sm" hidden>🛵 设定 Delyva 通知</button><span id="dvSt" class="mut"></span></div>
@@ -219,19 +278,28 @@ async function boot(){
   if(location.hash==="#summary") setView("summary"); else if(location.hash==="#staff"&&role==="admin") setView("staff"); else if(location.hash==="#audit"&&role==="admin") setView("audit"); else if(location.hash==="#menu86") setView("m86");
 }
 
+let loadBusy=false;
 async function load(){
+  if(loadBusy) return; loadBusy=true; try{ await load0(); } finally{ loadBusy=false; } }
+async function load0(){
+  await ensureSession(false);
   const since=new Date(Date.now()-3*24*3600*1000).toISOString();
   const q=c=>sb.from("web_orders").select(c).gte("created_at",since).order("created_at",{ascending:false}).limit(300);
   let {data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:"")+(hasPayCols?COLS_PAY:""):COLS);
   if(error&&hasPayCols&&/pay_|paid_|column|42703/i.test(error.message+error.code)){ hasPayCols=false; ({data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:""):COLS)); }   /* 还没跑 hitpay.sql */
   if(error&&hasDoneCols&&/completed_|column|42703/i.test(error.message+error.code)){ hasDoneCols=false; ({data, error} = await q(hasCourierCols?COLS+COLS_DEL:COLS)); }   /* 还没跑新版 delivery.sql（第 6 部分） */
   if(error&&hasCourierCols&&/column|42703/i.test(error.message+error.code)){ hasCourierCols=false; ({data, error} = await q(COLS)); }   /* 还没跑 delivery.sql */
-  if(error){ if($("list")) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}</div>`; return; }
+  if(error&&/jwt|expired|401|PGRST30|invalid.*token/i.test(error.message+(error.code||""))){ if(await ensureSession(true)) ({data, error} = await q(hasCourierCols?COLS+COLS_DEL+(hasDoneCols?COLS_DONE:"")+(hasPayCols?COLS_PAY:""):COLS)); }   /* 登录牌过期：先续期再试一次 */
+  if(error){ failN++; updWarn(); if($("list")&&!orders.length) $("list").innerHTML=`<div class="err">读取失败：${esc(error.message)}（会自动重试）</div>`; return; }
+  failN=0; lastOk=Date.now(); updWarn();
   const fresh = data.filter(o=>alertable(o) && !seen.has(o.id));
   data.forEach(o=>{ if(alertable(o)) seen.add(o.id); });
   orders=data;
   try{ await loadExtras(data); }catch(e){}
-  if(!first && fresh.length){ beep(); document.title="🔔 新订单 · "+(S.name||""); setTimeout(()=>document.title=(S.name||"")+" · 店员后台",8000); }
+  /* 新订单 → 响到店员按「知道了」。刚打开页面：20 分钟内、这台装置还没确认过的已收款订单也照样响（手机锁屏/页面被关掉后回来不会漏） */
+  const alarmRows = first ? fresh.filter(o=>!ackIds.includes(o.id)&&!isDone(o)&&Date.now()-new Date(o.paid_at||o.confirmed_at||o.created_at)<20*60000) : fresh.filter(o=>!ackIds.includes(o.id));
+  alarmPrune(data);
+  if(alarmRows.length) alarmStart(alarmRows);
   render(first?[]:fresh.map(o=>o.id)); first=false;
 }
 
@@ -812,7 +880,15 @@ $("instBtn").onclick=async()=>{
     <button class="btn" style="width:100%">知道了</button></div>`;
   d.onclick=ev=>{ if(ev.target===d||ev.target.tagName==="BUTTON") d.remove(); }; document.body.appendChild(d);
 };
-sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT") loginView(); });
+sb.auth.onAuthStateChange((ev)=>{
+  if(ev!=="SIGNED_OUT") return;
+  if(manualOut){ if(!$("lbtn")) loginView(); return; }
+  /* 不是店员自己按的登出（登录失效）：大声提醒，免得没人发现后台已经收不到订单 */
+  clearInterval(timer); me=null; updWarn(); bar("newBar","",""); 
+  loginView("⚠️ 登录失效了（不是你按的登出）——现在收不到新订单！请马上重新登录。");
+  const ring=()=>{ beep(); try{ navigator.vibrate&&navigator.vibrate([500,200,500]); }catch(e){} };
+  ring(); clearInterval(outAlarm); outAlarm=setInterval(ring,20000);
+});
 boot();
 })();
 </script>
