@@ -1523,6 +1523,7 @@ window.SITE = {
       "items": [
         {
           "id": "B008",
+          "image": "images/menu/B008.jpg",
           "tt": "自家熬煮凉茶 · 清润微甘",
           "ttEn": "Homemade herbal drink · Cooling, lightly sweet",
           "code": "B008",
@@ -1586,6 +1587,7 @@ window.SITE = {
         },
         {
           "id": "B014",
+          "image": "images/menu/B014.jpg",
           "tt": "下班了 犒劳一下辛苦的自己 来杯 冰凉清爽外国凉茶吧~",
           "ttEn": "Done with work? Treat yourself to an ice-cold, refreshing \"foreign herbal tea\"~",
           "code": "B014",
@@ -1595,6 +1597,7 @@ window.SITE = {
         },
         {
           "id": "B015",
+          "image": "images/menu/B015.jpg",
           "tt": "浓郁微苦，简直就是夜间版“冰美式”，成年人的专属去火续命水！☕️",
           "ttEn": "Rich and slightly bitter — basically a night-time iced Americano, the grown-up's cooling lifesaver! ☕️",
           "code": "B015",
