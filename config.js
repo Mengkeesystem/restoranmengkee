@@ -1448,7 +1448,7 @@ window.SITE = {
       "items": [
         {
           "id": "B001",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B001.jpg",
           "tt": "花香清淡 · 解腻",
           "ttEn": "Light floral aroma · Refreshing",
           "code": "B001",
@@ -1461,7 +1461,7 @@ window.SITE = {
         },
         {
           "id": "B002",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B002.jpg",
           "tt": "茶味醇厚 · 解油腻",
           "ttEn": "Smooth and mellow · Cuts the grease",
           "code": "B002",
@@ -1474,7 +1474,7 @@ window.SITE = {
         },
         {
           "id": "B003",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B003.jpg",
           "tt": "茶香浓 · 微甘回甘",
           "ttEn": "Fragrant · Slight sweet aftertaste",
           "code": "B003",
@@ -1487,7 +1487,7 @@ window.SITE = {
         },
         {
           "id": "B004",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B004.jpg",
           "tt": "普洱加菊花 · 醇厚带清香",
           "ttEn": "Pu-erh with chrysanthemum · Mellow and floral",
           "code": "B004",
@@ -1500,7 +1500,7 @@ window.SITE = {
         },
         {
           "id": "B005",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B005.jpg",
           "tt": "醇厚饱满，带兰花香、焙火香 · 回甘强烈，非常耐泡",
           "ttEn": "Full-bodied, with orchid and roasted notes · Strong sweet aftertaste, lasts many brews",
           "code": "B005",
@@ -1513,7 +1513,7 @@ window.SITE = {
         },
         {
           "id": "B006",
-          "image": "images/menu/tea.jpg",
+          "image": "images/menu/B006.jpg",
           "tt": "菊花清香 · 清淡",
           "ttEn": "Light chrysanthemum aroma",
           "code": "B006",
