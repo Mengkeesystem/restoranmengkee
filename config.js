@@ -329,7 +329,7 @@ window.SITE = {
        排第一、best:true 的会做成大按钮；small:true 的放最下面小字。icon 用线条图标名 qr/wallet/bank/card（也可以写 emoji）。codes = HitPay 的付款方式代码，
        客人选了哪组，HitPay 付款页就只显示那几种（账号没开的方式会自动改成显示全部）。 */
     /* soon:true = 灰色、客人点了只出提示（功能筹备中），不会去付款。要开放就删掉 soon:true */
-    soonMsg: "功能筹备中，如有不便敬请见谅", soonMsgEn: "Coming soon. Sorry for any inconvenience.",
+    soonMsg: "此付款方式筹备中，暂时无法使用。如有不便，敬请见谅。", soonMsgEn: "This payment method is coming soon and is not available yet. Sorry for the inconvenience.",
     methods: [
       { key: "duitnow", codes: ["duitnow"], best: true, icon: "qr", t: "DuitNow QR", tEn: "DuitNow QR",
         d: "用任何银行 App 或电子钱包扫码付款", dEn: "Scan with any banking app or e-wallet" },
