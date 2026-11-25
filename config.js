@@ -328,13 +328,13 @@ window.SITE = {
     /* 付款视窗让客人先选付款方式（2026-10-31 业主：信用卡手续费高，先推 DuitNow QR 等）。
        排第一、best:true 的会做成大按钮；small:true 的放最下面小字。icon 用线条图标名 qr/wallet/bank/card（也可以写 emoji）。codes = HitPay 的付款方式代码，
        客人选了哪组，HitPay 付款页就只显示那几种（账号没开的方式会自动改成显示全部）。 */
+    /* soon:true = 灰色、客人点了只出提示（功能筹备中），不会去付款。要开放就删掉 soon:true */
+    soonMsg: "功能筹备中，如有不便敬请见谅", soonMsgEn: "Coming soon. Sorry for any inconvenience.",
     methods: [
       { key: "duitnow", codes: ["duitnow"], best: true, icon: "qr", t: "DuitNow QR", tEn: "DuitNow QR",
         d: "用任何银行 App 或电子钱包扫码付款", dEn: "Scan with any banking app or e-wallet" },
-      { key: "ewallet", codes: ["touch_n_go", "grabpay_direct", "shopee_pay"], icon: "wallet", t: "Touch 'n Go / GrabPay / ShopeePay", tEn: "Touch 'n Go / GrabPay / ShopeePay",
-        d: "电子钱包", dEn: "E-wallet" },
-      { key: "fpx", codes: ["fpx"], icon: "bank", t: "FPX 网上银行", tEn: "FPX online banking", d: "用网银转账", dEn: "Pay from your bank account" },
-      { key: "card", codes: ["card"], small: true, icon: "card", t: "信用卡 / 借记卡", tEn: "Credit / debit card" },
+      { key: "fpx", codes: ["fpx"], soon: true, icon: "bank", t: "FPX 网上银行", tEn: "FPX online banking", d: "用网银转账", dEn: "Pay from your bank account" },
+      { key: "card", codes: ["card"], soon: true, small: true, icon: "card", t: "信用卡 / 借记卡", tEn: "Credit / debit card" },
     ],
     qr: "",                 // TODO 明记的 DuitNow QR 图片
     bankName: "",           // TODO 例如 "Maybank"

@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-23b";
+const VERSION = "2026-11-25a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -65,6 +65,12 @@ const accountById = (a: string) => a === "d" ? account(null) : /^\d{1,2}$/.test(
 
 const formBody = (f: Record<string, string | string[]>) => { const u = new URLSearchParams();
   for (const [k, v] of Object.entries(f)) (Array.isArray(v) ? v : [v]).forEach((x) => u.append(k, x)); return u.toString(); };
+/* 付款方式组别：config 里标 soon:true（功能筹备中）的不准用；客人没选/选了不能用的，就用第一个能用的（现在是 DuitNow），免得被绕过去 */
+function pickGroup(S: any, pm: unknown): any {
+  const ms = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).filter((m: any) => m && !m.soon);
+  return ms.find((m: any) => m.key === String(pm || "")) || ms[0];
+}
+
 async function hp(acct: { key: string }, method: string, path: string, form?: Record<string, string | string[]>) {
   let r: Response;
   try {
@@ -303,7 +309,7 @@ async function pay(req: Request, b: any) {
     redirect_url: `${SITE_URL}/?hp=${encodeURIComponent(o.ref)}`, allow_repeated_payments: "false", send_email: "false",
   };
   // 客人在网站选的付款方式（2026-10-31：先推 DuitNow 等手续费低的）：只认 config.js payment.methods 里的组别，代码只准字母/底线
-  const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
+  const grp = pickGroup(S, b.pm);
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
   let reqHp: any;
   if (codes.length) {
@@ -356,7 +362,7 @@ async function repay(o: any, S: any, b: any) {
       }
     }
   }
-  const grp = (Array.isArray(S.payment?.methods) ? S.payment.methods : []).find((m: any) => m && m.key === String(b.pm || ""));
+  const grp = b.pm ? pickGroup(S, b.pm) : undefined;   // 继续付款没选方式 = 照旧用原来的付款页
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
   if (!codes.length && !b.__forceNew) return { ok: true, url: o.pay_url, amount: Number(o.amount) };
   const acct = accountById(String(o.pay_acct || "")); if (!acct) throw new Error("找不到这张单的 HitPay 账号设定");

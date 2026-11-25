@@ -204,6 +204,10 @@ nav.links a:hover{background:#F6EADB}
 .pm.best{border:2px solid var(--p);background:#FFF6F3;padding:14px 14px;box-shadow:3px 3px 0 rgba(180,35,42,.2)}
 .pm.best .pmi{font-size:30px}.pm.best .pmt b{font-size:18px;color:var(--p)}
 .pm.best em{font-style:normal;background:var(--p);color:#fff;font-size:12px;font-weight:800;padding:3px 8px;flex:none}
+.pm.soon{background:#F1EEEA;border-color:#DDD6CE;box-shadow:none;color:#9A918A}
+.pm.soon .pmt b,.pm.soon .pmt small{color:#9A918A}.pm.soon .pmi.svg{background:#E4DFDA;color:#A59C94}
+.pmsoonmsg{margin:10px 0 0;padding:10px 12px;background:#FFF6DF;border-left:3px solid var(--g,#F2B417);color:#6B4E00;font-size:14px;font-weight:700;animation:psUp .3s}
+.pm.small.soon{background:none;opacity:.55}.pm.small.soon .pmt b{color:#9A918A}
 .pm.small{border:0;box-shadow:none;background:none;padding:4px 2px;justify-content:center;color:var(--mut)}
 .pm.small .pmi{font-size:16px}.pm.small .pmt{flex:none}.pm.small .pmt b{font-size:13.5px;font-weight:600;text-decoration:underline}
 .trkchip.fade,#trkbox.fade{opacity:0;transition:opacity 3s ease}
@@ -1262,7 +1266,7 @@ window.__site = {
   pay:(m)=>{ payMode=m; const oi=$("od_outlet")?$("od_outlet").value:undefined; $("payBox").innerHTML=payBoxHTML(oi); if($("od_send")) $("od_send").innerHTML=sendLabel(oi); },
   mapRetry:()=>{ if(pinMap) return; const el=$("pinmap"); if(el) el.innerHTML=`<div class="mapwait"><span>${esc(t("mapLoading"))}</span></div>`; ensureMap(); },
   dqRetry:()=>{ dqErr=""; dq=null; refreshCart(); },
-  psClose:()=>closePayStep(), psHp:(k)=>startHitPay(k), trkOpen:()=>trkOpen(), pdPay:()=>pdPay(), pdCancel:()=>pdCancel(), myOpen:()=>myOpen(), myClose:()=>myClose(), myFind:()=>myFind(), myView:(r)=>myView(r), myRcpt:(r)=>myRcpt(r), trkClose:()=>trkClose(), trkClear:()=>trkClear(), trkNotifyAsk:()=>trkNotifyAsk(), psCheck:(v)=>{ $("psSend").disabled=!v; }, psSend:()=>payStepSend(), psDone:()=>payStepDone(), psResend:()=>{ if(payPending) openWa(payPending.msg,payPending.oi); },
+  psClose:()=>closePayStep(), psHp:(k)=>{ const m=hpMethodsList().find(x=>x.key===k); if(m&&m.soon) return __site.psSoon(k); startHitPay(k); }, psSoon:(k)=>{ const e=$("pmsoonmsg"); if(!e) return; const p=S.payment||{}; e.textContent=(lang==="en"?(p.soonMsgEn||p.soonMsg):p.soonMsg)||"功能筹备中，如有不便敬请见谅"; e.hidden=false; e.style.animation="none"; void e.offsetWidth; e.style.animation=""; }, trkOpen:()=>trkOpen(), pdPay:()=>pdPay(), pdCancel:()=>pdCancel(), myOpen:()=>myOpen(), myClose:()=>myClose(), myFind:()=>myFind(), myView:(r)=>myView(r), myRcpt:(r)=>myRcpt(r), trkClose:()=>trkClose(), trkClear:()=>trkClear(), trkNotifyAsk:()=>trkNotifyAsk(), psCheck:(v)=>{ $("psSend").disabled=!v; }, psSend:()=>payStepSend(), psDone:()=>payStepDone(), psResend:()=>{ if(payPending) openWa(payPending.msg,payPending.oi); },
   copy:(txt)=>{ const done=()=>toast(t("copied")+" ✓"); try{ navigator.clipboard.writeText(txt.replace(/\s|-/g,"")).then(done,()=>prompt(t("copy"),txt)); }catch(e){ prompt(t("copy"),txt); } },
   size:(id,si)=>{ curPick(allItems[id]).si=+si; renderMenu(); },
   opt:(id,oi)=>{ curPick(allItems[id]).oi=+oi; renderMenu(); },
@@ -2629,7 +2633,7 @@ function renderPayStep(){
         :P.st==="err"?`<div class="pswait bad"><div><b>${esc(t("hpErrT"))}</b><div class="note">${esc(P.err||t("hpNoNet"))}</div></div></div>
           ${P.retry!==false?`<button type="button" class="btn psgo" onclick="__site.psHp()">🔄 ${esc(t("hpRetry"))}</button>`:""}
           <button type="button" class="btn alt psgo" onclick="__site.psClose()">${esc(t("tkClose"))}</button>`
-        :hpMethodsList().length?`<div class="pmh">${esc(t("pmPick"))}</div><div class="pmlist">${hpMethodsList().map(m=>`<button type="button" class="pm${m.best?" best":""}${m.small?" small":""}" onclick="__site.psHp('${esc(m.key)}')">${pmIcon(m)}<span class="pmt"><b>${esc(L(m,"t"))}</b>${L(m,"d")?`<small>${esc(L(m,"d"))}</small>`:""}</span>${m.best?`<em>${esc(t("pmBest"))}</em>`:""}</button>`).join("")}</div><div class="note">${esc(t("hpAfter"))}</div>`
+        :hpMethodsList().length?`<div class="pmh">${esc(t("pmPick"))}</div><div class="pmlist">${hpMethodsList().map(m=>`<button type="button" class="pm${m.best?" best":""}${m.small?" small":""}${m.soon?" soon":""}" onclick="__site.${m.soon?"psSoon":"psHp"}('${esc(m.key)}')">${pmIcon(m)}<span class="pmt"><b>${esc(L(m,"t"))}</b>${L(m,"d")?`<small>${esc(L(m,"d"))}</small>`:""}</span>${m.best?`<em>${esc(t("pmBest"))}</em>`:""}</button>`).join("")}</div><div class="pmsoonmsg" id="pmsoonmsg" role="alert" hidden></div><div class="note">${esc(t("hpAfter"))}</div>`
         :`<button type="button" class="btn psgo" onclick="__site.psHp()">💳 ${esc(t("hpGo"))}</button><div class="note">${esc(t("hpAfter"))}</div>`}
     </div>`;
     return;

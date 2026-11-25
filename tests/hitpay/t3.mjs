@@ -13,7 +13,7 @@ ok(HP.reqs[id1]&&HP.reqs[id1]["payment_methods[]"]==="duitnow","第一张付款�
 r=await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{},pm:"fpx",repay:true});
 ok(r.status===200&&r.body.url&&r.body.url!==url1&&o.pay_id!==id1,"继续付款换 FPX → 新付款单、新网址");
 ok(HP.reqs[id1].status==="deleted","旧付款单已作废（客人不能再用旧网址付）");
-ok(HP.reqs[o.pay_id]["payment_methods[]"]==="fpx"&&HP.reqs[o.pay_id].amount==="40.30"&&HP.reqs[o.pay_id].reference_number===o.ref,"新付款单：FPX、金额和参考号不变");
+ok(HP.reqs[o.pay_id]["payment_methods[]"]==="duitnow"&&HP.reqs[o.pay_id].amount==="40.30"&&HP.reqs[o.pay_id].reference_number===o.ref,"新付款单：FPX 是「筹备中」不能用 → 强制只用 DuitNow；金额和参考号不变");
 // 3) 继续付款但没选方式 → 照旧网址
 const url2=o.pay_url; r=await call({action:"pay",ref:o.ref,token:o.token,oi:0,cart:{},repay:true});
 ok(r.status===200&&r.body.url===url2,"继续付款没选方式 → 还是同一个网址");
