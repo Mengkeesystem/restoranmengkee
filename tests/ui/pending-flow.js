@@ -24,12 +24,10 @@ await p.screenshot({path:`/tmp/pend-${n}-1.png`});
 // 继续付款 → 选 FPX
 await p.locator('.pendcard .btn').first().click();await p.waitForTimeout(500);
 await p.screenshot({path:`/tmp/pend-${n}-2.png`});
-// 灰色的方式（FPX、信用卡）：点了只出提示，不去付款（2026-11-25）
+// FPX、信用卡已开放（2026-11-27）：不再有灰色的
 console.log(n,'pm count:',await p.locator('#paystep .pm').count(),'soon:',await p.locator('#paystep .pm.soon').count());
-await p.locator('#paystep .pm.soon').first().click();await p.waitForTimeout(300);
-console.log(n,'soon msg:',(await p.locator('#pmsoonmsg').innerText()),'| pay calls:',calls.filter(c=>c.action==='pay').length);
-await p.screenshot({path:`/tmp/pend-${n}-soon.png`});
-await p.locator('#paystep .pm').nth(0).click();await p.waitForTimeout(900);
+await p.locator('#paystep .pm').nth(1).click();await p.waitForTimeout(900);
+
 console.log(n,'repay call:',JSON.stringify(calls.filter(c=>c.action==='pay')[0]),'→ url',p.url().slice(0,70));
 // 回来再取消
 await p.goto('http://localhost:8765/');await p.waitForTimeout(1200);

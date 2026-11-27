@@ -333,8 +333,8 @@ window.SITE = {
     methods: [
       { key: "duitnow", codes: ["duitnow"], best: true, icon: "qr", t: "DuitNow QR", tEn: "DuitNow QR",
         d: "用任何银行 App 或电子钱包扫码付款", dEn: "Scan with any banking app or e-wallet" },
-      { key: "fpx", codes: ["fpx"], soon: true, icon: "bank", t: "FPX 网上银行", tEn: "FPX online banking", d: "用网银转账", dEn: "Pay from your bank account" },
-      { key: "card", codes: ["card"], soon: true, small: true, icon: "card", t: "信用卡 / 借记卡", tEn: "Credit / debit card" },
+      { key: "fpx", codes: ["fpx"], icon: "bank", t: "FPX 网上银行", tEn: "FPX online banking", d: "用网银转账", dEn: "Pay from your bank account" },
+      { key: "card", codes: ["card"], small: true, icon: "card", t: "信用卡 / 借记卡", tEn: "Credit / debit card" },
     ],
     qr: "",                 // TODO 明记的 DuitNow QR 图片
     bankName: "",           // TODO 例如 "Maybank"
@@ -436,7 +436,7 @@ window.SITE = {
          首页外送灯：时段内青色「外送」；结束前 warnMinutes（30 分钟）黄色「最后点餐时间」；时段外红色「停止外送 · 下次几点开启点餐」 */
       windows: { weekday: [["11:00", "14:30"], ["17:00", "21:30"]], weekend: [["11:00", "14:00"], ["17:00", "21:30"]] },
       warnMinutes: 30,
-      maxKm: 15,            // 2026-10-26 业主：Google 路线（驾驶）路程 15km 内才送（10–15km 运费 RM12）
+      // 2026-11-27 业主：送餐改用 Delyva，没有距离限制（不写 maxKm = 不限距离），只会自动选最近的外送分店；运费照 Delyva 报价
       travelMode: "TWO_WHEELER",   // 2026-10-26 业主：距离全部用 Google 路线（Routes API）真实路程；摩托（TWO_WHEELER），算不到才用驾车
       autoDistance: true,   // 显示「📍 用我现在的位置自动算运费」按钮
       minOrder: 30,          // 外送最低消费，0 = 不限
