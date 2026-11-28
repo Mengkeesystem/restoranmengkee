@@ -155,7 +155,7 @@ window.SITE = {
    * 改了退款规则（例如几小时内投诉、几天退款）记得同步改这里，并更新 updated 日期。 */
   policies: {
     "legalName": "TCY Food Management Sdn Bhd (1333819-V)",
-    "updated": "2026-11-01",
+    "updated": "2026-11-28",
     "refund": {
       "title": "退款及取消政策",
       "titleEn": "Refund & Cancellation Policy",
@@ -255,11 +255,13 @@ window.SITE = {
           "hEn": "How we use it",
           "p": [
             "只用来处理您的订单及订位、安排送餐、联系您、处理退款，以及店内对账。",
-            "未经您同意，我们不会用您的资料发送推广讯息，也绝不会出售您的资料。"
+            "未经您同意，我们不会用您的资料发送推广讯息，也绝不会出售您的资料。",
+            "未付款的订单会在 10 分钟后自动取消，您也可以在付款前自行取消。取消的订单资料仍会留在订单系统里，供店内对账和查询。"
           ],
           "pEn": [
             "Only to process your orders and bookings, arrange delivery, contact you, handle refunds and keep our own accounts.",
-            "We will not send you promotions without your consent, and we never sell your data."
+            "We will not send you promotions without your consent, and we never sell your data.",
+            "Unpaid orders are cancelled automatically after 10 minutes, and you can also cancel an unpaid order yourself. Cancelled orders stay in our order system for accounting and enquiries."
           ]
         },
         {

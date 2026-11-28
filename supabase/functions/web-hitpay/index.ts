@@ -29,7 +29,7 @@
 //   分店自己的账号：…/web-hitpay?a=<分店序号>（例如 ?a=0）
 // =====================================================================
 
-const VERSION = "2026-11-25a";
+const VERSION = "2026-11-28a";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -311,14 +311,31 @@ async function pay(req: Request, b: any) {
   // 客人在网站选的付款方式（2026-10-31：先推 DuitNow 等手续费低的）：只认 config.js payment.methods 里的组别，代码只准字母/底线
   const grp = pickGroup(S, b.pm);
   const codes = grp && Array.isArray(grp.codes) ? grp.codes.map(String).filter((c: string) => /^[a-z_]{2,40}$/.test(c)).slice(0, 10) : [];
-  let reqHp: any;
-  if (codes.length) {
-    try { if (codes.length) reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
-    catch (e) { console.log(`pay ${o.ref} methods ${codes.join(",")} refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }   // 账号没开这个方式：改成全部方式
+  // 先「占位」再建付款单（2026-11-28）：两个请求同时来（连按、两个分页）只有一个能建，免得同一张单有两张 HitPay 付款单
+  const claim = await patch(o.id, { pay_provider: "hitpay", pay_acct: acct.id, pay_status: "creating" }, "&status=eq.pending&pay_id=is.null&pay_status=is.null");
+  if (!claim || !claim.length) {
+    for (let i = 0; i < 4; i++) {   // 别的请求正在建：等一下，建好了就用它的付款页
+      await new Promise((r) => setTimeout(r, 1200));
+      const again = (await db(`web_orders?id=eq.${o.id}&select=pay_url,amount,status`))?.[0];
+      if (again?.pay_url) return { ok: true, url: again.pay_url, amount: Number(again.amount) };
+      if (again && again.status !== "pending") throw new UserError("这张订单已取消");
+    }
+    throw new UserError("付款页正在建立，请几秒后再按一次");
   }
-  if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
+  let reqHp: any;
+  try {
+    if (codes.length) {
+      try { reqHp = await hp(acct, "POST", "/v1/payment-requests", { ...form, "payment_methods[]": codes }); }
+      catch (e) { console.log(`pay ${o.ref} methods ${codes.join(",")} refused, retry all: ${String((e as Error).message).slice(0, 120)}`); }   // 账号没开这个方式：改成全部方式
+    }
+    if (!reqHp) reqHp = await hp(acct, "POST", "/v1/payment-requests", form);
+  } catch (e) {
+    await patch(o.id, { pay_provider: null, pay_acct: null, pay_status: null }, "&pay_id=is.null").catch(() => {});   // 建不出来：放掉占位，客人可以再按
+    throw e;
+  }
   const url = String(reqHp?.url || ""), id = String(reqHp?.id || "");
   if (!HPID_RE.test(id) || !hpUrlOk(url)) {
+    await patch(o.id, { pay_provider: null, pay_acct: null, pay_status: null }, "&pay_id=is.null").catch(() => {});
     let host = ""; try { host = new URL(url).hostname; } catch { /* */ }
     throw new Error(`HitPay 没有回传付款页（id=${id.slice(0, 40)} host=${host || "-"} keys=${Object.keys(reqHp || {}).join(",").slice(0, 120)}）`);
   }
@@ -407,12 +424,16 @@ async function sweepStale() {
     const from = new Date(Date.now() - 3 * 86400000).toISOString(), to = new Date(Date.now() - (PENDING_MS + 60000)).toISOString();
     const rows = await db(`web_orders?status=eq.pending&created_at=gte.${from}&created_at=lt.${to}&select=*&order=created_at.asc&limit=5`);
     for (const o of rows || []) {
-      if (o.pay_provider === "hitpay" && o.pay_id) {
-        const r = await confirmFromHitPay(o, "sweep"); if (r.status === "paid" || r.pay === "mismatch") continue;
-        await dropRequest(o);
-      }
-      await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：逾期未付款", pay_status: "expired" }, "&status=eq.pending");
-      console.log(`sweep ${o.ref} expired`);
+      try {   // 每张单各自处理：一张查不到（例如换账号后的旧单）不会卡住后面的单（2026-11-28）
+        if (o.pay_provider === "hitpay" && o.pay_id) {
+          let r: any = null;
+          try { r = await confirmFromHitPay(o, "sweep"); } catch (e) { console.log(`sweep ${o.ref} HitPay 查不到（${String((e as Error).message).slice(0, 100)}），当作没付款处理`); }
+          if (r && (r.status === "paid" || r.pay === "mismatch")) continue;
+          await dropRequest(o);
+        }
+        await patch(o.id, { status: "rejected", confirmed_at: new Date().toISOString(), confirmed_by: "系统：逾期未付款", pay_status: "expired" }, "&status=eq.pending");
+        console.log(`sweep ${o.ref} expired`);
+      } catch (e) { console.log(`sweep ${o.ref} error ${String((e as Error).message).slice(0, 120)}`); }
     }
   } catch (e) { console.log(`sweep error ${String((e as Error).message).slice(0, 160)}`); }
 }

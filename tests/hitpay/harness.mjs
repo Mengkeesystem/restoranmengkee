@@ -6,7 +6,7 @@ let handler; globalThis.Deno={env:{get:k=>ENV[k]},serve:h=>{handler=h;}};
 const CFG=fs.readFileSync(process.env.HP_CFG||"/home/user/restoranmengkee/config.js","utf8");
 const J=(x,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{"content-type":"application/json"}});
 function q(u){ const url=new URL(u); const f={}; url.searchParams.forEach((v,k)=>{ if(k!=="select") f[k]=v; }); return f; }
-function match(o,f){ return Object.entries(f).every(([k,v])=>{ const m=v.match(/^eq\.(.*)$/); return m?String(o[k])===decodeURIComponent(m[1]):true; }); }
+function match(o,f){ return Object.entries(f).every(([k,v])=>{ if(v==="is.null") return o[k]==null; const m=v.match(/^eq\.(.*)$/); return m?String(o[k])===decodeURIComponent(m[1]):true; }); }
 const realFetch=globalThis.fetch;
 export const mockFetch=async(u,init={})=>{ u=String(u); const m=(init.method||"GET").toUpperCase();
   if(u.startsWith("https://restoranmengkee.com.my/config.js")) return new Response(CFG,{status:200});

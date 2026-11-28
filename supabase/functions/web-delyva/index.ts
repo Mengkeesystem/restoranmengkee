@@ -28,7 +28,7 @@
 // API 格式照 Delyva 官方 WooCommerce 插件（github.com/delyva/wp-delyvax）。
 // =====================================================================
 
-const VERSION = "2026-11-23a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
+const VERSION = "2026-11-28a";   // 改程序就改这个，员工后台会显示，方便确认部署的是哪一版
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const SB_URL = env("SUPABASE_URL");
 const SRK = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -44,8 +44,11 @@ const PREF_SERVICE = env("WEB_DELYVA_SERVICE").toLowerCase();
 const SORT = env("WEB_DELYVA_SORT", "fastest").toLowerCase();
 const MAXFEE = Number(env("WEB_DELYVA_MAXFEE", "100")) || 100;
 const words = (v: string) => v.toLowerCase().split("|").map((x) => x.trim()).filter(Boolean);
-const ONLY = words(env("WEB_DELYVA_ONLY", "instant|grab|lalamove|borzo|motor|bike|rider|on-demand|ondemand|express"));
-const EXCLUDE = words(env("WEB_DELYVA_EXCLUDE", "same-day|sameday|next-day|nextday|ndd|international|dhl|ecommerce|e-commerce|cargo|lorry|truck|van|4x4|economy|pickup point|drop"));
+const ONLY = words(env("WEB_DELYVA_ONLY", "instant|grab|lalamove|borzo|motor|bike|rider|on-demand|ondemand"));
+const EXCLUDE = words(env("WEB_DELYVA_EXCLUDE", "same-day|sameday|next-day|nextday|ndd|international|dhl|ecommerce|e-commerce|cargo|lorry|truck|van|4x4|economy|pickup point|drop|j&t|jnt|skynet|gdex|citylink|city-link|poslaju|pos laju|ninja|flash|kerry|best express|aramex"));
+// 同样快（或都不知道送达时间）时，优先选这些（2026-11-28 业主：首选最快的，例如 GrabExpress）：按顺序，名字含这个词的排前面
+const PREFER = words(env("WEB_DELYVA_PREFER", "grab|lalamove"));
+const preferRank = (x: any) => { const l = svcLabel(x); const i = PREFER.findIndex((w) => l.includes(w)); return i < 0 ? PREFER.length : i; };
 const PICKUP_MIN = Math.max(0, Math.min(120, Number(env("WEB_DELYVA_PICKUP_MIN", "15")) || 15));
 const FN_URL = `${SB_URL}/functions/v1/web-delyva`;
 const ORIGINS = ["https://mengkeesystem.github.io", "https://restoranmengkee.com.my", "https://www.restoranmengkee.com.my"];
@@ -185,7 +188,7 @@ async function quoteFor(out: any, d: any, weight: number) {
   if (services[0]) console.log(`quote raw: ${JSON.stringify(services[0]).slice(0, 700)}`);   // 看 Delyva 给了哪些字段（有没有送达时间可以排最快）
   const pick = priced.length ? ((PREF_SERVICE && priced.find((s) => [svcCode(s), s?.service?.code, s?.service?.name, s?.name].some((v) => String(v || "").toLowerCase().includes(PREF_SERVICE))))
     || (SORT === "cheapest" ? priced.slice().sort((a, b) => svcPrice(a) - svcPrice(b))[0]
-      : priced.map((x, i) => ({ x, i })).sort((a, b) => (svcDur(a.x) - svcDur(b.x)) || (a.i - b.i))[0].x)) : null;   // 最快：duration 最短，一样（或都不知道）就照 Delyva 顺序
+      : priced.map((x, i) => ({ x, i })).sort((a, b) => (svcDur(a.x) - svcDur(b.x)) || (preferRank(a.x) - preferRank(b.x)) || (a.i - b.i))[0].x)) : null;   // 最快：duration 最短，一样（或都不知道）就照 Delyva 顺序
   const show = (x: any) => `${svcName(x)}=RM${svcPrice(x)}/${svcDur(x) === Infinity ? "?" : svcDur(x)}${isFinite(svcKm(x)) ? `/${svcKm(x)}km` : ""}`;   // 名字=价钱/送达时间/路程
   console.log(`quote ${itemType} ${weight}kg ⇒ 选中 ${pick ? show(pick) : "-（没有即时骑手服务）"} ｜ 即时: ${priced.map(show).join(", ") || "无"} ｜ 全部: ${services.map(show).join(", ") || "无服务"}`);
   return { pick, itemType, quoteRaw, dpc, dState, oState };
@@ -303,7 +306,7 @@ async function hmacOk(raw: string, sig: string) {
 async function webhook(req: Request, raw: string) {
   let data: any; try { data = JSON.parse(raw); } catch { return json(req, { error: "bad json" }, 400); }
   if (DSECRET) {
-    if (!(await hmacOk(raw, req.headers.get("x-delyvax-hmac-sha256") || ""))) return json(req, { error: "bad signature" }, 401);
+    if (!(await hmacOk(raw, req.headers.get("x-delyvax-hmac-sha256") || ""))) { console.log("webhook bad signature（API Secret 不对，或 Delyva 的签名方式跟预期不同）"); return json(req, { error: "bad signature" }, 401); }
   } else if (DCODE.toLowerCase() !== "trydx") {
     // 正式账号一定要有 API Secret 验签：customerId 不是秘密，只核对它别人可以伪造「已送达」或塞假骑手电话给客人
     return json(req, { error: "webhook secret not set" }, 401);
@@ -381,17 +384,19 @@ Deno.serve(async (req) => {
     const problems: string[] = [];
     if (!(DKEY && DCUST)) problems.push("没设定 Delyva API Key / Customer ID");
     if (DCODE.toLowerCase() !== "trydx" && !DSECRET) problems.push("正式账号没设 API Secret（送达不会自动完成）");
-    return json(req, { ok: problems.length === 0, version: VERSION, problems }, problems.length ? 503 : 200);
+    return json(req, { ok: problems.length === 0, version: VERSION, testMode: DCODE.toLowerCase() === "trydx", problems }, problems.length ? 503 : 200);
   }
   if (req.method !== "POST") return json(req, { error: "method" }, 405);
   const raw = await req.text();
   const isHook = req.headers.has("x-delyvax-hmac-sha256") || req.headers.has("x-delyvax-event") || /"consignmentNo"/.test(raw);
+  let authed = false;
   try {
     if (isHook) return await webhook(req, raw);
     let pb: any = {}; try { pb = JSON.parse(raw || "{}"); } catch { /* */ }
     if (pb && pb.action === "quote") return json(req, await publicQuote(req, pb));   // 客人报价不用登录
     const st = await staffInfo(req);
     if (!st) return json(req, { error: "请用店员账号登录" }, 401);
+    authed = true;   // 过了登录检查才算：之后出错才会把错误写到订单上（匿名的人不能让别人的订单显示「叫车失败」）
     const by = st.email;
     let body: any = {}; try { body = JSON.parse(raw || "{}"); } catch { /* */ }
     const id = Number(body.id);
@@ -405,9 +410,10 @@ Deno.serve(async (req) => {
     return json(req, { error: "unknown action" }, 400);
   } catch (e) {
     const msg = String((e as Error)?.message || e).slice(0, 300);
-    if (!isHook) {
+    if (!isHook && authed) {
       try { const b = JSON.parse(raw || "{}"), id = Number(b.id); if (id && b.action !== "simulate") await patchOrder(id, { courier_error: msg }); } catch { /* */ }
     }
+    if (!authed) { console.log(`anon error: ${msg}`); return json(req, { error: "暂时算不到运费，请稍后再试" }, 400); }   // 没登录的人只回通用错误，不泄露 Delyva 的原始内容
     return json(req, { error: msg }, 400);
   }
 });
